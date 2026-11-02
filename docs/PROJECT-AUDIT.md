@@ -248,11 +248,17 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote Q — Reservas: ocupación del horario (rama `claude/bookings-report`, PR #53)
 
-- Estado: **pendiente de auditoría**. Sin migración.
+- Estado: `APROBADO CON PENDIENTES` en `6e7f31d` (5 P2) → corregidos, **pendiente de re-auditoría**. Sin migración.
 - Pedido del usuario: informes operativos; el de Reservas era un historial con un "% de asistencia" que no medía asistencia. Propuesta aprobada.
 - Criterios: periodo 30/90 días/12 meses con comparación con el tramo anterior; hora de pared (`scheduledAt` en campos UTC = hora del horario) también para "ahora"; sesiones sin reservas cuentan como 0 desde la primera reserva del colegio y el alta de la clase, sin ocurrencias canceladas; solo sesiones terminadas; poca gente / casi llena / sin marcar / fuera de horario; tarjeta de la portada sin cambios (`/bookings/chart`); lista completa con CSV; enlace al calendario para marcar asistencia; 4 idiomas; móvil.
 - A revisar: franjas con varias horas el mismo día; cambios de horario dentro del periodo (aparecen como fuera de horario); clases inactivas; escuelas sin reservas (estado vacío); rendimiento con 12 meses + 12 anteriores de reservas; el enlace del calendario con fechas de otra semana/mes.
 - No verificado: navegador y datos reales.
+- Hallazgos de Codex en `6e7f31d` y corrección:
+  1. P2 — el horario actual inventaba sesiones pasadas tras un cambio de horario: las sesiones vacías solo cuentan desde la primera reserva de esa franja exacta.
+  2. P2 — clases que cruzan medianoche contaban como terminadas: duración = fin − inicio + 24 h si el fin es anterior.
+  3. P2 — "sin marcar" se adelantaba en DST: el final y las 3 h se miden en instantes reales (`wallToInstant`).
+  4. P2 — "Marcar asistencia" no abría sesiones a una hora que ya no está en el horario: el calendario sintetiza la sesión por clase, fecha y hora.
+  5. P2 — la lista conservaba filas de otro filtro tras un error: se vacía al cambiar de contexto y Exportar exige datos vigentes sin error.
 
 ## Próxima entrega de Claude
 

@@ -65,6 +65,17 @@ export const hhmm = (d: Date) => d.toISOString().slice(11, 16)
 const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return (h ?? 0) * 60 + (m ?? 0) }
 const fromMin = (n: number) => `${String(Math.floor(n / 60) % 24).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`
 
+/**
+ * The real instant of a wall-clock time in the school's timezone (inverse of
+ * wallClock). Two passes of the offset, so DST days resolve correctly; a wall
+ * time inside a spring-forward gap lands just after it.
+ */
+export function wallToInstant(wall: Date, timeZone: string): Date {
+  const offsetAt = (t: number) => wallClock(new Date(t), timeZone).getTime() - Math.floor(t / 1000) * 1000
+  const first = wall.getTime() - offsetAt(wall.getTime())
+  return new Date(wall.getTime() - offsetAt(first))
+}
+
 /** The last N days up to now (today included), and the same length right before it */
 export function occupancyWindows(period: OccPeriod, nowWall: Date): { current: Window; previous: Window } {
   const days = PERIOD_DAYS[period]
@@ -78,10 +89,22 @@ export function occupancyWindows(period: OccPeriod, nowWall: Date): { current: W
 const attendedOf = (b: OccBooking) => b.attended || b.status === 'COMPLETED'
 const isBooked = (b: OccBooking) => b.status !== 'CANCELLED'
 
-function slotMinutes(cls: OccClass, slot: ScheduleSlotIn): number {
-  const len = slot.endTime ? toMin(slot.endTime) - toMin(slot.startTime) : 0
-  return len > 0 ? len : (cls.duration && cls.duration > 0 ? cls.duration : DEFAULT_MINUTES)
+const classMinutes = (cls: OccClass) => (cls.duration && cls.duration > 0 ? cls.duration : DEFAULT_MINUTES)
+
+/** Slot length; an end time at or before the start means it runs past midnight */
+export function slotMinutes(cls: OccClass, slot: ScheduleSlotIn): number {
+  if (!slot.endTime || !/^\d{2}:\d{2}$/.test(slot.endTime) || slot.endTime === slot.startTime) return classMinutes(cls)
+  const len = toMin(slot.endTime) - toMin(slot.startTime)
+  return len > 0 ? len : len + 24 * 60
 }
+
+/** Key of a timetable slot, also used for the first booking ever seen on it */
+export const slotKey = (classId: string, dayOfWeek: number, time: string) => `${classId}|${dayOfWeek}|${time}`
+
+interface Clock { now: Date; timeZone: string; nowWall: Date }
+/** Has a session (wall start + minutes) ended, plus a margin, in real elapsed time? */
+const endedBy = (clock: Clock, wallStart: Date, minutes: number, marginMin = 0) =>
+  wallToInstant(new Date(wallStart.getTime() + minutes * 60_000), clock.timeZone).getTime() + marginMin * 60_000 <= clock.now.getTime()
 
 export interface SlotStat {
   key: string
@@ -120,46 +143,48 @@ export interface OffSession {
 export interface UnmarkedSession { classId: string; className: string; date: string; time: string; unmarked: number }
 
 interface SessionAgg { booked: number; attended: number }
+type InternalSlot = Omit<SlotStat, 'prevAvgAttended' | 'trend' | 'low' | 'full' | 'overlaps'> & { minutes: number }
 
 const round1 = (n: number) => Math.round(n * 10) / 10
 
 /**
  * Per timetable slot: sessions held in the window and how many came.
- * A session is held when it has ended by now. Sessions with nobody booked
- * still count (as zero) from the later of the window start, the class's
- * creation and the school's first booking, minus cancelled occurrences.
+ * A session is held when it has ended by now (real time). A session nobody
+ * booked still counts (as zero), but only from the first booking ever made on
+ * that exact slot: the timetable as it is today says nothing about the times
+ * a class ran before a schedule change. Cancelled occurrences never count.
  */
 function slotsFor(input: {
   classes: OccClass[]; bookings: OccBooking[]; cancellations: Cancellation[]
-  window: Window; nowWall: Date; firstBookingAt: Date | null
-}): { slots: Map<string, Omit<SlotStat, 'prevAvgAttended' | 'trend' | 'low' | 'full' | 'overlaps'>>; off: OffSession[] } {
-  const { classes, bookings, window, nowWall, firstBookingAt } = input
+  window: Window; clock: Clock; slotFirstSeen: Record<string, Date>
+}): { slots: Map<string, InternalSlot>; off: OffSession[] } {
+  const { classes, bookings, window, clock, slotFirstSeen } = input
   const cancelled = new Set(input.cancellations.map(c => `${c.classId}|${c.date}`))
   const byClass = new Map(classes.map(c => [c.id, c]))
-  const slots = new Map<string, Omit<SlotStat, 'prevAvgAttended' | 'trend' | 'low' | 'full' | 'overlaps'>>()
+  const slots = new Map<string, InternalSlot>()
   const sessions = new Map<string, Map<string, SessionAgg>>() // slot key → date → counts
   const off = new Map<string, OffSession>()
 
   for (const cls of classes) {
     for (const s of cls.schedule) {
       if (!Number.isInteger(s.dayOfWeek) || !/^\d{2}:\d{2}$/.test(s.startTime)) continue
-      const key = `${cls.id}|${s.dayOfWeek}|${s.startTime}`
+      const key = slotKey(cls.id, s.dayOfWeek, s.startTime)
       const minutes = slotMinutes(cls, s)
       slots.set(key, {
-        key, classId: cls.id, className: cls.name, dayOfWeek: s.dayOfWeek, time: s.startTime,
+        key, minutes, classId: cls.id, className: cls.name, dayOfWeek: s.dayOfWeek, time: s.startTime,
         endTime: fromMin(toMin(s.startTime) + minutes), capacity: cls.capacity && cls.capacity > 0 ? cls.capacity : null,
         sessions: 0, attended: 0, booked: 0, avgAttended: 0, avgBooked: 0, fill: null,
       })
       const dates = new Map<string, SessionAgg>()
       sessions.set(key, dates)
-      if (!cls.isActive) continue
-      // Expected occurrences, booked or not
-      const starts = [window.from, startOfDay(cls.createdAt), firstBookingAt ? startOfDay(firstBookingAt) : window.to]
-      const first = new Date(Math.max(...starts.map(d => d.getTime())))
+      const firstSeen = slotFirstSeen[key]
+      if (!cls.isActive || !firstSeen) continue
+      // Expected occurrences, booked or not, once the slot is known to run
+      const first = new Date(Math.max(window.from.getTime(), startOfDay(cls.createdAt).getTime(), startOfDay(firstSeen).getTime()))
       for (let d = startOfDay(first); d <= window.to; d = new Date(d.getTime() + DAY)) {
         if (d.getUTCDay() !== s.dayOfWeek) continue
         const start = new Date(d.getTime() + toMin(s.startTime) * 60_000)
-        if (start < window.from || start.getTime() + minutes * 60_000 > nowWall.getTime()) continue
+        if (start < window.from || start < firstSeen || !endedBy(clock, start, minutes)) continue
         if (cancelled.has(`${cls.id}|${dateKey(d)}`)) continue
         dates.set(dateKey(d), { booked: 0, attended: 0 })
       }
@@ -171,10 +196,9 @@ function slotsFor(input: {
     const cls = byClass.get(b.classId)
     if (!cls || !isBooked(b)) continue
     const time = hhmm(b.scheduledAt)
-    const key = `${cls.id}|${b.scheduledAt.getUTCDay()}|${time}`
+    const key = slotKey(cls.id, b.scheduledAt.getUTCDay(), time)
     const slot = slots.get(key)
-    const minutes = slot ? toMin(slot.endTime) - toMin(slot.time) : (cls.duration ?? DEFAULT_MINUTES)
-    if (b.scheduledAt.getTime() + minutes * 60_000 > nowWall.getTime()) continue // not over yet
+    if (!endedBy(clock, b.scheduledAt, slot ? slot.minutes : classMinutes(cls))) continue // not over yet
     const date = dateKey(b.scheduledAt)
     if (slot) {
       const dates = sessions.get(key)!
@@ -230,12 +254,16 @@ export function buildOccupancy(input: {
   bookings: OccBooking[]
   cancellations: Cancellation[]
   period: OccPeriod
-  nowWall: Date
-  firstBookingAt: Date | null
+  /** Real current instant and the school's timezone */
+  now: Date
+  timeZone: string
+  /** First non-cancelled booking ever seen on each slot (slotKey), any date */
+  slotFirstSeen: Record<string, Date>
 }): Occupancy {
-  const { current, previous } = occupancyWindows(input.period, input.nowWall)
-  const cur = slotsFor({ ...input, window: current })
-  const prev = slotsFor({ ...input, window: previous })
+  const clock: Clock = { now: input.now, timeZone: input.timeZone, nowWall: wallClock(input.now, input.timeZone) }
+  const { current, previous } = occupancyWindows(input.period, clock.nowWall)
+  const cur = slotsFor({ ...input, clock, window: current })
+  const prev = slotsFor({ ...input, clock, window: previous })
 
   const all = [...cur.slots.values()].filter(s => s.sessions > 0)
   const slots: SlotStat[] = all.map(s => {
@@ -246,14 +274,15 @@ export function buildOccupancy(input: {
       const diff = s.avgAttended - prevAvg
       if (Math.abs(diff) >= Math.max(1, prevAvg * 0.15)) trend = diff > 0 ? 'UP' : 'DOWN'
     }
-    const start = toMin(s.time), end = toMin(s.endTime) > start ? toMin(s.endTime) : start + DEFAULT_MINUTES
+    const start = toMin(s.time), end = start + s.minutes
     const overlaps = all
-      .filter(o => o.classId !== s.classId && o.dayOfWeek === s.dayOfWeek && toMin(o.time) < end && start < (toMin(o.endTime) > toMin(o.time) ? toMin(o.endTime) : toMin(o.time) + DEFAULT_MINUTES))
+      .filter(o => o.classId !== s.classId && o.dayOfWeek === s.dayOfWeek && toMin(o.time) < end && start < toMin(o.time) + o.minutes)
       .sort((a, b) => b.avgAttended - a.avgAttended)
       .map(o => ({ className: o.className, time: o.time, avgAttended: o.avgAttended }))
     const peak = Math.max(s.avgAttended, s.avgBooked)
+    const { minutes: _minutes, ...pub } = s // eslint-disable-line @typescript-eslint/no-unused-vars
     return {
-      ...s,
+      ...pub,
       prevAvgAttended: prevAvg,
       trend,
       low: s.sessions >= LOW_MIN_SESSIONS && s.avgAttended < LOW_AVG,
@@ -275,7 +304,7 @@ export function buildOccupancy(input: {
   const withCap = slots.filter(s => s.capacity)
   const capSeats = withCap.reduce((n, s) => n + s.sessions * s.capacity!, 0)
 
-  const inWindow = (b: OccBooking, w: Window) => b.scheduledAt >= w.from && b.scheduledAt <= w.to && b.scheduledAt <= input.nowWall
+  const inWindow = (b: OccBooking, w: Window) => b.scheduledAt >= w.from && b.scheduledAt <= w.to && b.scheduledAt <= clock.nowWall
   const curBookings = input.bookings.filter(b => inWindow(b, current))
   const students = new Set(curBookings.filter(attendedOf).map(b => b.userId)).size
   const prevStudents = new Set(input.bookings.filter(b => inWindow(b, previous) && attendedOf(b)).map(b => b.userId)).size
@@ -290,9 +319,9 @@ export function buildOccupancy(input: {
     const cls = byClass.get(b.classId)
     if (!cls) continue
     const time = hhmm(b.scheduledAt)
-    const slot = cur.slots.get(`${cls.id}|${b.scheduledAt.getUTCDay()}|${time}`)
-    const minutes = slot ? toMin(slot.endTime) - toMin(slot.time) : (cls.duration ?? DEFAULT_MINUTES)
-    if (b.scheduledAt.getTime() + (minutes + UNMARKED_AFTER_MIN) * 60_000 > input.nowWall.getTime()) continue
+    const slot = cur.slots.get(slotKey(cls.id, b.scheduledAt.getUTCDay(), time))
+    // Three real hours after the class ended (not wall hours: DST nights differ)
+    if (!endedBy(clock, b.scheduledAt, slot ? slot.minutes : classMinutes(cls), UNMARKED_AFTER_MIN)) continue
     const key = `${cls.id}|${dateKey(b.scheduledAt)}|${time}`
     const u = unmarked.get(key) ?? { classId: cls.id, className: cls.name, date: dateKey(b.scheduledAt), time, unmarked: 0 }
     u.unmarked++

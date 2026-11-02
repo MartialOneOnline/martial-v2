@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (o) (rama `claude/bookings-report`, PR [#53](https://github.com/MartialOneOnline/martial-v2/pull/53) — pendiente de Project Audit; sin migración)
+### Sesión — 2026-11-02 (o) (rama `claude/bookings-report`, PR [#53](https://github.com/MartialOneOnline/martial-v2/pull/53) — `APROBADO CON PENDIENTES` en `6e7f31d` (5 P2) → corregidos, pendiente de re-auditoría; sin migración)
 
 **Informe de Reservas rehecho: ocupación del horario.** Diagnóstico con datos de RGM (lectura autorizada por el usuario, solo RGM, 90 días): 2.005 asistencias de 147 alumnos, de ~55 a ~200 reservas/semana entre agosto y octubre; 113 canceladas, 59 no presentados, 93 reservas pasadas sin marcar; la mitad de las reservas las añade el staff. Todas las clases tienen 30 plazas y ninguna pasa de ~20 de media. Iniciación del jueves 19:00 tiene 2,8 de media a la misma hora que Jiu Jitsu Todos (19,5). El informe anterior llamaba "asistencia" a confirmadas/total (casi siempre ~100 %), no conocía NO_SHOW ni PENDING y agrupaba en la zona del servidor. Propuesta aprobada ("Sí, así").
 - **Convención de horas:** `Booking.scheduledAt` guarda la hora del horario en campos UTC (una clase de las 10:00 se guarda como 10:00Z; ver `scheduledAtForDate`). El informe trabaja en esa "hora de pared": `wallClock(now, tz)` lleva el ahora del colegio al mismo formato. Una primera consulta que convertía a Europe/Madrid mostraba franjas falsas desplazadas 1–2 h; con la convención correcta solo quedan ~8 sesiones sueltas fuera de horario.
@@ -281,6 +281,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 - Calendario: enlace directo `/dashboard/classes/calendar?date=YYYY-MM-DD&class=<id>&time=HH:MM` abre la lista de esa sesión para marcar asistencia.
 - Tests: `bookingsOccupancy` (11); `dashboardReportAuthGuards` cubre `list` y `chart`. Suite 1151 / 55 preexistentes; tsc 0; ESLint sin avisos nuevos.
 - No verificado: navegador y datos reales.
+- **Correcciones de auditoría (5 P2 en `6e7f31d`):** (1) las sesiones vacías ya no salen del horario actual proyectado hacia atrás: solo cuentan desde la primera reserva de esa franja exacta (`slotFirstSeen`, consulta agregada por clase × día × hora), así un cambio de horario no inventa sesiones ni marca "Poca gente"; las sesiones reales a la hora antigua quedan como "fuera de horario"; (2) clases que cruzan medianoche (23:30–01:30 = 120 min) — `slotMinutes()`; (3) "terminada" y "sin marcar" se calculan en instantes reales con `wallToInstant()` (DST), la sesión se sigue identificando en hora de pared; (4) "Marcar asistencia" abre la sesión aunque su hora ya no esté en el horario (el roster se consulta por fecha y hora); (5) la lista completa vacía las filas al cambiar de filtro/página y no permite exportar hasta tener datos del filtro vigente; el error de exportación va aparte. Tests `bookingsOccupancy` 15. Suite 1155 / 55.
 
 ### Sesión — 2026-11-02 (n) (rama `claude/dashboard-revenue-chart`, PR [#52](https://github.com/MartialOneOnline/martial-v2/pull/52) — `APROBADO CON PENDIENTES` en `88c3732` (2 P2 heredados) → **`APROBADO`** en `3c8a659`, sin hallazgos abiertos; sin migración; pendiente: prueba manual del usuario)
 

@@ -353,6 +353,8 @@ function AllBookings({ period }: { period: Period }) {
   const [total, setTotal] = useState(0)
   const [error, setError] = useState(false)
   const [exporting, setExporting] = useState(false)
+  // A failed export is reported apart: the rows on screen are still current
+  const [exportError, setExportError] = useState(false)
   const requestId = useRef(0)
 
   // Debounce the search box
@@ -365,7 +367,9 @@ function AllBookings({ period }: { period: Period }) {
   useEffect(() => {
     if (!open) return
     const id = ++requestId.current
-    setError(false)
+    // Drop the rows of the previous filter/page: on an error they would sit
+    // under the new filter and be exported as if they belonged to it
+    setError(false); setExportError(false); setRows(null); setTotal(0)
     fetch(`/api/dashboard/reports/bookings/list?${params(page, LIST_PAGE)}`)
       .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json() })
       .then((d: { bookings: ListRow[]; total: number }) => { if (id === requestId.current) { setRows(d.bookings); setTotal(d.total) } })
@@ -376,14 +380,14 @@ function AllBookings({ period }: { period: Period }) {
   const statusLabel = (s: string) => r.status[s as keyof typeof r.status] ?? s
 
   async function exportCsv() {
-    setExporting(true); setError(false)
+    setExporting(true); setExportError(false)
     try {
       const res = await fetch(`/api/dashboard/reports/bookings/list?${params(1, 5000)}`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const d: { bookings: ListRow[] } = await res.json()
       downloadCsv('bookings', [r.colMember, 'Email', r.colClass, r.colDate, r.colStatus, r.colAttended, r.colBookedBy],
         d.bookings.map(b => [b.userName, b.userEmail, b.className, fmt(b.scheduledAt), statusLabel(b.status), b.attended ? '✓' : '', b.bookedBy === 'STAFF' ? r.byStaff : r.bySelf]), { locale })
-    } catch { setError(true) } finally { setExporting(false) }
+    } catch { setExportError(true) } finally { setExporting(false) }
   }
 
   const pages = Math.max(1, Math.ceil(total / LIST_PAGE))
@@ -408,14 +412,14 @@ function AllBookings({ period }: { period: Period }) {
               <input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder={r.searchPlaceholder} aria-label={r.searchPlaceholder}
                 style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
             </div>
-            <button onClick={exportCsv} disabled={exporting || total === 0} className="flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-default"
+            <button onClick={exportCsv} disabled={exporting || error || rows === null || total === 0} className="flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-default"
               style={{ fontSize: 12, fontWeight: 600, height: 32, padding: '0 12px', borderRadius: 999, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
               <Download size={13} /> {r.exportCsv}
             </button>
           </div>
-          {error && <p role="alert" style={{ fontSize: 12, color: '#DC2626', padding: '0 16px 8px', margin: 0 }}>{r.loadError}</p>}
+          {(error || exportError) && <p role="alert" style={{ fontSize: 12, color: '#DC2626', padding: '0 16px 8px', margin: 0 }}>{r.loadError}</p>}
           <div style={{ overflowX: 'auto' }}>
-            {rows === null ? <Empty text={r.loading} /> : rows.length === 0 ? <Empty text={r.noResults} /> : (
+            {rows === null ? (error ? null : <Empty text={r.loading} />) : rows.length === 0 ? <Empty text={r.noResults} /> : (
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
                 <thead><tr style={{ background: '#F9FAFB' }}><th style={TH}>{r.colMember}</th><th style={TH}>{r.colClass}</th><th style={TH}>{r.colDate}</th><th style={TH}>{r.colStatus}</th><th style={TH}>{r.colBookedBy}</th></tr></thead>
                 <tbody>{rows.map(b => (

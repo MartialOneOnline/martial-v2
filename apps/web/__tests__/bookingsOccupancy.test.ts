@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
-  buildOccupancy, occupancyWindows, parseSchedule, wallClock,
-  type OccBooking, type OccClass,
+  buildOccupancy, occupancyWindows, parseSchedule, slotKey, slotMinutes, wallClock, wallToInstant,
+  type OccBooking, type OccClass, type OccPeriod,
 } from '@/lib/bookings/occupancy'
 
 // Wall time: scheduledAt keeps the timetable's local time in UTC fields
@@ -16,6 +16,22 @@ let n = 0
 const book = (classId: string, at: string, over: Partial<OccBooking> = {}): OccBooking => ({
   classId, userId: `u${n++}`, scheduledAt: w(at), status: 'COMPLETED', attended: true, bookedByRole: 'STUDENT', ...over,
 })
+// First booking ever on each slot, as the API computes it
+const firstSeen = (bookings: OccBooking[]) => {
+  const out: Record<string, Date> = {}
+  for (const b of bookings) {
+    if (b.status === 'CANCELLED') continue
+    const k = slotKey(b.classId, b.scheduledAt.getUTCDay(), b.scheduledAt.toISOString().slice(11, 16))
+    if (!out[k] || b.scheduledAt < out[k]!) out[k] = b.scheduledAt
+  }
+  return out
+}
+// Wall clock = UTC unless a test needs a real timezone
+const run = (classes: OccClass[], bookings: OccBooking[], opts: { now?: Date; timeZone?: string; period?: OccPeriod; cancellations?: { classId: string; date: string }[] } = {}) =>
+  buildOccupancy({
+    classes, bookings, cancellations: opts.cancellations ?? [], period: opts.period ?? '30d',
+    now: opts.now ?? NOW_WALL, timeZone: opts.timeZone ?? 'UTC', slotFirstSeen: firstSeen(bookings),
+  })
 const times = (k: number, classId: string, at: string, over: Partial<OccBooking> = {}) => Array.from({ length: k }, () => book(classId, at, over))
 
 const beginners = cls({ id: 'beg', name: 'Beginners', schedule: [{ dayOfWeek: 4, startTime: '19:00', endTime: '20:00' }] })
@@ -36,14 +52,7 @@ function scenario() {
     // Previous 30 days (4 Sep – 3 Oct): Thursdays 10, 17, 24 Sep and 1 Oct, 6 each
     ...['09-10', '09-17', '09-24', '10-01'].flatMap(d => times(6, 'beg', `2026-${d}T19:00:00`)),
   ]
-  return buildOccupancy({
-    classes: [beginners, allLevels, grading],
-    bookings,
-    cancellations: [{ classId: 'all', date: '2026-10-15' }],
-    period: '30d',
-    nowWall: NOW_WALL,
-    firstBookingAt: w('2026-01-01T00:00:00'),
-  })
+  return run([beginners, allLevels, grading], bookings, { cancellations: [{ classId: 'all', date: '2026-10-15' }] })
 }
 
 describe('bookings occupancy', () => {
@@ -92,24 +101,51 @@ describe('bookings occupancy', () => {
     expect(t.students).toBe(97)
     expect(t.staffBooked).toBe(12)
     expect(t.selfBooked).toBe(6 + 1 + 78 + 1)
-    expect(t.prevAvgPerSession).toBe(3) // All levels had 4 empty sessions then
+    expect(t.prevAvgPerSession).toBe(6) // All levels had no bookings yet then: no invented sessions
   })
 
-  it('does not invent empty sessions before the school started taking bookings', () => {
-    const r = buildOccupancy({
-      classes: [beginners], bookings: [], cancellations: [], period: '30d', nowWall: NOW_WALL, firstBookingAt: null,
-    })
+  it('does not invent empty sessions for a slot nobody ever booked', () => {
+    const r = run([beginners], [])
     expect(r.slots).toEqual([])
     expect(r.totals.sessions).toBe(0)
     expect(r.totals.avgPerSession).toBeNull()
   })
 
+  it('a timetable change does not create past sessions at the new time', () => {
+    // Ran Mondays 10:00 (5 people, 4 times); the timetable now says 18:00
+    n = 0
+    const moved = cls({ id: 'mv', name: 'Moved', schedule: [{ dayOfWeek: 1, startTime: '18:00', endTime: '19:00' }] })
+    const r = run([moved], ['05', '12', '19', '26'].flatMap(d => times(5, 'mv', `2026-10-${d}T10:00:00`)))
+    expect(r.slots).toEqual([]) // no invented 18:00 sessions, no "quiet class"
+    expect(r.offSchedule).toHaveLength(4)
+    expect(r.offSchedule.every(o => o.reason === 'NOT_IN_SCHEDULE')).toBe(true)
+    expect(r.totals.avgPerSession).toBe(5)
+  })
+
   it('a session still running is not counted yet', () => {
-    const now = w('2026-10-29T19:30:00')
-    const r = buildOccupancy({
-      classes: [beginners], bookings: [book('beg', '2026-10-29T19:00:00')], cancellations: [], period: '30d', nowWall: now, firstBookingAt: w('2026-10-29T19:00:00'),
-    })
+    const r = run([beginners], [book('beg', '2026-10-29T19:00:00')], { now: w('2026-10-29T19:30:00') })
     expect(r.slots).toEqual([])
+  })
+
+  it('a class past midnight lasts until its end and is unmarked three hours later', () => {
+    const late = cls({ id: 'late', name: 'Late', schedule: [{ dayOfWeek: 1, startTime: '23:30', endTime: '01:30' }] })
+    expect(slotMinutes(late, late.schedule[0]!)).toBe(120)
+    const bookings = [book('late', '2026-10-26T23:30:00', { status: 'CONFIRMED', attended: false })]
+    const during = run([late], bookings, { now: w('2026-10-26T23:45:00') })
+    expect(during.slots).toEqual([])
+    expect(during.unmarked).toEqual([])
+    expect(run([late], bookings, { now: w('2026-10-27T04:29:00') }).unmarked).toEqual([])
+    expect(run([late], bookings, { now: w('2026-10-27T04:30:00') }).unmarked).toHaveLength(1)
+  })
+
+  it('"not marked" waits three real hours across a DST change', () => {
+    // Madrid, 29 Mar 2026: clocks jump 02:00 → 03:00. Class 00:30–01:30 local
+    const night = cls({ id: 'night', name: 'Night', schedule: [{ dayOfWeek: 0, startTime: '00:30', endTime: '01:30' }] })
+    const bookings = [book('night', '2026-03-29T00:30:00', { status: 'CONFIRMED', attended: false })]
+    const opts = { timeZone: 'Europe/Madrid' }
+    // 04:45 local = 02:45Z: only 2 h 15 min since it ended (00:30Z)
+    expect(run([night], bookings, { ...opts, now: new Date('2026-03-29T02:45:00Z') }).unmarked).toEqual([])
+    expect(run([night], bookings, { ...opts, now: new Date('2026-03-29T03:30:00Z') }).unmarked).toHaveLength(1)
   })
 })
 
@@ -118,6 +154,13 @@ describe('wall time and windows', () => {
     expect(wallClock(new Date('2026-10-25T00:30:00Z'), 'Europe/Madrid').toISOString()).toBe('2026-10-25T02:30:00.000Z')
     expect(wallClock(new Date('2026-10-25T01:30:00Z'), 'Europe/Madrid').toISOString()).toBe('2026-10-25T02:30:00.000Z')
     expect(wallClock(new Date('2026-11-02T11:00:00Z'), 'Europe/Madrid').toISOString()).toBe('2026-11-02T12:00:00.000Z')
+  })
+
+  it('turns wall time back into the real instant, DST included', () => {
+    expect(wallToInstant(w('2026-03-29T01:30:00'), 'Europe/Madrid').toISOString()).toBe('2026-03-29T00:30:00.000Z')
+    expect(wallToInstant(w('2026-03-29T05:30:00'), 'Europe/Madrid').toISOString()).toBe('2026-03-29T03:30:00.000Z')
+    expect(wallToInstant(w('2026-11-02T12:00:00'), 'Europe/Madrid').toISOString()).toBe('2026-11-02T11:00:00.000Z')
+    expect(wallToInstant(w('2026-11-02T12:00:00'), 'America/Sao_Paulo').toISOString()).toBe('2026-11-02T15:00:00.000Z')
   })
 
   it('last N days including today, and the same length before', () => {
