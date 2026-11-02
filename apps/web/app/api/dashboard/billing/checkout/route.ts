@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
 import { getPlatformStripe } from '@/lib/stripe'
 
 type Cycle = 'monthly' | 'quarterly' | 'annual'
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN'].includes(member.role)) {
+      if (!(await staffCan(member, 'school.settings.manage', ['OWNER', 'ADMIN']))) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

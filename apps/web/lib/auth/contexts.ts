@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/db'
-import type { Permission } from './permissions'
+import { BASE_STAFF_ROLES, type Permission } from './permissions'
 import { getMemberPermissions } from './customRoles'
 import { isGradingEnabled } from '../school-modules'
 import type { SchoolMemberRole } from '../prisma-client/enums'
+import type { Prisma } from '../prisma-client/client'
 
 export type SchoolContext = {
   schoolId: string
@@ -83,9 +84,20 @@ export async function requireSchoolAccess(userId: string, schoolId: string) {
 // Exported so individual /api/dashboard/** routes can reuse the same "is this
 // a staff role" check (e.g. app/api/dashboard/upload/route.ts) instead of
 // hand-rolling their own role list that could drift from this one.
-export const DASHBOARD_ROLES: SchoolMemberRole[] = [
-  'OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST',
-]
+// These are the fixed base roles only; a school-defined CUSTOM role is staff
+// too (see STAFF_MEMBER_WHERE) but is judged by its own StaffRole toggles,
+// never by membership in this list.
+export const DASHBOARD_ROLES: SchoolMemberRole[] = BASE_STAFF_ROLES
+
+// SchoolMember filter for "is staff": a base staff role, or a CUSTOM role that
+// actually points at a StaffRole (CUSTOM with no StaffRole has no permissions
+// at all, so it has nothing to do in /dashboard). Combine with status/school.
+export const STAFF_MEMBER_WHERE: Prisma.SchoolMemberWhereInput = {
+  OR: [
+    { role: { in: DASHBOARD_ROLES } },
+    { role: 'CUSTOM', customRoleId: { not: null } },
+  ],
+}
 
 // Gate for entering /dashboard at all. Checked against SchoolMember, not the
 // global User.role — a user's global role can lag behind school-level grants
@@ -93,7 +105,7 @@ export const DASHBOARD_ROLES: SchoolMemberRole[] = [
 // so gating on User.role locks legitimate staff out of their own dashboard.
 export async function hasDashboardAccess(userId: string): Promise<boolean> {
   const count = await prisma.schoolMember.count({
-    where: { userId, status: 'ACTIVE', role: { in: DASHBOARD_ROLES } },
+    where: { userId, status: 'ACTIVE', ...STAFF_MEMBER_WHERE },
   })
   return count > 0
 }

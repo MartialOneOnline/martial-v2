@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
+import type { Permission } from '@/lib/auth/permissions'
 import { sendEventTicketConfirmationEmail } from '@/lib/email/sendEmails'
 import { recordOnlinePayment } from '@/lib/services/transactions'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 
-async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
+// Base roles keep their historic OWNER/ADMIN/INSTRUCTOR list; a CUSTOM role
+// needs the named events permission (see staffCan).
+async function authorise(permission: Permission) {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
@@ -14,7 +18,7 @@ async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!roles.includes(member.role)) return { error: 'Forbidden', status: 403 }
+      if (!(await staffCan(member, permission, ['OWNER', 'ADMIN', 'INSTRUCTOR']))) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }
@@ -25,7 +29,7 @@ async function authorise(roles = ['OWNER', 'ADMIN', 'INSTRUCTOR']) {
 // PATCH /api/dashboard/events/[id]/bookings/[bookingId] — mark a cash reservation
 // as paid (CONFIRMED) or release the spot (CANCELLED).
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string; bookingId: string }> }) {
-  const auth = await authorise()
+  const auth = await authorise('school.events.manage')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id, bookingId } = await params
@@ -94,7 +98,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 // must be cancelled first, and a CONFIRMED booking always has a matching
 // Transaction ledger entry that we don't want to orphan silently.
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string; bookingId: string }> }) {
-  const auth = await authorise()
+  const auth = await authorise('school.events.manage')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id, bookingId } = await params

@@ -1,6 +1,6 @@
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { memberHasPermission } from '@/lib/auth/customRoles'
+import { staffCan } from '@/lib/auth/customRoles'
 
 // Shared by every /api/dashboard/waivers/** route (send/list, templates,
 // resend, pdf, mark-signed) — not a route file itself, so the App Router
@@ -13,7 +13,7 @@ export async function authoriseWaivers() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!(await memberHasPermission(member, 'school.waivers.manage'))) return { error: 'Forbidden', status: 403 } as const
+      if (!(await staffCan(member, 'school.waivers.manage'))) return { error: 'Forbidden', status: 403 } as const
     } catch {
       return { error: 'Forbidden', status: 403 } as const
     }

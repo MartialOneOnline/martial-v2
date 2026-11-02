@@ -1,9 +1,12 @@
 import { Suspense } from 'react'
 import RegistrationsClient from './RegistrationsClient'
+import RequirePermission from '../../../../../components/RequirePermission'
 export default function RegistrationsPage() {
   return (
-    <Suspense>
-      <RegistrationsClient />
-    </Suspense>
+    <RequirePermission permission="school.events.view">
+      <Suspense>
+        <RegistrationsClient />
+      </Suspense>
+    </RequirePermission>
   )
 }

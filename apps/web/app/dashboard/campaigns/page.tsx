@@ -1,5 +1,6 @@
 import CampaignsClient from './CampaignsClient'
+import RequirePermission from '../../../components/RequirePermission'
 
 export default function CampaignsPage() {
-  return <CampaignsClient />
+  return <RequirePermission permission="school.campaigns.view"><CampaignsClient /></RequirePermission>
 }

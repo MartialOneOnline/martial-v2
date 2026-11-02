@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { memberHasPermission } from '@/lib/auth/customRoles'
+import { staffCan } from '@/lib/auth/customRoles'
 
 type BulkRow = {
   name: string
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!await memberHasPermission(member, 'school.members.import')) {
+      if (!await staffCan(member, 'school.members.import')) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     } catch {

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   // requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
   // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT
   // must not read revenue/member-count stats for the school.
-  try { await requireDashboardAccess(schoolId) }
+  try { await requireDashboardAccess(schoolId, 'school.analytics.view') }
   catch { return NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
 
   const now = new Date()

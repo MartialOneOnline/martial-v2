@@ -4,7 +4,7 @@ import UsersClient from './UsersClient'
 import { getStudentsForSchool, getSchoolBeltNames } from './data'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { getSchoolMembership } from '@/lib/auth/contexts'
-import { hasPermission } from '@/lib/auth/permissions'
+import { staffCan } from '@/lib/auth/customRoles'
 import { ForbiddenView } from '../../../components/RequirePermission'
 import { getGradingEnabledForSchool } from '@/lib/grading/moduleServer'
 
@@ -36,7 +36,7 @@ async function UsersPageWithSchool({ schoolId }: { schoolId: string }) {
   const viewer = await getAuthUser()
   if (viewer && viewer.role !== 'SUPERADMIN') {
     const viewerMembership = await getSchoolMembership(viewer.id, schoolId)
-    if (!viewerMembership || !hasPermission(viewerMembership.role, 'school.members.view')) {
+    if (!viewerMembership || viewerMembership.status !== 'ACTIVE' || !(await staffCan(viewerMembership, 'school.members.view'))) {
       return <ForbiddenView />
     }
   }

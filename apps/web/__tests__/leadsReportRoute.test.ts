@@ -15,7 +15,7 @@ const { getAuthUser, getCurrentSchoolId, requireSchoolAccess, memberHasPermissio
 }))
 vi.mock('@/lib/auth/server', () => ({ getAuthUser, getCurrentSchoolId }))
 vi.mock('@/lib/auth/contexts', () => ({ requireSchoolAccess }))
-vi.mock('@/lib/auth/customRoles', () => ({ memberHasPermission }))
+vi.mock('@/lib/auth/customRoles', () => ({ memberHasPermission, staffCan: memberHasPermission }))
 vi.mock('@/lib/db', () => ({ prisma: db }))
 
 import { GET } from '../app/api/dashboard/reports/leads/route'

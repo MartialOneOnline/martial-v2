@@ -2,6 +2,8 @@ import { redirect, notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
+import type { SchoolMemberRole } from '@/lib/prisma-client/enums'
 import CheckinClient from './CheckinClient'
 
 interface Props {
@@ -12,7 +14,7 @@ interface Props {
 // Keep in sync with /api/dashboard/checkin/route.ts — this only gates the UI
 // early so an unauthenticated/wrong-role scan doesn't silently fail after the
 // camera is already open; the API route is the real enforcement point.
-const CHECKIN_ROLES = ['OWNER', 'ADMIN', 'INSTRUCTOR']
+const CHECKIN_ROLES: SchoolMemberRole[] = ['OWNER', 'ADMIN', 'INSTRUCTOR']
 
 export default async function CheckinPage({ params, searchParams }: Props) {
   const { classId } = await params
@@ -27,7 +29,7 @@ export default async function CheckinPage({ params, searchParams }: Props) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!CHECKIN_ROLES.includes(member.role)) redirect('/dashboard')
+      if (!(await staffCan(member, 'school.bookings.manage', CHECKIN_ROLES))) redirect('/dashboard')
     } catch {
       redirect('/dashboard')
     }

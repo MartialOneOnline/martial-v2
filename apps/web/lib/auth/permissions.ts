@@ -135,6 +135,13 @@ export const ROLE_PERMISSIONS: Record<SchoolMemberRole, Permission[]> = {
   CUSTOM: [],
 }
 
+// The fixed staff roles (everything but STUDENT and CUSTOM). Lives here, not
+// in contexts.ts, so customRoles.ts can use it without importing the DB-gate
+// module (many route tests mock contexts.ts with only requireSchoolAccess).
+export const BASE_STAFF_ROLES: SchoolMemberRole[] = [
+  'OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST',
+]
+
 export function getPermissions(role: SchoolMemberRole): Permission[] {
   return ROLE_PERMISSIONS[role] ?? []
 }

@@ -4,7 +4,7 @@ import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import type { Permission } from '@/lib/auth/permissions'
-import { memberHasPermission } from '@/lib/auth/customRoles'
+import { staffCan } from '@/lib/auth/customRoles'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 
 const CLASS_HAS_BOOKINGS_ERROR = 'Cannot delete a class with existing bookings. Deactivate it instead.'
@@ -17,7 +17,7 @@ async function authorise(permission: Permission) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!await memberHasPermission(member, permission)) return { error: 'Forbidden', status: 403 }
+      if (!await staffCan(member, permission)) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }

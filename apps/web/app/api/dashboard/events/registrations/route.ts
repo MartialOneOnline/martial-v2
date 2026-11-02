@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
 import type { Prisma } from '@/lib/prisma-client/client'
 
 async function authorise() {
@@ -12,7 +13,7 @@ async function authorise() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(member.role)) return { error: 'Forbidden', status: 403 }
+      if (!(await staffCan(member, 'school.events.view', ['OWNER', 'ADMIN', 'INSTRUCTOR']))) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }

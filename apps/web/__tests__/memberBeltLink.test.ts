@@ -23,7 +23,7 @@ vi.mock('@/lib/auth/server', () => ({
   getCurrentSchoolId: vi.fn().mockResolvedValue('school-1'),
 }))
 vi.mock('@/lib/auth/contexts', () => ({ requireSchoolAccess: vi.fn() }))
-vi.mock('@/lib/auth/customRoles', () => ({ memberHasPermission: vi.fn() }))
+vi.mock('@/lib/auth/customRoles', () => { const f = vi.fn(); return { memberHasPermission: f, staffCan: f } })
 vi.mock('@supabase/supabase-js', () => ({ createClient: vi.fn() }))
 
 import { PATCH } from '../app/api/dashboard/members/[id]/route'

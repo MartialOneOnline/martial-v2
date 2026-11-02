@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
-import { requireSchoolAccess, DASHBOARD_ROLES } from '@/lib/auth/contexts'
+import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
+import { BASE_STAFF_ROLES, type Permission } from '@/lib/auth/permissions'
 import { mux } from '@/lib/mux'
 
-async function requireStaffSchoolId(userId: string, role: string) {
+// Any base staff role (unchanged); a CUSTOM role needs `permission` —
+// classes.view to read the curriculum, classes.update to change it.
+async function requireStaffSchoolId(userId: string, role: string, permission: Permission) {
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return null
   if (role !== 'SUPERADMIN') {
     const member = await requireSchoolAccess(userId, schoolId).catch(() => null)
-    if (!member || !DASHBOARD_ROLES.includes(member.role)) return null
+    if (!member || !(await staffCan(member, permission, BASE_STAFF_ROLES))) return null
   }
   return schoolId
 }
@@ -21,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const schoolId = await requireStaffSchoolId(user.id, user.role)
+  const schoolId = await requireStaffSchoolId(user.id, user.role, 'school.classes.update')
   if (!schoolId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const existing = await prisma.curriculum.findUnique({ where: { id }, select: { schoolId: true } })
@@ -48,7 +52,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const schoolId = await requireStaffSchoolId(user.id, user.role)
+  const schoolId = await requireStaffSchoolId(user.id, user.role, 'school.classes.update')
   if (!schoolId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const existing = await prisma.curriculum.findUnique({

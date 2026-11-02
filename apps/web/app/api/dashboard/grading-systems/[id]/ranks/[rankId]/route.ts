@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { parseClassesByDegree, parseFrequency, parseMinAgeByDegree, parseMonthsByDegree } from '@/lib/grading/rules'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { memberHasPermission } from '@/lib/auth/customRoles'
+import { staffCan } from '@/lib/auth/customRoles'
 
 async function auth() {
   const user = await getAuthUser()
@@ -13,7 +13,7 @@ async function auth() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const m = await requireSchoolAccess(user.id, schoolId)
-      if (!await memberHasPermission(m, 'school.gradings.manage')) return { error: 'Forbidden', status: 403 as const }
+      if (!await staffCan(m, 'school.gradings.manage')) return { error: 'Forbidden', status: 403 as const }
     } catch { return { error: 'Forbidden', status: 403 as const } }
   }
   return { schoolId }

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
 import StudentProfileClient from './StudentProfileClient'
 import { getReadinessForSchool, ATTENDED_WHERE } from '@/lib/grading/readinessData'
 
@@ -22,7 +23,8 @@ export default async function StudentProfilePage({
   if (viewer.role !== 'SUPERADMIN') {
     try {
       const membership = await requireSchoolAccess(viewer.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(membership.role)) notFound()
+      // Base roles keep their historic list; a CUSTOM role needs members.view.
+      if (!(await staffCan(membership, 'school.members.view', ['OWNER', 'ADMIN', 'INSTRUCTOR']))) notFound()
     } catch {
       notFound()
     }

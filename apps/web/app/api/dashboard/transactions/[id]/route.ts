@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { applyPaidMembershipTransaction, revertMembershipForDeletedTransaction, syncMembershipDatesForEditedTransaction } from '@/lib/services/membership'
 import { fmtPrice } from '@/lib/format'
@@ -28,7 +29,7 @@ async function authorise() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'MANAGER'].includes(member.role)) return { error: 'Forbidden', status: 403 }
+      if (!(await staffCan(member, 'school.payments.manage', ['OWNER', 'ADMIN', 'MANAGER']))) return { error: 'Forbidden', status: 403 }
     } catch {
       return { error: 'Forbidden', status: 403 }
     }

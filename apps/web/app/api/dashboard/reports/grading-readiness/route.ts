@@ -11,7 +11,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
-  try { await requireDashboardAccess(schoolId) }
+  try { await requireDashboardAccess(schoolId, 'school.analytics.view') }
   catch { return NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
 
   const rows = await getReadinessForSchool(schoolId)

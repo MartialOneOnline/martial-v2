@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import { getPermissions, type Permission } from './permissions'
+import { getPermissions, hasPermission, type Permission } from './permissions'
 import type { SchoolMemberRole } from '../prisma-client/enums'
 
 export interface RoleBearer {
@@ -24,6 +24,26 @@ export async function getMemberPermissions(member: RoleBearer): Promise<Permissi
 export async function memberHasPermission(member: RoleBearer, permission: Permission): Promise<boolean> {
   const permissions = await getMemberPermissions(member)
   return permissions.includes(permission)
+}
+
+// The one staff gate for dashboard pages and /api/dashboard/** routes.
+//   - STUDENT never passes, whatever the matrix says about it.
+//   - CUSTOM (school-defined StaffRole) passes only with `permission` among
+//     its own toggles — exactly what the school switched on, nothing more.
+//   - A base staff role passes by `legacyBaseRoles` when the route still keeps
+//     its historic hand-written role list (kept as-is so base roles behave
+//     exactly as before), otherwise by the fixed permission matrix.
+// The caller has already checked the member is ACTIVE in the current school
+// (requireSchoolAccess / getSchoolMembership + status).
+export async function staffCan(
+  member: RoleBearer,
+  permission: Permission,
+  legacyBaseRoles?: readonly SchoolMemberRole[],
+): Promise<boolean> {
+  if (member.role === 'STUDENT') return false
+  if (member.role === 'CUSTOM') return memberHasPermission(member, permission)
+  if (legacyBaseRoles) return legacyBaseRoles.includes(member.role)
+  return hasPermission(member.role, permission)
 }
 
 const BASE_ROLE_IDS: SchoolMemberRole[] = ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST', 'STUDENT']

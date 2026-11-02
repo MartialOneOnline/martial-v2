@@ -2,6 +2,8 @@ import { redirect, notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { staffCan } from '@/lib/auth/customRoles'
+import type { SchoolMemberRole } from '@/lib/prisma-client/enums'
 import EventCheckinClient from './EventCheckinClient'
 
 interface Props {
@@ -12,7 +14,7 @@ interface Props {
 // this only gates the UI early so an unauthenticated/wrong-role scan doesn't
 // silently fail after the camera is already open; the API route is the real
 // enforcement point.
-const CHECKIN_ROLES = ['OWNER', 'ADMIN', 'INSTRUCTOR']
+const CHECKIN_ROLES: SchoolMemberRole[] = ['OWNER', 'ADMIN', 'INSTRUCTOR']
 
 export default async function EventCheckinPage({ params }: Props) {
   const { eventId } = await params
@@ -26,7 +28,7 @@ export default async function EventCheckinPage({ params }: Props) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!CHECKIN_ROLES.includes(member.role)) redirect('/dashboard')
+      if (!(await staffCan(member, 'school.events.manage', CHECKIN_ROLES))) redirect('/dashboard')
     } catch {
       redirect('/dashboard')
     }

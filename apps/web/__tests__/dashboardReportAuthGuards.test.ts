@@ -143,18 +143,20 @@ beforeEach(() => {
 
 type RouteCase = {
   name: string
+  perm: string
   call: () => Promise<Response>
 }
 
 const ROUTES: RouteCase[] = [
-  { name: 'GET /api/dashboard/billing', call: () => billingRoute.GET(getRequest('/api/dashboard/billing')) },
-  { name: 'GET /api/dashboard/stats', call: () => statsRoute.GET(getRequest('/api/dashboard/stats')) },
-  { name: 'GET /api/dashboard/reports/payments', call: () => paymentsReportRoute.GET(getRequest('/api/dashboard/reports/payments')) },
-  { name: 'GET /api/dashboard/reports/users', call: () => usersReportRoute.GET(getRequest('/api/dashboard/reports/users')) },
-  { name: 'GET /api/dashboard/reports/absents', call: () => absentsReportRoute.GET(getRequest('/api/dashboard/reports/absents')) },
-  { name: 'GET /api/dashboard/reports/bookings', call: () => bookingsReportRoute.GET(getRequest('/api/dashboard/reports/bookings')) },
+  { name: 'GET /api/dashboard/billing', perm: 'school.settings.view', call: () => billingRoute.GET(getRequest('/api/dashboard/billing')) },
+  { name: 'GET /api/dashboard/stats', perm: 'school.analytics.view', call: () => statsRoute.GET(getRequest('/api/dashboard/stats')) },
+  { name: 'GET /api/dashboard/reports/payments', perm: 'school.analytics.view', call: () => paymentsReportRoute.GET(getRequest('/api/dashboard/reports/payments')) },
+  { name: 'GET /api/dashboard/reports/users', perm: 'school.analytics.view', call: () => usersReportRoute.GET(getRequest('/api/dashboard/reports/users')) },
+  { name: 'GET /api/dashboard/reports/absents', perm: 'school.analytics.view', call: () => absentsReportRoute.GET(getRequest('/api/dashboard/reports/absents')) },
+  { name: 'GET /api/dashboard/reports/bookings', perm: 'school.analytics.view', call: () => bookingsReportRoute.GET(getRequest('/api/dashboard/reports/bookings')) },
   {
     name: 'GET /api/dashboard/membership-plans/[id]/members',
+    perm: 'school.membershipPlans.view',
     call: () => planMembersRoute.GET(getRequest('/api/dashboard/membership-plans/p1/members'), idParams('p1')),
   },
 ]
@@ -164,7 +166,8 @@ describe('dashboard report/billing auth guards — STUDENT is forbidden (bug thi
     asStudent()
     const res = await route.call()
     expect(res.status).toBe(403)
-    expect(mockRequireDashboardAccess).toHaveBeenCalledWith('school-1')
+    // Each route names its own permission (what a CUSTOM staff role needs)
+    expect(mockRequireDashboardAccess).toHaveBeenCalledWith('school-1', route.perm)
   })
 })
 
@@ -209,16 +212,14 @@ describe('dashboard report/billing auth guards — role gate for every staff rol
   })
 })
 
-describe('regression — routes explicitly out of scope for this PR', () => {
-  it('GET /api/dashboard/classes still returns 200 for a STUDENT (hasPermission(\'school.classes.view\') allows it by design — untouched by this PR)', async () => {
+describe('regression — STUDENT is out of every /api/dashboard route', () => {
+  it('GET /api/dashboard/classes returns 403 for a STUDENT (staffCan never admits STUDENT, even for school.classes.view)', async () => {
     mockGetAuthUser.mockResolvedValue({ id: 'user-2', role: 'STUDENT' })
     mockGetCurrentSchoolId.mockResolvedValue('school-1')
     mockRequireSchoolAccess.mockResolvedValue({ role: 'STUDENT', status: 'ACTIVE' })
 
     const res = await classesRoute.GET()
 
-    expect(res.status).toBe(200)
-    // Confirms this route was NOT migrated to requireDashboardAccess().
-    expect(mockRequireDashboardAccess).not.toHaveBeenCalled()
+    expect(res.status).toBe(403)
   })
 })

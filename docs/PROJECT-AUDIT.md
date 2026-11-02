@@ -232,6 +232,17 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   9. P3 — contador de la pestaña: cuenta deudas; las filas a revisar se muestran como "+N" aparte (listadas, paginadas y exportadas).
 - Tests: +3 en `paymentsReportRoute` (otro plan no oculta la deuda; pago adelantado con periodo; CUSTOM con y sin permiso, STUDENT). Suite 1112 / 55; tsc 0; ESLint limpio.
 
+### Lote P — Roles personalizados (CUSTOM) en el dashboard (rama `claude/strange-bun-729a1e`, apilada sobre PR #49)
+
+- Estado: pendiente de Project Audit. Sin migración. Cierra el P2 compartido del Lote O (8.).
+- Pedido: que un miembro con rol CUSTOM (`customRoleId` → `StaffRole.permissions`) use el dashboard según sus permisos — exactamente lo que activan sus toggles, nada más; STUDENT, inactivos y miembros de otra escuela fuera.
+- Criterios: `hasDashboardAccess` / `requireDashboardAccess` admiten CUSTOM ACTIVE de la escuela actual; cada página y cada ruta `/api/dashboard/**` comprueba su permiso con un helper que resuelve CUSTOM (`staffCan`), no con `hasPermission(role)`; menú con los mismos permisos; se quita el parche de Pagos; tests de CUSTOM con/sin permiso (analytics, members, settings), STUDENT, inactivo, otra escuela y redirect del layout.
+- Diseño: roles base conservan su comportamiento exacto en las APIs (listas históricas pasadas como `legacyBaseRoles`); CUSTOM siempre por permiso; STUDENT nunca. `requireDashboardAccess` sin permiso nombrado rechaza CUSTOM (falla cerrado).
+- Cambios de comportamiento deliberados: STUDENT → 403 en `GET /api/dashboard/classes` y en el roster de reservas de una clase (antes 200 por la matriz); páginas y pestañas de Settings filtradas por permiso también para roles base (solo UI).
+- A revisar: el mapa ruta → permiso (tabla en la PR); que ninguna ruta `/api/dashboard/**` quede con lista de roles sin `staffCan`; `STAFF_MEMBER_WHERE` en login/selector de perfil; upload abierto a todo staff; páginas con `RequirePermission` frente al menú; textos `t.access`.
+- No verificado: navegador con un rol CUSTOM real.
+- Tests: +25 en `customRoleDashboardAccess`; 6 archivos ajustados. Suite 1137 / 55 preexistentes (los mismos); tsc 0; ESLint sin avisos nuevos.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

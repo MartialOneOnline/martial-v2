@@ -3,7 +3,7 @@ import { syncTrials } from '@/lib/services/trial'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { memberHasPermission } from '@/lib/auth/customRoles'
+import { staffCan } from '@/lib/auth/customRoles'
 import { canMarkAttended } from '@/lib/services/attendance'
 
 async function authorise() {
@@ -14,7 +14,7 @@ async function authorise() {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!await memberHasPermission(member, 'school.bookings.manage')) {
+      if (!await staffCan(member, 'school.bookings.manage')) {
         return { error: 'Forbidden', status: 403 as const }
       }
     } catch {

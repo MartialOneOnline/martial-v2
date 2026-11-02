@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   // requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT
   // must not read billing/subscription data for the school.
   try {
-    await requireDashboardAccess(schoolId)
+    await requireDashboardAccess(schoolId, 'school.settings.view')
   } catch {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }

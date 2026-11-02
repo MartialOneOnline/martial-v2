@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
-import { memberHasPermission, resolveRoleAssignment } from '@/lib/auth/customRoles'
+import { staffCan, resolveRoleAssignment } from '@/lib/auth/customRoles'
 import { getResend, FROM, APP_URL } from '@/lib/email/resend'
 import { buildInviteStaffEmail, getStaffInviteSubject } from '@/lib/email/templates/inviteStaff'
 import { detectLang } from '@/lib/email/templates/inviteStudent'
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   if (user.role !== 'SUPERADMIN') {
     try {
       const member = await requireSchoolAccess(user.id, schoolId)
-      if (!await memberHasPermission(member, 'school.staff.manage')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      if (!await staffCan(member, 'school.staff.manage')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     } catch {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
