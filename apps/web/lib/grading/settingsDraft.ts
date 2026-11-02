@@ -89,6 +89,23 @@ export function hasOwnFrequency(rank: DraftRank, common: Frequency): boolean {
   return frequencyKey(rank) !== frequencyKey(common)
 }
 
+/** The belt counts different classes from the shared choice — kept until the user applies the shared one */
+export function hasOwnClassTypes(rank: DraftRank, common: CommonRules): boolean {
+  return typesKey(rank.classTypeIds) !== typesKey(common.classTypeIds)
+}
+
+/**
+ * A belt gained a next belt (one was added after it): the new "to next belt"
+ * step starts from the belt's old per-belt fallback, as the engine counted it.
+ */
+export function withNextStep(rank: DraftRank): DraftRank {
+  const i = Math.max(0, rank.maxDegrees)
+  const classes = [...rank.classesByDegree]
+  while (classes.length < i) classes.push(rank.totalClassesRequired || 0)
+  if (!classes[i]) classes[i] = rank.totalClassesRequired || 0
+  return { ...rank, classesByDegree: classes }
+}
+
 /** Gradings at a belt: one per stripe, plus the next belt when there is one. */
 export function stepCount(rank: Pick<DraftRank, 'maxDegrees'>, hasNext: boolean): number {
   return Math.max(0, rank.maxDegrees) + (hasNext ? 1 : 0)
@@ -163,10 +180,12 @@ export interface RankSavePayload {
 }
 
 /**
- * What one Save sends for every belt: explicit steps, the common frequency
- * unless the belt keeps its own, and the common "which classes count".
+ * What one Save sends for every belt: explicit steps, and the common frequency
+ * and "which classes count" — except on a belt that keeps its own (a belt
+ * whose classes already differed keeps them: saving other fields must never
+ * change who is ready).
  */
-export function buildSavePayload(draft: DraftRank[], common: CommonRules, ownFrequency: Record<string, boolean>): RankSavePayload[] {
+export function buildSavePayload(draft: DraftRank[], common: CommonRules, ownFrequency: Record<string, boolean>, ownClassTypes: Record<string, boolean> = {}): RankSavePayload[] {
   const sorted = [...draft].sort((a, b) => a.order - b.order)
   const commonFreq = normalizeFrequency(common)
   return sorted.map((r, i) => {
@@ -184,7 +203,7 @@ export function buildSavePayload(draft: DraftRank[], common: CommonRules, ownFre
       monthsByDegree: trimZeros(r.monthsByDegree.slice(0, steps)),
       minAgeByDegree: trimZeros(r.minAgeByDegree.slice(0, r.maxDegrees)),
       ...freq,
-      classTypeIds: [...common.classTypeIds],
+      classTypeIds: ownClassTypes[r.id] ? [...r.classTypeIds] : [...common.classTypeIds],
       requireExam: r.requireExam,
       requireCompetition: r.requireCompetition,
     }

@@ -8,25 +8,27 @@ import { Check, ChevronDown, Minus, Plus, Trash2 } from 'lucide-react'
 import { useLanguage, useT } from '../../lib/i18n/LanguageContext'
 import { COLOR_PRESETS } from './RankRulesFields'
 import {
-  buildSavePayload, commonRules, estimateBelt, frequencyInvalid, hasOwnFrequency, normalizeFrequency,
-  stepCount, toDraft, type CommonRules, type DraftRank, type Frequency, type PeriodType,
+  buildSavePayload, commonRules, estimateBelt, frequencyInvalid, hasOwnClassTypes, hasOwnFrequency, normalizeFrequency,
+  stepCount, toDraft, withNextStep, type CommonRules, type DraftRank, type Frequency, type PeriodType,
 } from '../../lib/grading/settingsDraft'
 
 export interface SchoolClassOption { id: string; name: string; isActive: boolean }
 
-interface Snapshot { draft: DraftRank[]; common: CommonRules; own: Record<string, boolean> }
+interface Snapshot { draft: DraftRank[]; common: CommonRules; own: Record<string, boolean>; ownTypes: Record<string, boolean> }
 
 function snapshotFrom(ranks: DraftRank[]): Snapshot {
   const draft = toDraft(ranks)
   const common = commonRules(draft)
   const own: Record<string, boolean> = {}
-  for (const r of draft) own[r.id] = hasOwnFrequency(r, common)
+  const ownTypes: Record<string, boolean> = {}
+  for (const r of draft) { own[r.id] = hasOwnFrequency(r, common); ownTypes[r.id] = hasOwnClassTypes(r, common) }
   // A system with no rule yet: give the steppers a period to start from
   if (!common.periodType) common.periodType = 'WEEK'
-  return { draft, common, own }
+  return { draft, common, own, ownTypes }
 }
 
-const payloadKey = (s: Snapshot) => JSON.stringify(buildSavePayload(s.draft, s.common, s.own))
+const payloadOf = (s: Snapshot) => buildSavePayload(s.draft, s.common, s.own, s.ownTypes)
+const payloadKey = (s: Snapshot) => JSON.stringify(payloadOf(s))
 
 /** Text on a belt-coloured chip stays readable on light belts (white, yellow) */
 function inkOn(hex: string): string {
@@ -155,9 +157,18 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
   useEffect(() => {
     if (!dirty) return
     const h = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    // In-app links (sidebar etc.) navigate without a page unload — ask on those too
+    const onClick = (e: MouseEvent) => {
+      const link = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
+      if (!link || link.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey) return
+      const url = new URL(link.href, window.location.href)
+      if (url.pathname === window.location.pathname && url.search === window.location.search) return
+      if (!confirm(g.leaveConfirm)) { e.preventDefault(); e.stopPropagation() }
+    }
     window.addEventListener('beforeunload', h)
-    return () => window.removeEventListener('beforeunload', h)
-  }, [dirty])
+    window.addEventListener('click', onClick, true)
+    return () => { window.removeEventListener('beforeunload', h); window.removeEventListener('click', onClick, true) }
+  }, [dirty, g.leaveConfirm])
 
   const { draft, common, own } = cur
   const unit = (p: PeriodType | null) => (p === 'MONTH' ? g.month : g.week)
@@ -179,6 +190,10 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
       draft: on ? c.draft.map(r => (r.id === id ? { ...r, ...normalizeFrequency(c.common), periodType: c.common.periodType ?? 'WEEK' } : r)) : c.draft,
     }))
   }
+  /** Every belt counts the shared classes (drops per-belt exceptions) */
+  function adoptClassTypes() {
+    setCur(c => ({ ...c, ownTypes: Object.fromEntries(Object.keys(c.ownTypes).map(k => [k, false])) }))
+  }
   /** "Use for all": a belt's own frequency becomes the shared one */
   function adoptFrequency(r: DraftRank) {
     setCur(c => ({
@@ -198,20 +213,23 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
   const invalid = frequencyInvalid(common) || draft.some(r => own[r.id] && frequencyInvalid(normalizeFrequency(r))) || draft.some(r => !r.name.trim())
 
   async function save() {
-    if (invalid || saving) return
+    if (invalid || saving || busy) return
+    // Everything is locked while saving (fieldset below), so the screen can't
+    // move on from what was sent
+    const sent = cur
     setSaving(true); setSaveError(false)
     try {
       const res = await fetch(`/api/dashboard/grading-systems/${systemId}/ranks`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ranks: buildSavePayload(cur.draft, cur.common, cur.own) }),
+        body: JSON.stringify({ ranks: payloadOf(sent) }),
       })
       if (!res.ok) { setSaveError(true); return }
       const { ranks: fresh } = await res.json() as { ranks: DraftRank[] }
       // Keep the screen exactly as edited; the server's copy is the new baseline
       const next = snapshotFrom(fresh)
       const keepOwn = { ...next.own }
-      for (const r of next.draft) if (cur.own[r.id] && hasOwnFrequency(r, next.common)) keepOwn[r.id] = true
-      const snap = { ...next, common: { ...next.common, periodType: next.common.periodType ?? cur.common.periodType }, own: keepOwn }
+      for (const r of next.draft) if (sent.own[r.id] && hasOwnFrequency(r, next.common)) keepOwn[r.id] = true
+      const snap: Snapshot = { ...next, common: { ...next.common, periodType: next.common.periodType ?? sent.common.periodType }, own: keepOwn }
       setSaved(snap); setCur(snap)
       onRanksChange(fresh)
       setJustSaved(true); setTimeout(() => setJustSaved(false), 1800)
@@ -225,7 +243,7 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
 
   // ── structure (immediate) ────────────────────────────────────────────────
   async function addBelt() {
-    if (!newName.trim() || busy) return
+    if (!newName.trim() || busy || saving) return
     setBusy(true); setStructError(false)
     try {
       const f = normalizeFrequency(saved.common)
@@ -236,7 +254,12 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
       if (!res.ok) { setStructError(true); return }
       const { rank } = await res.json() as { rank: DraftRank }
       const [d] = toDraft([rank])
-      const add = (s: Snapshot): Snapshot => ({ ...s, draft: [...s.draft, d!], own: { ...s.own, [rank.id]: false } })
+      // The old last belt now leads to this one: its new step starts from its old fallback
+      const add = (s: Snapshot): Snapshot => ({
+        ...s,
+        draft: [...s.draft.map((r, i) => (i === s.draft.length - 1 ? withNextStep(r) : r)), d!],
+        own: { ...s.own, [rank.id]: false }, ownTypes: { ...s.ownTypes, [rank.id]: false },
+      })
       setSaved(add); setCur(add)
       onRanksChange([...saved.draft, rank])
       setNewName(''); setAdding(false); setOpen(rank.id)
@@ -247,7 +270,7 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
     }
   }
   async function deleteBelt(r: DraftRank) {
-    if (busy || !confirm(g.deleteConfirm.replace('{name}', r.name))) return
+    if (busy || saving || !confirm(g.deleteConfirm.replace('{name}', r.name))) return
     setBusy(true); setStructError(false)
     try {
       const res = await fetch(`/api/dashboard/grading-systems/${systemId}/ranks/${r.id}`, { method: 'DELETE' })
@@ -291,6 +314,11 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
   const typesSentence = selectedNames.length ? g.onlyCount.replace('{list}', selectedNames.join(', ')) : g.allCount
 
   const ownBelts = draft.filter(r => own[r.id])
+  const ownTypeBelts = draft.filter(r => cur.ownTypes[r.id])
+  const typesLabel = (ids: string[]) => {
+    const names = ids.map(id => classById.get(id)?.name).filter((n): n is string => !!n)
+    return names.length ? names.join(', ') : g.allClassesShort
+  }
   const sorted = draft // already ordered by toDraft
 
   const estimates = sorted.map((r, i) => {
@@ -310,7 +338,10 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
     }
     const per = f.maxClassesPerPeriod ?? f.classesPerPeriod
     let s = (next ? g.sumTo.replace('{to}', next.name) : g.sumLast).replace('{from}', r.name).replace('{n}', String(e.totalClasses))
-    if (selectedNames.length) s += g.sumOf.replace('{list}', selectedNames.join(g.or))
+    const names = cur.ownTypes[r.id]
+      ? r.classTypeIds.map(id => classById.get(id)?.name).filter((n): n is string => !!n)
+      : selectedNames
+    if (names.length) s += g.sumOf.replace('{list}', names.join(g.or))
     if (f.classesPerPeriod) s += g.sumAtLeast.replace('{min}', String(f.classesPerPeriod)).replace('{unit}', unit(f.periodType))
     s += '.'
     if (per && e.classMonths) s += ' ' + g.sumTraining.replace('{per}', String(per)).replace('{unit}', unit(f.periodType)).replace('{t}', fmtMonths(e.classMonths))
@@ -344,6 +375,8 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
 
   return (
     <div className="flex flex-col" style={{ gap: 24 }}>
+      {/* Locked while saving: nothing typed now could be lost when the saved copy comes back */}
+      <fieldset disabled={saving} aria-busy={saving} className="flex flex-col" style={{ gap: 24, border: 'none', margin: 0, padding: 0, minWidth: 0, opacity: saving ? 0.7 : 1, transition: 'opacity .15s' }}>
       {/* How classes count */}
       <section aria-labelledby={`count-${systemId}`} style={CARD}>
         <div className="flex flex-col" style={{ padding: '22px 24px 4px', gap: 4 }}>
@@ -373,6 +406,17 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
           </div>
         )}
         <div className="flex flex-col" style={{ padding: '18px 24px 22px', gap: 12 }}>
+          {ownTypeBelts.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between" style={{ gap: 10, padding: '10px 12px', borderRadius: 12, background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+              <p style={{ margin: 0, fontSize: 13, color: '#92400E', flex: '1 1 260px' }}>
+                {g.ownTypesHint.replace('{list}', ownTypeBelts.map(r => `${r.name} (${typesLabel(r.classTypeIds)})`).join(', '))}
+              </p>
+              <button type="button" onClick={adoptClassTypes}
+                style={{ minHeight: 36, padding: '0 14px', borderRadius: 999, border: '1px solid #FCD34D', background: '#fff', color: '#92400E', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                {g.useForAll}
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap items-baseline justify-between" style={{ gap: 8 }}>
             <span style={LABEL}>{g.whichClasses}</span>
             <span style={{ fontSize: 13, color: '#4B5563' }}>{typesSentence}</span>
@@ -649,6 +693,7 @@ export default function GradingSystemSettings({ systemId, ranks, classes, onRank
           {structError && <p role="alert" style={{ margin: 0, fontSize: 13, color: '#B91C1C' }}>{g.structError}</p>}
         </div>
       </section>
+      </fieldset>
 
       {/* One Save for everything above */}
       {(dirty || justSaved) && (

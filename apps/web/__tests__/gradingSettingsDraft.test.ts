@@ -111,3 +111,38 @@ describe('buildSavePayload', () => {
     expect(buildSavePayload(reloaded, c2, own)).toEqual(first)
   })
 })
+
+describe('audit fixes (PR #46 RECHAZADO on d514b3c)', () => {
+  it('P1: saving keeps a belt that counts different classes (White/Black Gi, Blue No-Gi)', async () => {
+    const { hasOwnClassTypes } = await import('@/lib/grading/settingsDraft')
+    const d = toDraft([
+      rank({ id: 'white', order: 0, classTypeIds: ['gi'], classesByDegree: [8] }),
+      rank({ id: 'blue', order: 1, classTypeIds: ['nogi'], classesByDegree: [8] }),
+      rank({ id: 'black', order: 2, classTypeIds: ['gi'] }),
+    ])
+    const c = commonRules(d)
+    expect(c.classTypeIds).toEqual(['gi'])
+    const ownTypes = Object.fromEntries(d.map(r => [r.id, hasOwnClassTypes(r, c)]))
+    expect(ownTypes).toEqual({ white: false, blue: true, black: false })
+    // Only White's classes change
+    d[0]!.classesByDegree = [10, 16, 24, 24, 24]
+    const out = buildSavePayload(d, c, {}, ownTypes)
+    expect(out.find(r => r.id === 'blue')!.classTypeIds).toEqual(['nogi'])
+    expect(out.find(r => r.id === 'black')!.classTypeIds).toEqual(['gi'])
+    // "Use for all" (no exceptions) applies the shared one
+    expect(buildSavePayload(d, c, {}, {}).find(r => r.id === 'blue')!.classTypeIds).toEqual(['gi'])
+  })
+
+  it('P2: adding a belt after the last one starts its new step from the old fallback', async () => {
+    const { withNextStep } = await import('@/lib/grading/settingsDraft')
+    const [black] = toDraft([rank({ id: 'black', maxDegrees: 1, totalClassesRequired: 8 })])
+    expect(black!.classesByDegree).toEqual([8])
+    const extended = withNextStep(black!)
+    expect(extended.classesByDegree).toEqual([8, 8])
+    const red = rank({ id: 'red', order: 1 })
+    const out = buildSavePayload([{ ...extended, order: 0 }, red], commonRules([extended, red]), {})
+    expect(out[0]!.classesByDegree).toEqual([8, 8])
+    // An explicit value already there is kept
+    expect(withNextStep({ ...black!, classesByDegree: [8, 12] }).classesByDegree).toEqual([8, 12])
+  })
+})

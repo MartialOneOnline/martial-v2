@@ -1744,7 +1744,7 @@ function TemplatePicker({ applyingId, applyError, onApply, onClose }: {
   )
 }
 
-function GradingTab() {
+function GradingTab({ onDirtyChange }: { onDirtyChange?: (dirty: boolean) => void }) {
   const rt = useT().readiness
   const [showTemplates, setShowTemplates] = useState(false)
   const [createdId, setCreatedId] = useState<string | null>(null)
@@ -1754,7 +1754,7 @@ function GradingTab() {
   const applyingRef = useRef(false)
 
   async function applyTemplate(t: TemplateOption) {
-    if (applyingRef.current) return
+    if (applyingRef.current || !confirmLeave()) return
     applyingRef.current = true
     setApplyingId(t.id); setApplyError(null)
     try {
@@ -1807,15 +1807,23 @@ function GradingTab() {
   // A system created from a template opens straight away
   useEffect(() => { if (createdId) setSelectedId(createdId) }, [createdId])
 
-  function selectSystem(id: string) {
-    if (id === selectedId) return
-    if (beltsDirty && !confirm(g.leaveConfirm)) return
+  useEffect(() => { onDirtyChange?.(beltsDirty) }, [beltsDirty, onDirtyChange])
+
+  /** Every way of leaving the open system goes through here */
+  function confirmLeave(): boolean {
+    if (!beltsDirty) return true
+    if (!confirm(g.leaveConfirm)) return false
     setBeltsDirty(false)
+    return true
+  }
+
+  function selectSystem(id: string) {
+    if (id === selectedId || !confirmLeave()) return
     setSelectedId(id)
   }
 
   async function createSystem() {
-    if (!newName.trim()) return
+    if (!newName.trim() || !confirmLeave()) return
     setSaving(true)
     const res = await fetch('/api/dashboard/grading-systems', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1825,7 +1833,7 @@ function GradingTab() {
     if (!res.ok) return
     const { system } = await res.json()
     setSystems(prev => [...prev, system])
-    setSelectedId(system.id); setBeltsDirty(false)
+    setSelectedId(system.id)
     setNewName(''); setNewAct(''); setAdding(false)
   }
 
@@ -2132,6 +2140,15 @@ export default function SettingsClient() {
   const [activeTab, setActiveTab] = useState<TabId>(
     TABS.some(tab => tab.id === tabParam) ? (tabParam as TabId) : 'profile'
   )
+  // Unsaved belt edits in the Grading tab: leaving the tab asks first
+  const [gradingDirty, setGradingDirty] = useState(false)
+  const gradingLeaveMsg = useT().gradingSettings.leaveConfirm
+  function switchTab(id: TabId) {
+    if (id === activeTab) return
+    if (activeTab === 'grading' && gradingDirty && !confirm(gradingLeaveMsg)) return
+    setGradingDirty(false)
+    setActiveTab(id)
+  }
 
   const content: Record<TabId, React.ReactNode> = {
     profile:    <ProfileTab />,
@@ -2143,7 +2160,7 @@ export default function SettingsClient() {
     billing:    <BillingTab />,
     grading:    gradingEnabled === null
       ? (contextFailed ? <GradingLoadError /> : <p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p>)
-      : gradingEnabled ? <GradingTab /> : <GradingOffState onOpenModules={() => setActiveTab('modules')} />,
+      : gradingEnabled ? <GradingTab onDirtyChange={setGradingDirty} /> : <GradingOffState onOpenModules={() => setActiveTab('modules')} />,
     password:   <PasswordTab />,
     delete:     <DeleteTab />,
   }
@@ -2178,7 +2195,7 @@ export default function SettingsClient() {
           {TABS.filter(tab => tab.id !== 'grading' || gradingEnabled === true || activeTab === 'grading').map(tab => {
             const isActive = activeTab === tab.id
             return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              <button key={tab.id} onClick={() => switchTab(tab.id)}
                 style={{
                   padding: '8px 16px', borderRadius: 9, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: isActive ? 600 : 500, whiteSpace: 'nowrap',
