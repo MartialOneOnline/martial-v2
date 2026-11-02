@@ -271,6 +271,15 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-02 (k) (rama `claude/absences-report` — pendiente de auditoría; sin migración)
+
+**Informe de Ausencias rehecho: quién ha dejado de venir.** Diagnóstico con datos de RGM (lectura, 90 días): 2.036 asistencias frente a 116 cancelaciones y 59 no presentados; 35 de 129 alumnos activos llevan 14+ días sin venir (25 pagan cuota). El informe antiguo solo contaba cancelaciones y no presentados. Propuesta aprobada por el usuario ("Sí, así").
+- `lib/absences/stopped.ts` (puro): `bucketFor()` (7–13 aviso, 14–29 en riesgo, 30+ casi perdidos), `daysBetween()` en días naturales de la zona del colegio, `usualPerWeek()` (8 semanas hasta la última clase), `buildAbsenceLists()` (activos → listas; "nunca han venido" tras 7 días de alta; orden: pagan primero, luego más días), `aggregateNoShows()` (NO_SHOW + reservas CONFIRMED de clases ya terminadas hace 3 h sin marcar).
+- `GET /api/dashboard/reports/absents` reescrito: listas calculadas con asistencias (check-in o reserva; vale para escuelas sin reservas), alumnos ACTIVE (FROZEN no cuenta), staff excluido; plan activo (de pago / prueba vía `isTrialMembership`); última clase con `groupBy` para historiales de más de un año. Periodo (30d/90d/12m) solo para no presentados, sin marcar y cancelaciones (tendencia y día de la semana en la zona del colegio).
+- UI: 4 tarjetas que abren su lista + frase "X de N llevan 14+ días · Y pagan cuota"; pestañas Aviso / En riesgo / Casi perdidos / Nunca han venido / Reservó y no vino; columnas alumno (enlace a la ficha), plan, última clase y días, frecuencia previa, contacto (llamar, WhatsApp, email); exportar CSV; sección Reservas con periodo, 3 cifras y 2 gráficas. Textos `t.absencesReport` en EN/ES/PT/FR.
+- Tests: `absencesStopped` (7), `absencesReportRoute` (2). Suite 1091 / 55 preexistentes; tsc 0; ESLint limpio.
+- No verificado: navegador y datos reales.
+
 ### Sesión — 2026-11-02 (j) (rama `claude/trial-fixes`, PR [#47](https://github.com/MartialOneOnline/martial-v2/pull/47) — `RECHAZADO` en `104c2bf` (2 P1, 2 P2, 1 P3) → `RECHAZADO` en `6a364e7` (1 P1, 1 P2) → **`APROBADO CON PENDIENTES`** en `c0f1103` (P3 de SQL rehacible corregido); migración `20261102120000_membership_trial_assignment` a aplicar en prod ANTES del despliegue y solo con OK; NO mergear antes de que el usuario revise la lista de pruebas de RGM)
 
 **Pruebas gratis y conversión de leads** (caso Rafa). Decisiones del usuario (2026-11-02): los días cuentan desde la primera clase; caduca ese día sin bloquear la entrada; revisar la lista de pruebas antiguas antes de publicar.

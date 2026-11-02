@@ -1,400 +1,355 @@
 'use client'
 
+// Absences report — who stopped coming (see lib/absences/stopped.ts).
+import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { Menu, Download, Phone, MessageCircle, Mail, ExternalLink } from 'lucide-react'
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
-import { useState, useEffect, useCallback } from 'react'
-import { Menu, Search, ChevronLeft, ChevronRight, Filter, MoreVertical, AlertTriangle, Download } from 'lucide-react'
-import { useT } from '../../../../lib/i18n/LanguageContext'
-import SharedRowMenu from '../../../../components/RowMenu'
+import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 import { downloadCsv } from '../../../../lib/csvExport'
-import {
-  BarChart, Bar, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
 
-const ITEMS_PER_PAGE = 15
+type Period = '30d' | '90d' | '12m'
+type ListKey = 'WARNING' | 'AT_RISK' | 'LOST' | 'NEVER'
+type TabKey = ListKey | 'NO_SHOW'
 
-function getPaginationPages(current: number, total: number): (number | '...')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
-  if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
+interface Contact { memberId: string | null; name: string; email: string | null; phone: string | null; whatsapp: string | null; avatarUrl: string | null }
+interface Row extends Contact {
+  joinedAt: string | null; lastClassAt: string | null; daysSince: number | null; usualPerWeek: number | null
+  plan: { name: string; paying: boolean; trial: boolean } | null
 }
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-function Avatar({ name, avatarUrl, size = 28 }: { name: string; avatarUrl: string | null; size?: number }) {
-  const initials = (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-  if (avatarUrl) return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={avatarUrl} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-  )
-  return (
-    <div style={{ width: size, height: size, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      background: 'linear-gradient(135deg,#D97706,#DC2626)', color: '#fff', fontSize: size * 0.33, fontWeight: 700 }}>
-      {initials}
-    </div>
-  )
-}
-
-const INP: React.CSSProperties = { width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', fontSize: 12, color: '#111827', background: '#fff', outline: 'none' }
-const SEC: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'block' }
-
-interface FiltersState { minCount: string }
-const EMPTY_FILTERS: FiltersState = { minCount: '' }
-
-function FiltersPanel({ filters, onChange }: { filters: FiltersState; onChange: (f: FiltersState) => void }) {
-  const [local, setLocal] = useState<FiltersState>(filters)
-  useEffect(() => { setLocal(filters) }, [filters])
-  const activeCount = [!!filters.minCount].filter(Boolean).length
-  return (
-    <SharedRowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
-      <button onClick={onClick}
-        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px', borderRadius: 8, cursor: 'pointer',
-          border: activeCount ? '1.5px solid #0870E2' : '1px solid #E5E7EB', background: activeCount ? '#EFF6FF' : '#fff' }}>
-        <Filter size={13} style={{ color: activeCount ? '#0870E2' : '#6B7280' }} />
-        <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0870E2' : '#6B7280' }}>Filters</span>
-        {activeCount > 0 && <span style={{ background: '#0870E2', color: '#fff', borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{activeCount}</span>}
-      </button>
-    )}>
-      {({ close }) => {
-        function apply() { onChange(local); close() }
-        function clear() { setLocal(EMPTY_FILTERS); onChange(EMPTY_FILTERS); close() }
-        return (
-          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', width: 280, padding: 16 }}>
-            <div style={{ marginBottom: 16 }}>
-              <span style={SEC}>Min. cancellations</span>
-              <input type="number" min={1} placeholder="e.g. 3" value={local.minCount} onChange={e => setLocal(p => ({ ...p, minCount: e.target.value }))} style={INP} />
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Show only members with ≥ this many cancellations</p>
-            </div>
-            <div style={{ display: 'flex', gap: 8, paddingTop: 12, borderTop: '1px solid #F3F4F6' }}>
-              <button onClick={clear} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, fontWeight: 500, color: '#6B7280', cursor: 'pointer' }}>Clear</button>
-              <button onClick={apply} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: '#111827', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>Apply</button>
-            </div>
-          </div>
-        )
-      }}
-    </SharedRowMenu>
-  )
-}
-
-function RowMenu({ items }: { items: { label: string; onClick: () => void; variant?: 'danger' }[] }) {
-  return (
-    <SharedRowMenu trigger={({ onClick }) => (
-      <button onClick={onClick} className="cursor-pointer"
-        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #E5E7EB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <MoreVertical size={13} style={{ color: '#6B7280' }} />
-      </button>
-    )}>
-      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, boxShadow: '0 6px 20px rgba(0,0,0,0.1)', minWidth: 160, overflow: 'hidden' }}>
-        {items.map(item => (
-          <button key={item.label} onClick={item.onClick}
-            className="w-full text-left cursor-pointer hover:bg-[#F9FAFB]"
-            style={{ padding: '9px 14px', fontSize: 12, fontWeight: 500, color: item.variant === 'danger' ? '#DC2626' : '#374151', border: 'none', background: 'transparent', display: 'block' }}>
-            {item.label}
-          </button>
-        ))}
-      </div>
-    </SharedRowMenu>
-  )
-}
-
-interface MemberRow {
-  userId: string; name: string; email: string; avatarUrl: string | null
-  count: number; noShowCount: number; mostMissedClass: string; lastMissedAt: string
-}
+interface NoShowRow extends Contact { noShows: number; unmarked: number; lastAt: string; topClass: string }
 interface ReportData {
-  stats: {
-    totalAbsences: number; totalNoShows: number
-    uniqueMembers: number; noShowMembers: number
-    avgCancellations: number; atRiskCount: number
-  }
-  trendData: { date: string; absences: number; noShows: number }[]
-  dowData:   { day: string; absences: number; noShows: number }[]
-  members:   MemberRow[]
-  total:     number
-  atRiskThreshold: number
+  summary: { active: number; warning: number; atRisk: number; lost: number; never: number; payingAway: number }
+  lists: Record<ListKey, Row[]>
+  noShows: NoShowRow[]
+  period: { cancelled: number; noShows: number; unmarked: number; trend: { date: string; cancelled: number; missed: number }[]; dow: { day: string; cancelled: number; missed: number }[] }
 }
+
+const TABS: TabKey[] = ['WARNING', 'AT_RISK', 'LOST', 'NEVER', 'NO_SHOW']
+const PAGE = 25
+const COLOR: Record<TabKey, string> = { WARNING: '#CA8A04', AT_RISK: '#EA580C', LOST: '#DC2626', NEVER: '#6B7280', NO_SHOW: '#7C3AED' }
+
+const CARD: React.CSSProperties = { background: '#fff', border: '1px solid #E5E7EB', borderRadius: 16 }
+const TH: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '10px 16px', textAlign: 'left' }
+const TD: React.CSSProperties = { fontSize: 13, color: '#374151', padding: '10px 16px', borderTop: '1px solid #F3F4F6' }
+const iconBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 9, border: '1px solid #E5E7EB', background: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }
 
 export default function AbsentsReportClient() {
   const { setMenuOpen } = useDashboard()
-  const t = useT()
+  const { t, locale } = useLanguage()
+  const r = t.absencesReport
+  const [period, setPeriod] = useState<Period>('30d')
+  const [data, setData] = useState<ReportData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [tab, setTab] = useState<TabKey | null>(null)
+  const [shown, setShown] = useState(PAGE)
+  // Ignore a slower response for a period the user has already left
+  const requestId = useRef(0)
 
-  const [period,     setPeriod]     = useState<'7d' | '30d' | '90d' | '12m' | 'custom'>('30d')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo,   setCustomTo]   = useState('')
-  const [filter,    setFilter]    = useState<'ALL' | 'AT_RISK' | 'OCCASIONAL'>('ALL')
-  const [search,    setSearch]    = useState('')
-  const [page,      setPage]      = useState(1)
-  const [filters,   setFilters]   = useState<FiltersState>(EMPTY_FILTERS)
-  const [data,      setData]      = useState<ReportData | null>(null)
-  const [loading,   setLoading]   = useState(true)
-  const [toast,     setToast]     = useState('')
+  const load = useCallback(() => {
+    const id = ++requestId.current
+    setLoading(true); setError(false)
+    fetch(`/api/dashboard/reports/absents?period=${period}`)
+      .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json() })
+      .then((d: ReportData) => {
+        if (id !== requestId.current) return
+        setData(d)
+        const count = (k: TabKey) => (k === 'NO_SHOW' ? d.noShows.length : d.lists[k].length)
+        // Land on the most urgent list that has someone in it
+        setTab(prev => prev && count(prev) ? prev : (['AT_RISK', 'LOST', 'WARNING', 'NEVER', 'NO_SHOW'] as TabKey[]).find(k => count(k)) ?? 'AT_RISK')
+      })
+      .catch(() => { if (id === requestId.current) setError(true) })
+      .finally(() => { if (id === requestId.current) setLoading(false) })
+  }, [period])
+  useEffect(load, [load])
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200) }
+  const fmt = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+  const days = (n: number | null) => (n === null ? '—' : n === 1 ? r.oneDay : r.nDays.replace('{n}', String(n)))
+  const perWeek = (n: number | null) => (n === null ? '—' : n === 0 ? r.lessThanWeekly : r.perWeek.replace('{n}', n.toLocaleString(locale)))
+  const planLabel = (p: Row['plan']) => (!p ? r.noPlan : p.trial ? r.trial : p.paying ? p.name : r.free)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    const params = new URLSearchParams({ period, filter, search, page: String(page) })
-    if (filters.minCount) params.set('minCount', filters.minCount)
-    if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
-    if (period === 'custom' && customTo)   params.set('dateTo', customTo)
-    const res = await fetch(`/api/dashboard/reports/absents?${params}`)
-    if (res.ok) setData(await res.json())
-    setLoading(false)
-  }, [period, filter, search, page, filters, customFrom, customTo])
+  const tabLabel: Record<TabKey, string> = { WARNING: r.tabWarning, AT_RISK: r.tabAtRisk, LOST: r.tabLost, NEVER: r.tabNever, NO_SHOW: r.tabNoShow }
+  const tabHint: Record<TabKey, string> = { WARNING: r.tabWarningHint, AT_RISK: r.tabAtRiskHint, LOST: r.tabLostHint, NEVER: r.tabNeverHint, NO_SHOW: r.tabNoShowHint }
+  const count = (k: TabKey) => (!data ? 0 : k === 'NO_SHOW' ? data.noShows.length : data.lists[k].length)
 
-  useEffect(() => { load() }, [load])
-  useEffect(() => { setPage(1) }, [period, filter, search, filters, customFrom, customTo])
+  const listRows = data && tab && tab !== 'NO_SHOW' ? data.lists[tab] : []
+  const noShowRows = data && tab === 'NO_SHOW' ? data.noShows : []
+  const total = tab === 'NO_SHOW' ? noShowRows.length : listRows.length
+  // Never export a list that belongs to a period still loading or that failed
+  const canExport = total > 0 && !loading && !error
 
-  async function handleExport() {
-    const params = new URLSearchParams({ period, filter, search, page: '1', pageSize: '1000' })
-    if (filters.minCount) params.set('minCount', filters.minCount)
-    if (period === 'custom' && customFrom) params.set('dateFrom', customFrom)
-    if (period === 'custom' && customTo)   params.set('dateTo', customTo)
-    const res = await fetch(`/api/dashboard/reports/absents?${params}`)
-    if (!res.ok) return
-    const d: ReportData = await res.json()
-    const headers = ['Name', 'Email', 'Cancellations', 'No-shows', 'Most missed class', 'Last missed', 'Risk']
-    const rows = d.members.map(m => [
-      m.name, m.email, String(m.count), String(m.noShowCount), m.mostMissedClass,
-      fmtDate(m.lastMissedAt), m.count >= d.atRiskThreshold ? 'At risk' : 'Occasional',
-    ])
-    downloadCsv('absents-report', headers, rows)
+  function exportList() {
+    if (!tab || !canExport) return
+    if (tab === 'NO_SHOW') {
+      downloadCsv(`${r.exportFile}-${tabLabel[tab]}`, [r.colStudent, r.email, r.colPhone, r.colNoShows, r.colUnmarked, r.colLast, r.colClass],
+        noShowRows.map(x => [x.name, x.email, x.phone, x.noShows, x.unmarked, fmt(x.lastAt), x.topClass]), { locale })
+    } else {
+      downloadCsv(`${r.exportFile}-${tabLabel[tab]}`, [r.colStudent, r.email, r.colPhone, r.colPlan, r.colLastClass, r.colDaysAway, r.colUsual],
+        listRows.map(x => [x.name, x.email, x.phone, planLabel(x.plan), x.lastClassAt ? fmt(x.lastClassAt) : '', x.daysSince ?? '', x.usualPerWeek ?? '']), { locale })
+    }
   }
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / ITEMS_PER_PAGE)) : 1
-  const pages = getPaginationPages(page, totalPages)
-  const stats = data?.stats
-  const threshold = data?.atRiskThreshold ?? 3
+  const contact = (x: Contact) => (
+    <div className="flex items-center gap-1.5">
+      {x.phone && (
+        <a href={`tel:${x.phone.replace(/[^\d+]/g, '')}`} title={r.call} aria-label={`${r.call} · ${x.name}`} style={iconBtn}>
+          <Phone size={13} style={{ color: '#374151' }} />
+        </a>
+      )}
+      {x.whatsapp && (
+        <a href={`https://wa.me/${x.whatsapp}`} target="_blank" rel="noopener noreferrer" title={r.whatsapp} aria-label={`${r.whatsapp} · ${x.name}`} style={iconBtn}>
+          <MessageCircle size={13} style={{ color: '#16A34A' }} />
+        </a>
+      )}
+      {x.email && (
+        <a href={`mailto:${x.email}`} title={r.email} aria-label={`${r.email} · ${x.name}`} style={iconBtn}>
+          <Mail size={13} style={{ color: '#0870E2' }} />
+        </a>
+      )}
+      {!x.phone && !x.email && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{r.noContact}</span>}
+    </div>
+  )
+  const nameCell = (x: Contact, sub?: string) => (
+    <td style={TD}>
+      {x.memberId ? (
+        <Link href={`/dashboard/users/${x.memberId}`} prefetch={false} title={r.openProfile} className="inline-flex items-center gap-1.5" style={{ fontWeight: 600, color: '#111827' }}>
+          {x.name} <ExternalLink size={11} style={{ color: '#9CA3AF' }} aria-hidden />
+        </Link>
+      ) : <span style={{ fontWeight: 600, color: '#111827' }}>{x.name}</span>}
+      {sub && <p style={{ fontSize: 11, color: '#6B7280', margin: '2px 0 0' }}>{sub}</p>}
+    </td>
+  )
 
-  const STAT_CARDS = [
-    { label: 'Cancellations',     value: stats?.totalAbsences    ?? '—', sub: 'this period',                 color: '#DC2626' },
-    { label: 'No-Shows',          value: stats?.totalNoShows     ?? '—', sub: `${stats?.noShowMembers ?? 0} members`, color: '#B91C1C' },
-    { label: 'Avg Cancellations', value: stats?.avgCancellations ?? '—', sub: 'per member',                  color: '#6D28D9' },
-    { label: 'Unique Members',    value: stats?.uniqueMembers    ?? '—', sub: 'affected',                    color: '#D97706' },
-    { label: 'At-Risk Members',   value: stats?.atRiskCount      ?? '—', sub: `${threshold}+ cancellations`, color: '#DC2626' },
+  const s = data?.summary
+  const cards: { key: ListKey; label: string; value: number | undefined; hint: string }[] = [
+    { key: 'WARNING', label: r.tabWarning, value: s?.warning, hint: r.cardWarning },
+    { key: 'AT_RISK', label: r.tabAtRisk, value: s?.atRisk, hint: r.cardAtRisk },
+    { key: 'LOST', label: r.tabLost, value: s?.lost, hint: r.cardLost },
+    { key: 'NEVER', label: r.tabNever, value: s?.never, hint: r.cardNever },
   ]
+  const series = { cancelled: r.cancelled, missed: r.missed }
 
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
-      {toast && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 100,
-          background: '#111827', color: '#fff', borderRadius: 10, padding: '10px 20px', fontSize: 13, fontWeight: 500 }}>
-          {toast}
-        </div>
-      )}
-
-      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
-        style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0" aria-label="Menu"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-          <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-          <input type="text" placeholder="Search member…" value={search} onChange={e => setSearch(e.target.value)}
-            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
-        </div>
         <div className="flex-1" />
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
-          {(['7d', '30d', '90d', '12m', 'custom'] as const).map(p => (
-            <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
-              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
-                background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
-                boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
-              {p === 'custom' ? 'Custom' : p.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        {period === 'custom' && (
-          <div className="flex items-center gap-1.5">
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
-            <span style={{ fontSize: 12, color: '#9CA3AF' }}>–</span>
-            <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
-          </div>
-        )}
-        <button onClick={handleExport}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
-          style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
-          <Download size={14} /> Export
-        </button>
         <NotificationBell />
       </div>
 
       <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{t.reports.absentsTitle}</h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Cancelled bookings, at-risk members and day-of-week patterns</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>{r.title}</h1>
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 2 }}>{r.subtitle}</p>
         </div>
 
-        <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
-          {STAT_CARDS.map(stat => (
-            <div key={stat.label} className="rounded-2xl" style={{ background: '#fff', border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-2 h-2 rounded-full" style={{ background: stat.color }} />
-                <span style={{ fontSize: 11, color: '#9CA3AF' }}>{stat.sub}</span>
+        {error && !data ? (
+          <div className="flex items-center justify-between gap-3 px-5 py-4" style={CARD}>
+            <span role="alert" style={{ fontSize: 13, color: '#DC2626' }}>{r.loadError}</span>
+            <button onClick={load} className="cursor-pointer" style={{ fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 999, border: '1px solid #E5E7EB', background: '#fff' }}>{r.retry}</button>
+          </div>
+        ) : !data ? (
+          <p style={{ fontSize: 13, color: '#6B7280' }}>{r.loading}</p>
+        ) : (
+          <div className="flex flex-col gap-6">
+            {error && (
+              <div className="flex items-center justify-between gap-3 px-4 py-2 rounded-xl" style={{ background: '#FEF3C7', border: '1px solid #FDE68A' }}>
+                <span role="alert" style={{ fontSize: 12, color: '#92400E' }}>{r.loadError}</span>
+                <button onClick={load} className="cursor-pointer" style={{ fontSize: 12, fontWeight: 600, color: '#92400E', background: 'none', border: 'none' }}>{r.retry}</button>
               </div>
-              <p style={{ fontSize: 28, fontWeight: 700, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 4 }}>
-                {loading ? '…' : stat.value}
-              </p>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#6B7280' }}>{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Absences by Day of Week</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Cancellations and no-shows per day</p>
-            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={data?.dowData ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                  <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                  <Bar dataKey="absences" name="Cancellations" fill="#D97706" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="noShows"  name="No-Shows"      fill="#B91C1C" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
             )}
-          </div>
-          <div className="rounded-2xl p-5" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 4 }}>Absence Trend</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>Cancellations and no-shows over time</p>
-            {loading ? <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</p></div> : (
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={data?.trendData ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
-                  <Area type="monotone" dataKey="absences" name="Cancellations" stroke="#DC2626" fill="#DC2626" fillOpacity={0.12} strokeWidth={2} />
-                  <Area type="monotone" dataKey="noShows"  name="No-Shows"      stroke="#B91C1C" fill="#B91C1C" fillOpacity={0.08} strokeWidth={2} strokeDasharray="4 2" />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {([
-              { key: 'ALL', label: 'All' }, { key: 'AT_RISK', label: 'At Risk' }, { key: 'OCCASIONAL', label: 'Occasional' },
-            ] as const).map(tab => {
-              const isOn = filter === tab.key
-              const isDanger = tab.key === 'AT_RISK' && isOn
-              return (
-                <button key={tab.key} onClick={() => setFilter(tab.key)} className="cursor-pointer"
-                  style={{ fontSize: 12, fontWeight: isOn ? 600 : 400, padding: '5px 14px', borderRadius: 8,
-                    background: isDanger ? '#FEF2F2' : isOn ? '#111827' : '#fff',
-                    color: isDanger ? '#DC2626' : isOn ? '#fff' : '#6B7280',
-                    border: `1.5px solid ${isDanger ? '#FECACA' : isOn ? '#111827' : '#E5E7EB'}` }}>
-                  {tab.label}
-                  {!loading && data && tab.key === 'ALL' && <span style={{ opacity: 0.6, marginLeft: 4 }}>{data.total}</span>}
+            {/* Summary — each card opens its list */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {cards.map(c => (
+                <button key={c.key} onClick={() => { setTab(c.key); setShown(PAGE) }} className="text-left cursor-pointer"
+                  style={{ ...CARD, padding: '16px 18px', outline: tab === c.key ? `2px solid ${COLOR[c.key]}` : 'none', outlineOffset: -1 }}>
+                  <span className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: COLOR[c.key] }} aria-hidden />
+                    <span style={{ fontSize: 12, color: '#4B5563', fontWeight: 500 }}>{c.label}</span>
+                  </span>
+                  <span style={{ display: 'block', fontSize: 26, fontWeight: 700, color: '#111827', lineHeight: 1 }}>{c.value ?? '—'}</span>
+                  <span style={{ display: 'block', fontSize: 11, color: '#6B7280', marginTop: 6 }}>{c.hint}</span>
                 </button>
-              )
-            })}
-            <div style={{ marginLeft: 'auto' }}>
-              <FiltersPanel filters={filters} onChange={f => { setFilters(f); setPage(1) }} />
+              ))}
             </div>
-          </div>
+            {s && (
+              <p style={{ fontSize: 13, color: '#374151', margin: '-8px 0 0' }}>
+                {r.summaryLine.replace('{away}', String(s.atRisk + s.lost)).replace('{active}', String(s.active))}
+                {s.payingAway > 0 && <strong style={{ color: '#B91C1C' }}> {r.summaryPaying.replace('{n}', String(s.payingAway))}</strong>}
+              </p>
+            )}
 
-          <div className="rounded-2xl overflow-hidden" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                  {['Member', 'Most Missed Class', 'Cancellations', 'Last Absent', ''].map(h => (
-                    <th key={h} className="px-5 py-3 text-left"
-                      style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={5} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>Loading…</td></tr>
-                ) : (data?.members ?? []).length === 0 ? (
-                  <tr><td colSpan={5} className="px-5 py-8 text-center" style={{ fontSize: 13, color: '#9CA3AF' }}>No absences found</td></tr>
-                ) : (
-                  (data?.members ?? []).map((m, idx) => {
-                    const isAtRisk = m.count >= threshold
-                    return (
-                      <tr key={m.userId} className="hover:bg-[#FAFAFA] transition-colors"
-                        style={{ borderBottom: idx < (data?.members.length ?? 0) - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-2.5">
-                            <Avatar name={m.name} avatarUrl={m.avatarUrl} size={28} />
-                            <div>
-                              <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{m.name}</p>
-                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{m.mostMissedClass}</span></td>
-                        <td className="px-5 py-3">
-                          <div className="flex flex-col gap-1">
-                            <span className="inline-flex items-center gap-1"
-                              style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
-                                background: isAtRisk ? '#FEF2F2' : '#F3F4F6', color: isAtRisk ? '#DC2626' : '#6B7280',
-                                border: '1px solid ' + (isAtRisk ? '#FECACA' : '#E5E7EB') }}>
-                              {isAtRisk && <AlertTriangle size={9} />}
-                              {m.count}x cancelled
-                            </span>
-                            {m.noShowCount > 0 && (
-                              <span className="inline-flex items-center gap-1"
-                                style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999,
-                                  background: '#FEF2F2', color: '#B91C1C', border: '1px solid #FECACA' }}>
-                                {m.noShowCount}x no-show
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-5 py-3"><span style={{ fontSize: 12, color: '#9CA3AF' }}>{fmtDate(m.lastMissedAt)}</span></td>
-                        <td className="px-5 py-3">
-                          <RowMenu items={[
-                            { label: 'Send reminder', onClick: () => window.open(`mailto:${m.email}?subject=We miss you at class!&body=Hi ${m.name.split(' ')[0]}, we haven't seen you lately. Come back soon!`, '_blank') },
-                            { label: 'Copy email', onClick: () => { navigator.clipboard.writeText(m.email); showToast('Email copied') } },
-                            ...(isAtRisk ? [{ label: `${m.count} cancellations — at risk`, onClick: () => {}, variant: 'danger' as const }] : []),
-                          ]} />
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
-                <p style={{ fontSize: 13, color: '#6B7280' }}>
-                  Showing <span style={{ fontWeight: 600, color: '#111827' }}>{(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, data?.total ?? 0)}</span> of <span style={{ fontWeight: 600, color: '#111827' }}>{data?.total ?? 0}</span>
-                </p>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151', cursor: page === 1 ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
-                    <ChevronLeft size={14} />
+            {/* Lists */}
+            <div style={CARD}>
+              <div className="px-5 pt-5 pb-3 flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{r.listsTitle}</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{r.listsHint}</p>
+                </div>
+                {total > 0 && (
+                  <button onClick={exportList} disabled={!canExport} className="cursor-pointer inline-flex items-center gap-1.5 disabled:cursor-not-allowed"
+                    style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, background: '#fff', color: '#374151', border: '1.5px solid #E5E7EB', opacity: canExport ? 1 : 0.5 }}>
+                    <Download size={13} aria-hidden /> {r.export}
                   </button>
-                  {pages.map((p, i) =>
-                    p === '...' ? <span key={'e' + i} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span> : (
-                      <button key={p} onClick={() => setPage(p as number)} className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer"
-                        style={{ fontSize: 13, fontWeight: p === page ? 600 : 400, border: 'none', background: p === page ? '#F3F4F6' : 'transparent', color: p === page ? '#111827' : '#6B7280' }}>{p}</button>
-                    )
-                  )}
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                    style={{ border: '1px solid #E5E7EB', background: '#fff', color: page === totalPages ? '#D1D5DB' : '#374151', cursor: page === totalPages ? 'not-allowed' : 'pointer', borderRadius: 8, padding: '6px 10px' }}>
-                    <ChevronRight size={14} />
+                )}
+              </div>
+              <div className="px-5 flex gap-2 flex-wrap" role="tablist" aria-label={r.listsTitle}>
+                {TABS.map(k => {
+                  const on = tab === k
+                  return (
+                    <button key={k} role="tab" aria-selected={on} onClick={() => { setTab(k); setShown(PAGE) }} className="cursor-pointer inline-flex items-center gap-2"
+                      style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, minHeight: 32,
+                        background: on ? '#111827' : '#fff', color: on ? '#fff' : '#374151', border: `1.5px solid ${on ? '#111827' : '#E5E7EB'}` }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: COLOR[k] }} aria-hidden />
+                      {tabLabel[k]}
+                      <span style={{ fontSize: 11, padding: '0 6px', borderRadius: 999, background: on ? 'rgba(255,255,255,0.2)' : '#F3F4F6' }}>{count(k)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              {tab && <p style={{ fontSize: 12, color: '#4B5563', margin: '10px 20px 0' }}>{tab === 'NO_SHOW' ? tabHint[tab].replace('{period}', ({ '30d': r.period30, '90d': r.period90, '12m': r.period12 })[period]) : tabHint[tab]}</p>}
+
+              <div className="overflow-x-auto" style={{ marginTop: 10 }}>
+                {tab === 'NO_SHOW' ? (
+                  <table className="w-full" style={{ minWidth: 720, borderCollapse: 'collapse' }}>
+                    <thead><tr>{[r.colStudent, r.colNoShows, r.colUnmarked, r.colLast, r.colClass, r.colContact].map(h => <th key={h} style={TH}>{h}</th>)}</tr></thead>
+                    <tbody>
+                      {noShowRows.length === 0 ? (
+                        <tr><td colSpan={6} style={{ ...TD, textAlign: 'center', color: '#6B7280', padding: '32px 16px' }}>{r.emptyNoShows}</td></tr>
+                      ) : noShowRows.slice(0, shown).map((x, i) => (
+                        <tr key={`${x.memberId ?? x.email ?? x.name}-${i}`}>
+                          {nameCell(x)}
+                          <td style={{ ...TD, fontWeight: 600 }}>{x.noShows || '—'}</td>
+                          <td style={TD}>{x.unmarked || '—'}</td>
+                          <td style={{ ...TD, whiteSpace: 'nowrap' }}>{fmt(x.lastAt)}</td>
+                          <td style={TD}>{x.topClass}</td>
+                          <td style={TD}>{contact(x)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className="w-full" style={{ minWidth: 720, borderCollapse: 'collapse' }}>
+                    <thead><tr>{[r.colStudent, r.colPlan, tab === 'NEVER' ? r.colJoined : r.colLastClass, tab === 'NEVER' ? r.colSinceJoined : r.colUsual, r.colContact].map(h => <th key={h} style={TH}>{h}</th>)}</tr></thead>
+                    <tbody>
+                      {listRows.length === 0 ? (
+                        <tr><td colSpan={5} style={{ ...TD, textAlign: 'center', color: '#6B7280', padding: '32px 16px' }}>{r.emptyList}</td></tr>
+                      ) : listRows.slice(0, shown).map(x => (
+                        <tr key={x.memberId ?? x.name}>
+                          {nameCell(x)}
+                          <td style={TD}>
+                            <span style={{ fontSize: 12, fontWeight: 600, padding: '2px 9px', borderRadius: 999, whiteSpace: 'nowrap',
+                              background: x.plan?.paying ? '#ECFDF5' : x.plan?.trial ? '#EFF6FF' : '#F3F4F6',
+                              color: x.plan?.paying ? '#047857' : x.plan?.trial ? '#1D4ED8' : '#4B5563' }}>
+                              {planLabel(x.plan)}
+                            </span>
+                          </td>
+                          {tab === 'NEVER' ? (
+                            <>
+                              <td style={{ ...TD, whiteSpace: 'nowrap' }}>{x.joinedAt ? fmt(x.joinedAt) : '—'}</td>
+                              <td style={{ ...TD, whiteSpace: 'nowrap' }}>{days(x.daysSince)}</td>
+                            </>
+                          ) : (
+                            <>
+                              <td style={{ ...TD, whiteSpace: 'nowrap' }}>
+                                <span style={{ fontWeight: 600, color: COLOR[tab ?? 'AT_RISK'] }}>{days(x.daysSince)}</span>
+                                {x.lastClassAt && <span style={{ color: '#6B7280' }}> · {fmt(x.lastClassAt)}</span>}
+                              </td>
+                              <td style={{ ...TD, whiteSpace: 'nowrap' }}>{perWeek(x.usualPerWeek)}</td>
+                            </>
+                          )}
+                          <td style={TD}>{contact(x)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+              {total > shown && (
+                <div className="px-5 py-3" style={{ borderTop: '1px solid #F3F4F6' }}>
+                  <button onClick={() => setShown(n => n + PAGE)} className="cursor-pointer"
+                    style={{ fontSize: 12, fontWeight: 600, color: '#0870E2', background: 'none', border: 'none', padding: 0 }}>
+                    {r.showMore.replace('{n}', String(Math.min(PAGE, total - shown)))}
                   </button>
                 </div>
+              )}
+            </div>
+
+            {/* Bookings in the period: no-shows and cancellations */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-end justify-between gap-3 flex-wrap">
+                <div>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{r.bookingsTitle}</p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>{r.bookingsHint}</p>
+                </div>
+                <div className="flex items-center gap-1 p-1 rounded-xl" role="group" aria-label={r.bookingsTitle} style={{ background: '#F3F4F6' }}>
+                  {(['30d', '90d', '12m'] as const).map(p => (
+                    <button key={p} onClick={() => setPeriod(p)} aria-pressed={period === p} className="cursor-pointer"
+                      style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
+                        background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#4B5563',
+                        boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
+                      {{ '30d': r.period30, '90d': r.period90, '12m': r.period12 }[p]}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
+              <div className="grid grid-cols-3 gap-3" style={{ opacity: loading ? 0.6 : 1 }}>
+                {[
+                  { label: r.statNoShows, value: data.period.noShows, color: '#7C3AED' },
+                  { label: r.statUnmarked, value: data.period.unmarked, color: '#6B7280' },
+                  { label: r.statCancelled, value: data.period.cancelled, color: '#D97706' },
+                ].map(x => (
+                  <div key={x.label} style={{ ...CARD, padding: '14px 16px' }}>
+                    <span className="flex items-center gap-2" style={{ fontSize: 12, color: '#4B5563', fontWeight: 500 }}>
+                      <span className="w-2 h-2 rounded-full" style={{ background: x.color }} aria-hidden />{x.label}
+                    </span>
+                    <span style={{ display: 'block', fontSize: 22, fontWeight: 700, color: '#111827', marginTop: 6 }}>{x.value}</span>
+                  </div>
+                ))}
+              </div>
+              {data.period.unmarked > 0 && (
+                <p style={{ fontSize: 12, color: '#4B5563', margin: 0 }}>{r.unmarkedHint}</p>
+              )}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4" style={{ opacity: loading ? 0.6 : 1 }}>
+                <div style={{ ...CARD, padding: 20 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{r.byDayTitle}</p>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={data.period.dow.map(d => ({ ...d, label: (r.dow as Record<string, string>)[d.day] ?? d.day }))}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Bar dataKey="missed" name={series.missed} fill="#7C3AED" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="cancelled" name={series.cancelled} fill="#D97706" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ ...CARD, padding: 20 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: '0 0 12px' }}>{r.trendTitle}</p>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={data.period.trend}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                      <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12 }} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Area type="monotone" dataKey="missed" name={series.missed} stroke="#7C3AED" fill="#7C3AED" fillOpacity={0.12} strokeWidth={2} />
+                      <Area type="monotone" dataKey="cancelled" name={series.cancelled} stroke="#D97706" fill="#D97706" fillOpacity={0.1} strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </main>
   )

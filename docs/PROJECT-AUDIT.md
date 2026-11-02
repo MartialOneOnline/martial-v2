@@ -195,6 +195,14 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   7. P2 — la heurística de fecha manual fallaba con una fecha igual al cálculo o dentro de la tolerancia. Nuevo `Membership.endDateManual`: `true` con el override de efectivo en `assignPlan` y cuando el staff cambia la fecha (`updateDates`); `false` si la borra o en una activación. La migración lo rellena una sola vez en las pruebas existentes con la regla anterior; desde entonces es explícito. Se elimina `isManualTrialEnd()`.
 - Tests: 5 reproducciones nuevas en `trialLifecycle` (importada 2-nov/1-oct, fila sin `assignedAt` que lo fija una vez, fecha manual igual al cálculo sin usar, edición manual de 1 h, referencia histórica). Suite 1082 / 55 preexistentes; tsc 0; ESLint sin errores.
 
+### Lote N — Informe de Ausencias: quién ha dejado de venir (rama `claude/absences-report`)
+
+- Estado: entregado por Claude, **pendiente de auditoría**. Sin migración.
+- Pedido del usuario: informes operativos; el de Ausencias solo contaba cancelaciones y no presentados, cuando el problema real son los alumnos activos que dejan de venir. Propuesta aprobada.
+- Criterios: listas calculadas con asistencias (check-in o reserva); grupos 7–13 / 14–29 / 30+ días en la zona horaria del colegio; "nunca han venido" tras 7 días de alta; FROZEN y staff excluidos; los que pagan primero; frecuencia previa (8 semanas); contacto directo y CSV; no presentados incluyen reservas pasadas sin marcar; periodo solo para la sección de reservas; 4 idiomas; móvil.
+- A revisar: cálculo de días y DST; rendimiento con escuelas grandes (historial de 1 año + `groupBy`); que el CSV no exporte datos de un periodo en carga; accesibilidad de tarjetas y pestañas; permisos (cualquier staff con acceso al dashboard, como antes).
+- No verificado: navegador y datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
