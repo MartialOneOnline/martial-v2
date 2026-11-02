@@ -498,14 +498,18 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     // 'All time' has no dedicated bucket in periodBounds() — it falls back to
     // the same 12-month window as '12 months' rather than an unbounded range.
     const reportPeriod = period === '7 days' ? '7d' : period === '30 days' ? '30d' : '12m'
-    fetch(`/api/dashboard/reports/bookings?period=${reportPeriod}&pageSize=1`)
+    // Switching period/school aborts the previous requests, so a slow
+    // earlier response can't overwrite the chart for the current selection.
+    const ctrl = new AbortController()
+    fetch(`/api/dashboard/reports/bookings?period=${reportPeriod}&pageSize=1`, { signal: ctrl.signal })
       .then(r => r.ok ? r.json() : null)
-      .then(d => d?.chartData && setBookingsChart(d.chartData))
+      .then(d => { if (!ctrl.signal.aborted && d?.chartData) setBookingsChart(d.chartData) })
       .catch(() => {})
-    fetch(`/api/dashboard/reports/payments?period=${reportPeriod}&pageSize=1`)
+    fetch(`/api/dashboard/revenue-chart?period=${reportPeriod}`, { signal: ctrl.signal })
       .then(r => r.ok ? r.json() : null)
-      .then(d => d?.revenueData && setRevenueChart(d.revenueData))
+      .then(d => { if (!ctrl.signal.aborted && d?.revenueData) setRevenueChart(d.revenueData) })
       .catch(() => {})
+    return () => ctrl.abort()
   }, [period, currentSchool?.schoolId])
   useEffect(() => {
     if (authUser?.gettingStartedDismissedAt) setGettingStartedDismissed(true)

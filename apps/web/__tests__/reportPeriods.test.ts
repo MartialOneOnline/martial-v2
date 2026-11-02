@@ -29,3 +29,27 @@ describe('periodBounds() month presets', () => {
     ])
   })
 })
+
+// Audit PR #52 (P2): 30d points were single days 3 days apart, so the two
+// days in between (e.g. 7 Oct when today is 2 Nov) were never counted.
+describe('periodBounds() 30d', () => {
+  afterEach(() => { vi.useRealTimers() })
+
+  it.each(['2026-11-02', '2026-03-01', '2026-12-31'])('on %s, covers the last 30 days with no gaps or overlaps', day => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date(`${day}T12:00:00`))
+    const { points, from, to } = periodBounds('30d')
+    const now = new Date()
+    expect(points).toHaveLength(10)
+    expect(from).toEqual(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29))
+    expect(to).toEqual(new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999))
+    for (let i = 1; i < points.length; i++) {
+      expect(points[i]!.from.getTime()).toBe(points[i - 1]!.to.getTime() + 1)
+    }
+  })
+
+  it('counts 7 Oct when today is 2 Nov 2026 in exactly one point', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-02T12:00:00'))
+    const tx = new Date('2026-10-07T18:00:00')
+    expect(periodBounds('30d').points.filter(p => tx >= p.from && tx <= p.to)).toHaveLength(1)
+  })
+})

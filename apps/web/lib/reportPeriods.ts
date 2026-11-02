@@ -26,9 +26,12 @@ export function periodBounds(period: string, dateFrom?: string | null, dateTo?: 
       points.push({ label: d.toLocaleDateString('en-US', { weekday: 'short' }), from, to })
     }
   } else if (period === '30d') {
+    // Ten contiguous 3-day buckets covering the last 30 days (today
+    // included). Each point used to be a single day spaced 3 days apart, so
+    // the two days in between were never counted. Labelled by the last day.
     for (let i = 9; i >= 0; i--) {
       const d = new Date(now); d.setDate(d.getDate() - i * 3)
-      const from = new Date(d); from.setHours(0, 0, 0, 0)
+      const from = new Date(d); from.setDate(from.getDate() - 2); from.setHours(0, 0, 0, 0)
       const to   = new Date(d); to.setHours(23, 59, 59, 999)
       points.push({ label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), from, to })
     }

@@ -271,6 +271,16 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-02 (n) (rama `claude/dashboard-revenue-chart`, PR [#52](https://github.com/MartialOneOnline/martial-v2/pull/52) — `APROBADO CON PENDIENTES` en `88c3732` (2 P2 heredados) → **`APROBADO`** en `3c8a659`, sin hallazgos abiertos; sin migración; pendiente: prueba manual del usuario)
+
+**Regresión del PR #49: gráfico "Resumen de Pagos" del panel vacío.** El gráfico de `/dashboard` leía `revenueData` de `/api/dashboard/reports/payments`; el informe de Pagos se rehízo y ese campo (y el parámetro `period`) desapareció, así que el gráfico quedaba en blanco sin error.
+- Nuevo `GET /api/dashboard/revenue-chart?period=7d|30d|12m` → `{ revenueData: [{ date, revenue }] }`: suma INCOME PAID no borrado por punto de `periodBounds()`, mismo acceso (`requireDashboardAccess`) y mismo criterio que la tarjeta "Ingresos" de `/api/dashboard/stats`. Una sola consulta y reparto en memoria. Periodo desconocido → 12m.
+- `DashboardClient.tsx` usa el nuevo endpoint; el informe de Pagos no se toca.
+- Test `__tests__/dashboardRevenueChartRoute.test.ts` (3). Suite completa: 55 fallos ya existentes en `origin/main` (mismo número sin este cambio, p. ej. mock sin `prisma.notification` en `dashboardReportAuthGuards`), ninguno nuevo.
+- Auditoría `88c3732`, 2 P2 previos al #49, corregidos: (1) `periodBounds('30d')` daba 10 días sueltos cada 3 días, sin contar los dos intermedios (afectaba también al gráfico de Reservas y a `reports/bookings`); ahora son 10 tramos contiguos de 3 días que cubren los últimos 30 días (etiqueta = último día, igual que antes). (2) `DashboardClient` cancela con `AbortController` las peticiones de los gráficos al cambiar de periodo o colegio, así que una respuesta tardía ya no pisa la selección actual. Tests: `reportPeriods.test.ts` (30d sin huecos, 7-oct contado una vez) y caso 30d en `dashboardRevenueChartRoute.test.ts`.
+- Limitaciones aceptadas por Audit, no resueltas aquí: suma sin separar monedas, zona horaria del servidor, roles CUSTOM con 403.
+- "Ingresos 0 € / −100 %" el 2 de nov. no es fallo: aún no hay pagos PAID en noviembre (los dos de noviembre son efectivo pendiente).
+
 ### Sesión — 2026-11-02 (m) (rama `claude/balance-report`, PR [#50](https://github.com/MartialOneOnline/martial-v2/pull/50) — `APROBADO CON PENDIENTES` en `41c14e3` (4 P2) → **`APROBADO`** en `cfd69a2`; sin migración)
 
 **Balance rehecho: cuenta de resultados mensual.** Diagnóstico con datos de RGM (lectura autorizada por el usuario, solo RGM): 3.418 cuotas pagadas (210.385 €), 6 ingresos "Otros" que suman 26.148 €, y gastos solo hasta nov. 2025 (24 meses de alquiler 500 € y salarios, importados de V1). El informe anterior sumaba todo desde 2022 sin periodo, mezclaba monedas y agrupaba meses en la zona del servidor; con los gastos interrumpidos, un periodo de 12 meses mostraría un margen falso del ~96 %. Propuesta aprobada ("Sí, así").
