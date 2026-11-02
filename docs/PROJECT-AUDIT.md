@@ -213,7 +213,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote O — Informe de Pagos: dinero por cobrar (rama `claude/payments-report`)
 
-- Estado: `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → `APROBADO CON PENDIENTES` en `b346ca6` (3 P2, 1 P3) → corregidos, **pendiente de re-auditoría**. Sin migración.
+- Estado: `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → `APROBADO CON PENDIENTES` en `b346ca6` (3 P2, 1 P3) → **`APROBADO CON PENDIENTES`** en `10dec27`: reconciliación y contadores cerrados; queda 1 P2 compartido y previo: el layout del dashboard (`hasDashboardAccess`) no admite roles CUSTOM, así que un CUSTOM con permiso usa la API pero no la página. En producción hay 0 roles CUSTOM (lectura 2026-11-02): se propone como tarea aparte (acceso al dashboard para roles personalizados, con permisos por página). Sin migración.
 - Pedido del usuario: informes operativos; Pagos debe decir quién debe dinero y quién entrena sin pagar. Propuesta aprobada.
 - Criterios: por cobrar = plan de pago activo (no prueba) vencido antes de hoy (zona del colegio) sin cancelación programada, con los que siguen entrenando primero; entrenan sin pagar (30 días); cobros fallidos (Stripe PAST_DUE/UNPAID + FAILED 90 días); pendientes > 60 días solo para revisar (no se cambia nada); previsto mensual solo de suscripciones; monedas nunca sumadas; staff excluido; contacto, ficha y CSV; Revolut; 4 idiomas; móvil.
 - A revisar: definición de "vencido" frente a renovaciones en efectivo con pago pendiente ya registrado; Stripe con `endDate` pasado (¿falso positivo por webhook?); importes con varias membresías del mismo alumno; rendimiento; coherencia con `/api/dashboard/stats`.

@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-02 (l) (rama `claude/payments-report`, PR [#49](https://github.com/MartialOneOnline/martial-v2/pull/49) — `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → `APROBADO CON PENDIENTES` en `b346ca6` (3 P2, 1 P3) → corregidos; sin migración)
+### Sesión — 2026-11-02 (l) (rama `claude/payments-report`, PR [#49](https://github.com/MartialOneOnline/martial-v2/pull/49) — `RECHAZADO` en `b7899f8` (1 P1, 3 P2, 1 P3) → `APROBADO CON PENDIENTES` en `b346ca6` (3 P2, 1 P3) → **`APROBADO CON PENDIENTES`** en `10dec27` (queda 1 P2 compartido: el dashboard no admite roles CUSTOM — 0 en producción, tarea aparte); sin migración)
 
 **Informe de Pagos rehecho: dinero por cobrar.** Diagnóstico con datos de RGM (lectura): ~88 % del cobro es efectivo; cobrado 4,8–6 k€/mes (oct. 5.045 €) frente a ~6,7 k€/mes previstos por planes activos; 53 cuotas de efectivo vencidas sin pago; 16 alumnos entrenaron en 30 días sin plan de pago (7 sin ningún plan); 199 pagos pendientes (14.085 €), algunos de ago. 2025. El informe anterior listaba movimientos, llamaba "MRR" a lo cobrado este mes, no conocía Revolut, mezclaba monedas y usaba la zona del servidor. Propuesta aprobada ("Sí, así").
 - `lib/payments/collect.ts` (puro): `monthlyEquivalent()` (solo suscripciones: mensual, trimestral/3, anual/12, quincenal·26/12; bonos y "one-off" no), `unpaidState()` (NO_PLAN / TRIAL_OVER / FREE_PLAN / TRIAL), `sortOverdue()` (los que siguen entrenando primero), `sumByCurrency()` / `mainCurrency()` (nunca se suman monedas).
