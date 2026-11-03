@@ -7,7 +7,7 @@ import {
   Clock, TrendingUp, TrendingDown,
   ChevronRight, ChevronLeft,
   Filter, Download,
-  Sparkles, Send,
+  Send,
   Calendar,
   Menu, UserPlus, QrCode, Pencil,
   MoreHorizontal, Eye, Check, AlertCircle, UserRound,
@@ -18,7 +18,7 @@ import InviteUserModal           from '../../components/popups/InviteUserModal'
 import SendModal                 from '../../components/popups/SendModal'
 import QRCodeModal               from '../../components/popups/QRCodeModal'
 import EditSchoolModal           from '../../components/popups/EditSchoolModal'
-import AIMessagesModal           from '../../components/popups/AIMessagesModal'
+import TodayActionsCard          from '../../components/TodayActionsCard'
 import ClassCapacityPopup        from '../../components/popups/ClassCapacityPopup'
 import ClassDetailPopup          from '../../components/popups/ClassDetailPopup'
 import RowMenu                   from '../../components/RowMenu'
@@ -535,7 +535,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   const [showSend, setShowSend]                   = useState(false)
   const [showQR, setShowQR]                       = useState(false)
   const [showEditSchool, setShowEditSchool]        = useState(false)
-  const [showAIMessages, setShowAIMessages]        = useState(false)
   const [selectedClass, setSelectedClass]         = useState<TodayClass | null>(null)
   const [detailClass,   setDetailClass]           = useState<TodayClass | null>(null)
 
@@ -583,12 +582,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     { label: t.dashboard.activeMembers, value: stats ? String(stats.activeMembers.value) : '—', color: '#6366F1' },
     { label: t.dashboard.classesToday,  value: stats ? String(stats.classesToday.value)  : '—', color: '#0071E3' },
   ]
-  const AI_INSIGHTS = [
-    { insight: t.dashboard.insight1, action: t.dashboard.action1, openAI: true  },
-    { insight: t.dashboard.insight2, action: t.dashboard.action2, openAI: false },
-    { insight: t.dashboard.insight3, action: t.dashboard.action3, openAI: false },
-  ]
-
   if (!ctxLoading && !currentSchool) {
     return <DashboardOnboarding />
   }
@@ -735,45 +728,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             </div>
           </div>
 
-          {/* 2. AI Suggested Actions — mobile only */}
-          <div className="lg:hidden rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-            <div className="flex items-center justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
-                  <Sparkles size={13} strokeWidth={1.5} style={{ color: '#fff' }} />
-                </div>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>AI Assistant</p>
-                  <p style={{ fontSize: 10, color: '#9CA3AF', lineHeight: 1.2 }}>Powered by Martial AI</p>
-                </div>
-              </div>
-              <span style={{ fontSize: 10, fontWeight: 600, color: '#16A34A', background: '#F0FDF4', padding: '2px 8px', borderRadius: 999 }}>
-                {t.dashboard.online}
-              </span>
-            </div>
-            <div className="px-4 py-3">
-              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                {t.dashboard.suggestedActions}
-              </p>
-              <div className="space-y-3">
-                {AI_INSIGHTS.map((r, i, arr) => (
-                  <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
-                    <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
-                    <button
-                      onClick={() => r.openAI && setShowAIMessages(true)}
-                      style={{
-                        marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
-                        fontSize: 12, fontWeight: 600, color: '#6366F1',
-                        background: '#EEF2FF', border: 'none', borderRadius: 8,
-                        padding: '5px 10px', cursor: 'pointer',
-                      }}>
-                      {r.action} →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* 2. Today's actions — mobile only (real data, see /dashboard/today) */}
+          <div className="lg:hidden">
+            <TodayActionsCard schoolId={currentSchool?.schoolId} />
           </div>
 
           {/* 3. Stat cards */}
@@ -1278,40 +1235,9 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </div>
         </div>
 
-        {/* 2. AI Assistant — full design, fixed height */}
-        <div className="shrink-0 rounded-2xl overflow-hidden" style={{ border: '1px solid #E5E7EB', background: '#fff' }}>
-          <div className="flex items-center justify-between px-4 pt-4 pb-3" style={{ borderBottom: '1px solid #F3F4F6' }}>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
-                <Sparkles size={13} strokeWidth={1.5} style={{ color: '#fff' }} />
-              </div>
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>{t.dashboard.aiAssistant}</p>
-                <p style={{ fontSize: 10, color: '#9CA3AF', lineHeight: 1.2 }}>{t.dashboard.poweredBy}</p>
-              </div>
-            </div>
-            <span style={{ fontSize: 10, fontWeight: 600, color: '#16A34A', background: '#F0FDF4', padding: '2px 8px', borderRadius: 999 }}>
-              {t.dashboard.online}
-            </span>
-          </div>
-          <div className="px-4 py-3 space-y-3">
-            {AI_INSIGHTS.slice(0, 2).map((r, i, arr) => (
-              <div key={i} style={{ paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
-                <p style={{ fontSize: 12, fontWeight: 500, color: '#111827', lineHeight: 1.4 }}>{r.insight}</p>
-                <button
-                  onClick={() => r.openAI && setShowAIMessages(true)}
-                  style={{
-                    marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4,
-                    fontSize: 11, fontWeight: 600, color: '#6366F1',
-                    background: '#EEF2FF', border: 'none', borderRadius: 7,
-                    padding: '4px 9px', cursor: 'pointer',
-                  }}>
-                  {r.action} →
-                </button>
-              </div>
-            ))}
-          </div>
+        {/* 2. Today's actions — the three most urgent (see /dashboard/today) */}
+        <div className="shrink-0">
+          <TodayActionsCard schoolId={currentSchool?.schoolId} />
         </div>
 
         {/* 3. Upcoming Classes — fixed card, internal list scrolls if it has many classes */}
@@ -1407,7 +1333,6 @@ export default function DashboardClient({ userName, userEmail }: Props) {
       {showSend       && <SendModal         onClose={() => setShowSend(false)} />}
       {showQR         && <QRCodeModal       schoolName={currentSchool?.schoolName ?? ''} schoolSlug={currentSchool?.schoolSlug ?? ''} onClose={() => setShowQR(false)} />}
       {showEditSchool && <EditSchoolModal   onClose={() => setShowEditSchool(false)} />}
-      {showAIMessages && <AIMessagesModal   onClose={() => setShowAIMessages(false)} />}
       {selectedClass  && (
         <ClassCapacityPopup
           cls={selectedClass}

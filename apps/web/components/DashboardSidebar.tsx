@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, Calendar, CreditCard, Award,
   BarChart2, Settings, Bell, HelpCircle, LogOut,
   ShoppingBag, School, Flame, X, ChevronRight, ChevronDown, ChevronsUpDown,
-  Megaphone, PanelLeftClose, PanelLeftOpen,
+  Megaphone, PanelLeftClose, PanelLeftOpen, ListChecks,
 } from 'lucide-react'
 import { useT } from '../lib/i18n/LanguageContext'
 import type { useSchoolContext } from '../lib/auth/useSchoolContext'
@@ -185,6 +185,7 @@ export default function DashboardSidebar({ menuOpen, setMenuOpen, collapsed, set
 
   const NAV_MAIN: NavItem[] = [
     { label: t.sidebar.dashboard,   icon: Flame,      href: '/dashboard' },
+    { label: t.sidebar.today,       icon: ListChecks, href: '/dashboard/today' },
     { label: t.sidebar.users,       icon: Users,      href: '/dashboard/users', permission: 'school.members.view' },
     { label: t.sidebar.campaigns,   icon: Megaphone,  href: '/dashboard/campaigns', permission: 'school.campaigns.view' },
     { label: t.sidebar.classes,     icon: Calendar,   children: [

@@ -7,6 +7,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 import { downloadCsv } from '../../../../lib/csvExport'
+import { tabFromUrl } from '../../../../lib/urlTab'
 import { CONTACT_WITHIN_HOURS, type FollowUp } from '../../../../lib/leads/funnel'
 
 type Period = '30d' | '90d' | '12m' | 'all'
@@ -63,6 +64,8 @@ export default function LeadsReportClient() {
       .catch(() => { if (id === requestId.current) setError(true) })
       .finally(() => { if (id === requestId.current) setLoading(false) })
   }, [period, includeInvites])
+  // ?tab= from a link (e.g. the Today page) picks the list; kept if it has rows
+  useEffect(() => { const t = tabFromUrl(TABS); if (t) setTab(t) }, [])
   useEffect(load, [load])
 
   const fmt = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
