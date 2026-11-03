@@ -11,6 +11,7 @@ import { useDashboard } from '../../../../components/DashboardShell'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useLanguage } from '../../../../lib/i18n/LanguageContext'
 import { downloadCsv } from '../../../../lib/csvExport'
+import { tabFromUrl } from '../../../../lib/urlTab'
 
 type Period = '30d' | '90d' | '12m'
 type ReviewTab = 'LOW' | 'FULL' | 'UNMARKED' | 'OFF'
@@ -39,6 +40,7 @@ interface ListRow {
 }
 
 const PERIODS: Period[] = ['30d', '90d', '12m']
+const REVIEW_TABS: ReviewTab[] = ['LOW', 'FULL', 'UNMARKED', 'OFF']
 const LIST_STATUSES: ListStatus[] = ['ALL', 'COMPLETED', 'CONFIRMED', 'NO_SHOW', 'CANCELLED']
 const LIST_PAGE = 25
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0]
@@ -77,11 +79,13 @@ export default function BookingsReportClient() {
         if (id !== requestId.current) return
         setData(d)
         const count = (k: ReviewTab) => (k === 'LOW' ? d.slots.filter(s => s.low).length : k === 'FULL' ? d.slots.filter(s => s.full).length : k === 'UNMARKED' ? d.unmarked.length : d.offSchedule.length)
-        setTab(prev => prev && count(prev) ? prev : (['LOW', 'FULL', 'UNMARKED', 'OFF'] as ReviewTab[]).find(k => count(k)) ?? 'LOW')
+        setTab(prev => prev && count(prev) ? prev : REVIEW_TABS.find(k => count(k)) ?? 'LOW')
       })
       .catch(() => { if (id === requestId.current) setError(true) })
       .finally(() => { if (id === requestId.current) setLoading(false) })
   }, [period])
+  // ?tab= from a link (e.g. the Today page) picks the list; kept if it has rows
+  useEffect(() => { const t = tabFromUrl(REVIEW_TABS); if (t) setTab(t) }, [])
   useEffect(load, [load])
 
   const num = (n: number) => n.toLocaleString(locale, { maximumFractionDigits: 1 })

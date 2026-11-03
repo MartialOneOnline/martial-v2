@@ -271,6 +271,17 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-03 (p) (rama `claude/today-actions` — pendiente de Project Audit; sin migración)
+
+**"Hoy": acciones del día a partir de los informes.** La portada tenía una tarjeta "AI Assistant · Acciones sugeridas" con frases fijas iguales para todos los colegios ("12 alumnos no asisten…", "BJJ Avanzado al 93 %…", "4 leads…") y botones sin efecto. Propuesta aprobada ("Sí, así"): página propia + tarjeta real en la portada, sin casillas de "hecho" (cada acción desaparece cuando cambia el dato; sin migración).
+- `GET /api/dashboard/today`: ejecuta dentro de la misma petición los endpoints ya auditados (Pagos, Leads, Ausencias, Reservas 30d, preparación de graduaciones si el módulo está activo, altas `PENDING` de memberships) con sus propios permisos: 401/403 → bloque oculto (`forbidden`), otro fallo → error solo en ese bloque (`error`), módulo de graduaciones apagado → `off` sin llamar a readiness. Clases de hoy calculadas aquí en hora de pared (misma convención que Reservas), con ocurrencias canceladas.
+- `lib/today/actions.ts` (puro): `todaySessions`, `recentUnmarked` (7 días), `trialDay` (hoy/mañana por fecha de pared), `justAtRisk` (pagan y 14–21 días sin venir), `topActions` (orden: cobrar a quien entrena → prueba hoy → leads sin contactar → cobros fallidos → retener → altas → sin marcar → probaron sin apuntarse → graduar; máx. 3).
+- Bloques: Hoy en el tatami (clases, pruebas de hoy, sin marcar con enlace al calendario), Cobrar (cuota vencida y siguen entrenando — sin las "a revisar" —, cobros fallidos), Leads (prueba hoy/mañana, sin contactar, probaron y no se apuntaron), Retener, Pendiente de aprobar, Graduar. 5 personas por bloque con llamar/WhatsApp/email y "Ver los N" a la pestaña del informe.
+- UI: `/dashboard/today` (`TodayClient`), entrada "Hoy" en el menú tras Dashboard; `components/TodayActionsCard.tsx` sustituye las dos tarjetas falsas de la portada (móvil y panel derecho) — se elimina `AI_INSIGHTS` y el modal de IA queda sin uso (`components/popups/AIMessagesModal.tsx` sigue en el repo). `lib/urlTab.ts`: los informes de Pagos, Leads, Ausencias y Reservas abren la pestaña de `?tab=` (solo si tiene filas). Textos `t.today` y `t.sidebar.today` en EN/ES/PT/FR.
+- Coste: la ruta ejecuta 5–6 informes completos; la portada la pide al cargar (no bloquea el resto). No medido con datos reales.
+- Tests: `todayActions` (5), `todayRoute` (4). Suite 1168 / 55 preexistentes; tsc 0; ESLint sin avisos nuevos.
+- No verificado: navegador y datos reales.
+
 ### Sesión — 2026-11-02 (o) (rama `claude/bookings-report`, PR [#53](https://github.com/MartialOneOnline/martial-v2/pull/53) — `APROBADO CON PENDIENTES` en `6e7f31d` (5 P2) → `APROBADO CON PENDIENTES` en `6eb7dd1` (3 P2) → **`APROBADO`** en `106331a`; sin migración)
 
 **Informe de Reservas rehecho: ocupación del horario.** Diagnóstico con datos de RGM (lectura autorizada por el usuario, solo RGM, 90 días): 2.005 asistencias de 147 alumnos, de ~55 a ~200 reservas/semana entre agosto y octubre; 113 canceladas, 59 no presentados, 93 reservas pasadas sin marcar; la mitad de las reservas las añade el staff. Todas las clases tienen 30 plazas y ninguna pasa de ~20 de media. Iniciación del jueves 19:00 tiene 2,8 de media a la misma hora que Jiu Jitsu Todos (19,5). El informe anterior llamaba "asistencia" a confirmadas/total (casi siempre ~100 %), no conocía NO_SHOW ni PENDING y agrupaba en la zona del servidor. Propuesta aprobada ("Sí, así").

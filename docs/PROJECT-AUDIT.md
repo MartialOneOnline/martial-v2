@@ -265,6 +265,14 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — regresión de rendimiento: formateador por zona y caché por sesión; 50.000 reservas en ~173 ms.
 - No verificado tras la aprobación: sesión autenticada y datos reales (Codex recorrió la UI con API simulada en escritorio, móvil y 4 idiomas).
 
+### Lote R — "Hoy": acciones del día (rama `claude/today-actions`)
+
+- Estado: **pendiente de auditoría**. Sin migración.
+- Pedido del usuario: último paso del plan de informes; la portada mostraba "acciones sugeridas" inventadas. Propuesta aprobada.
+- Criterios: sin reglas nuevas (reutiliza los endpoints auditados y sus permisos, ejecutados en la misma petición); bloque sin permiso oculto, bloque que falla no rompe los demás; "Al día" si no hay nada; hora de pared para "hoy"; 3 acciones en la portada; `?tab=` en los informes; 4 idiomas; móvil.
+- A revisar: que llamar a los handlers de otras rutas conserve sesión y colegio; rendimiento (5–6 informes por carga, también desde la portada); que la tarjeta de la portada no muestre datos de otro colegio al cambiar de colegio; coherencia de recuentos con los informes enlazados; enlaces `?tab=`.
+- No verificado: navegador y datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
