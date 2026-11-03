@@ -271,7 +271,7 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-03 (p) (rama `claude/today-actions` — pendiente de Project Audit; sin migración)
+### Sesión — 2026-11-03 (p) (rama `claude/today-actions`, PR [#54](https://github.com/MartialOneOnline/martial-v2/pull/54) — pendiente de Project Audit; sin migración)
 
 **"Hoy": acciones del día a partir de los informes.** La portada tenía una tarjeta "AI Assistant · Acciones sugeridas" con frases fijas iguales para todos los colegios ("12 alumnos no asisten…", "BJJ Avanzado al 93 %…", "4 leads…") y botones sin efecto. Propuesta aprobada ("Sí, así"): página propia + tarjeta real en la portada, sin casillas de "hecho" (cada acción desaparece cuando cambia el dato; sin migración).
 - `GET /api/dashboard/today`: ejecuta dentro de la misma petición los endpoints ya auditados (Pagos, Leads, Ausencias, Reservas 30d, preparación de graduaciones si el módulo está activo, altas `PENDING` de memberships) con sus propios permisos: 401/403 → bloque oculto (`forbidden`), otro fallo → error solo en ese bloque (`error`), módulo de graduaciones apagado → `off` sin llamar a readiness. Clases de hoy calculadas aquí en hora de pared (misma convención que Reservas), con ocurrencias canceladas.

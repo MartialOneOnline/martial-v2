@@ -265,7 +265,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — regresión de rendimiento: formateador por zona y caché por sesión; 50.000 reservas en ~173 ms.
 - No verificado tras la aprobación: sesión autenticada y datos reales (Codex recorrió la UI con API simulada en escritorio, móvil y 4 idiomas).
 
-### Lote R — "Hoy": acciones del día (rama `claude/today-actions`)
+### Lote R — "Hoy": acciones del día (rama `claude/today-actions`, PR #54)
 
 - Estado: **pendiente de auditoría**. Sin migración.
 - Pedido del usuario: último paso del plan de informes; la portada mostraba "acciones sugeridas" inventadas. Propuesta aprobada.
