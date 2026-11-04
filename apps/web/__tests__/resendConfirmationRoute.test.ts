@@ -11,8 +11,8 @@
  *   never become a passwordless-login channel for confirmed users.
  * - Per-IP and per-email rate limiting short-circuits before any DB/Supabase
  *   call.
- * - The sanitized ?redirect= (if any) is embedded in the generated link's
- *   redirectTo.
+ * - The sanitized ?redirect= (if any) is embedded in the emailed
+ *   /auth/confirm/verify link.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
@@ -53,7 +53,7 @@ function postRequest(body: unknown, headers: Record<string, string> = {}) {
 beforeEach(() => {
   vi.clearAllMocks()
   mockIsRateLimited.mockReturnValue(false)
-  mockGenerateLink.mockResolvedValue({ data: { properties: { action_link: 'https://supabase.example/verify?token=abc&type=magiclink' } }, error: null })
+  mockGenerateLink.mockResolvedValue({ data: { properties: { hashed_token: 'abc', verification_type: 'signup' } }, error: null })
   mockSendConfirmEmail.mockResolvedValue({ success: true, emailId: 'email-1' })
 })
 
@@ -136,20 +136,20 @@ describe('POST /api/auth/resend-confirmation — genuinely pending account (happ
     expect(mockSendConfirmEmail).toHaveBeenCalledWith(expect.objectContaining({
       recipientEmail: 'jane@example.com',
       name: 'Jane',
-      confirmUrl: 'https://supabase.example/verify?token=abc&type=magiclink',
+      confirmUrl: expect.stringContaining('/auth/confirm/verify?token_hash=abc&type=signup'),
       lang: 'es',
     }))
   })
 
-  it('embeds a sanitized ?redirect= in the generated link redirectTo', async () => {
+  it('embeds a sanitized ?redirect= in the emailed confirmation link', async () => {
     mockFindFirst.mockResolvedValue({ name: 'Jane', supabaseAuthId: 'auth-1' })
     mockGetUserById.mockResolvedValue({ data: { user: { email_confirmed_at: null } }, error: null })
 
     await POST(postRequest({ email: 'jane@example.com', redirect: '/my/events' }))
 
-    const call = mockGenerateLink.mock.calls[0]![0]
-    expect(call.options.redirectTo).toContain('/auth/confirm?redirect=')
-    expect(call.options.redirectTo).toContain(encodeURIComponent('/my/events'))
+    const confirmUrl: string = mockSendConfirmEmail.mock.calls[0]![0].confirmUrl
+    expect(confirmUrl).toContain('/auth/confirm/verify?token_hash=abc&type=signup&redirect=')
+    expect(confirmUrl).toContain(encodeURIComponent('/my/events'))
   })
 
   it('drops an unsafe ?redirect= (external host) instead of embedding it', async () => {
@@ -158,9 +158,9 @@ describe('POST /api/auth/resend-confirmation — genuinely pending account (happ
 
     await POST(postRequest({ email: 'jane@example.com', redirect: 'https://evil.com' }))
 
-    const call = mockGenerateLink.mock.calls[0]![0]
-    expect(call.options.redirectTo).not.toContain('redirect=')
-    expect(call.options.redirectTo).not.toContain('evil.com')
+    const confirmUrl: string = mockSendConfirmEmail.mock.calls[0]![0].confirmUrl
+    expect(confirmUrl).not.toContain('redirect=')
+    expect(confirmUrl).not.toContain('evil.com')
   })
 
   it('drops a looping ?redirect= back into /auth/**', async () => {
@@ -169,8 +169,8 @@ describe('POST /api/auth/resend-confirmation — genuinely pending account (happ
 
     await POST(postRequest({ email: 'jane@example.com', redirect: '/auth/verify-pending' }))
 
-    const call = mockGenerateLink.mock.calls[0]![0]
-    expect(call.options.redirectTo).not.toContain('redirect=')
+    const confirmUrl: string = mockSendConfirmEmail.mock.calls[0]![0].confirmUrl
+    expect(confirmUrl).not.toContain('redirect=')
   })
 })
 
