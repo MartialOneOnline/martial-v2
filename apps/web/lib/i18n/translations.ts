@@ -1470,6 +1470,14 @@ export const translations = {
       terms: 'Terms of Use',
       privacy: 'Privacy Policy',
     },
+    // ── Network / page-load failures (login, app/error.tsx) ──
+    appErrors: {
+      network: 'We couldn\'t reach the server. Check your connection and try again.',
+      pageTitle: 'Something went wrong',
+      pageBody: 'This page couldn\'t load. Please try again.',
+      retry: 'Try again',
+      home: 'Go to home',
+    },
   },
 
   // ── ESPAÑOL ────────────────────────────────────────────────────────────────
@@ -2855,6 +2863,14 @@ export const translations = {
       noticeLine2: 'Lee nuestra {privacy}.',
       terms: 'Términos de Uso',
       privacy: 'Política de Privacidad',
+    },
+    // ── Network / page-load failures (login, app/error.tsx) ──
+    appErrors: {
+      network: 'No hemos podido conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.',
+      pageTitle: 'Algo ha fallado',
+      pageBody: 'Esta página no ha podido cargarse. Inténtalo de nuevo.',
+      retry: 'Reintentar',
+      home: 'Ir al inicio',
     },
   },
 
@@ -4242,6 +4258,14 @@ export const translations = {
       terms: 'Termos de Uso',
       privacy: 'Política de Privacidade',
     },
+    // ── Network / page-load failures (login, app/error.tsx) ──
+    appErrors: {
+      network: 'Não foi possível ligar ao servidor. Verifique a sua ligação e tente novamente.',
+      pageTitle: 'Algo correu mal',
+      pageBody: 'Esta página não pôde ser carregada. Tente novamente.',
+      retry: 'Tentar novamente',
+      home: 'Ir para o início',
+    },
   },
 
   // ── FRANÇAIS ───────────────────────────────────────────────────────────────
@@ -5627,6 +5651,14 @@ export const translations = {
       noticeLine2: 'Lisez notre {privacy}.',
       terms: "Conditions d'utilisation",
       privacy: 'Politique de confidentialité',
+    },
+    // ── Network / page-load failures (login, app/error.tsx) ──
+    appErrors: {
+      network: 'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.',
+      pageTitle: 'Une erreur est survenue',
+      pageBody: 'Cette page n\'a pas pu se charger. Veuillez réessayer.',
+      retry: 'Réessayer',
+      home: 'Aller à l\'accueil',
     },
   },
 }

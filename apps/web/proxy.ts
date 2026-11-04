@@ -7,7 +7,8 @@
  * - /admin/**          → requires session (role check in layout server component)
  * - /my/**             → requires session (any role)
  * - /api/admin/**, /api/dashboard/**, /api/my/** → requires session (role check in each route handler)
- * - All other routes   → pass through
+ * - All other routes   → pass through, but if the request carries a Supabase
+ *   session cookie, the session is still refreshed here (see below)
  *
  * Middleware checks session cookie + email confirmation. Role/school authorisation
  * is enforced again inside page components and API routes — never rely solely on middleware.
@@ -24,6 +25,29 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { authFetchWithTimeout, getUserBounded, isSessionCookieName, shouldRefreshPublic } from '@/lib/auth/proxyRefresh'
+
+function createProxyClient(request: NextRequest) {
+  let response = NextResponse.next({ request })
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      global: { fetch: authFetchWithTimeout },
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookies) => {
+          cookies.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookies.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    },
+  )
+  return { supabase, getResponse: () => response }
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -45,29 +69,44 @@ export async function proxy(request: NextRequest) {
     || pathname.startsWith('/api/my')
 
   if (!isProtected) {
-    return NextResponse.next({ request })
+    // Public pages (/login — the mobile app's entry screen —, /, /explore…)
+    // used to skip this entirely, so an expired access token was only ever
+    // refreshed by the browser Supabase client (getSession() refreshes an
+    // expired token even with autoRefreshToken off). That client persists the
+    // rotated tokens via document.cookie, which Safari's ITP caps to 7 days,
+    // and it races this proxy for the single-use refresh token — losing that
+    // race makes the SDK wipe the session. Refreshing here keeps the cookie a
+    // real Set-Cookie header and leaves the browser client nothing to refresh.
+    // Anonymous traffic (no session cookie) skips the Auth round trip.
+    const hasSession = request.cookies.getAll().some(({ name }) => isSessionCookieName(name))
+    if (!hasSession || !shouldRefreshPublic(pathname)) {
+      return NextResponse.next({ request })
+    }
+    // Bounded: if Auth is slow or down, serve the page untouched (cookies
+    // as they were) rather than block it or sign the user out.
+    const { supabase, getResponse } = createProxyClient(request)
+    const auth = await getUserBounded(() => supabase.auth.getUser())
+    if (auth.kind === 'unavailable') return NextResponse.next({ request })
+    return getResponse()
   }
 
-  let supabaseResponse = NextResponse.next({ request })
+  const { supabase, getResponse } = createProxyClient(request)
+  const auth = await getUserBounded(() => supabase.auth.getUser())
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (cookies) => {
-          cookies.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookies.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    },
-  )
+  if (auth.kind === 'unavailable') {
+    // Auth is slow/unreachable — not a verdict on the session, so no cookie
+    // changes go out. APIs get a retryable 503; pages go to /login, which
+    // resumes the session (cookie still there) or shows its network error
+    // with Retry, instead of hanging here.
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Auth temporarily unavailable' }, { status: 503, headers: { 'Retry-After': '5' } })
+    }
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirect', pathname + request.nextUrl.search)
+    return NextResponse.redirect(loginUrl)
+  }
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = auth.kind === 'user' ? auth.user : null
 
   if (!user) {
     // API routes expect JSON — redirecting to the login page here would hand
@@ -76,8 +115,10 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    // Keep the query too (e.g. a class link's ?date=&class=&time=), so the
+    // user lands back on exactly what they opened after signing in.
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirect', pathname)
+    loginUrl.searchParams.set('redirect', pathname + request.nextUrl.search)
     return NextResponse.redirect(loginUrl)
   }
 
@@ -90,11 +131,11 @@ export async function proxy(request: NextRequest) {
     }
     const verifyUrl = new URL('/auth/verify-pending', request.url)
     verifyUrl.searchParams.set('email', user.email ?? '')
-    verifyUrl.searchParams.set('redirect', pathname)
+    verifyUrl.searchParams.set('redirect', pathname + request.nextUrl.search)
     return NextResponse.redirect(verifyUrl)
   }
 
-  return supabaseResponse
+  return getResponse()
 }
 
 export const config = {

@@ -1,16 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { fetchJson } from '@/lib/fetchWithTimeout'
+import { useT } from '@/lib/i18n/LanguageContext'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowLeft } from 'lucide-react'
 import { createClient } from '../lib/supabase/client'
-import SchoolPicker from './SchoolPicker'
-import type { SchoolContext } from '@/lib/auth/contexts'
 import { safeRedirect } from '@/lib/safeRedirect'
-import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
-import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 
@@ -76,8 +74,8 @@ interface LoginModalProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const router   = useRouter()
-  const pathname = usePathname()
   const supabase = createClient()
+  const t        = useT()
 
   const [view, setView]             = useState<'sso' | 'email' | 'forgot'>('sso')
   const [email, setEmail]           = useState('')
@@ -87,7 +85,6 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const [error, setError]           = useState('')
   const [emailErr, setEmailErr]     = useState('')
   const [passErr, setPassErr]       = useState('')
-  const [pickerSchools, setPickerSchools] = useState<SchoolContext[] | null>(null)
   const [resetEmail, setResetEmail]   = useState('')
   const [resetErr, setResetErr]       = useState('')
   const [resetLoading, setResetLoading] = useState(false)
@@ -110,62 +107,14 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     }
   })
 
-  const resolveRedirect = async () => {
-    try {
-      // If an explicit redirect was requested (e.g. from /admin), honour it —
-      // sanitized so an external URL can't be smuggled in via ?redirect=.
-      const safeTo = safeRedirect(redirectTo)
-      if (safeTo) {
-        router.push(safeTo)
-        return
-      }
-
-      const res = await fetch('/api/auth/me')
-      const json = await res.json()
-
-      // 1. SUPERADMIN → /admin
-      if (json.user?.globalRole === 'SUPERADMIN') {
-        router.push('/admin')
-        return
-      }
-
-      const legacySchools: SchoolContext[] = json.contexts?.schools ?? []
-
-      // 2/3. Decision extracted to lib/auth/loginRedirect.ts — see that file
-      // for the full priority order (explicit redirect / SUPERADMIN already
-      // handled above, so this only ever resolves the "how many real
-      // contexts does this user have" branch, with a safe fallback to the
-      // pre-existing staffSchools logic if GET /api/auth/contexts fails).
-      const action = await resolveLoginRedirectAction({
-        explicitPath: undefined,
-        isSuperAdmin: false,
-        legacySchools,
-        isOnChooseProfile: pathname === '/choose-profile',
-        fetchContexts: () => fetchAvailableContexts(),
-      })
-
-      switch (action.kind) {
-        case 'dashboard-auto':
-          await fetch('/api/auth/context', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ schoolId: action.schoolId }),
-          })
-          router.push('/dashboard')
-          return
-        case 'legacy-picker':
-          // Show school picker — includes personal option
-          setPickerSchools(action.schools)
-          return
-        case 'noop':
-          return
-        case 'push':
-          router.push(action.path)
-          return
-      }
-    } catch {
-      router.push('/my')
-    }
+  // Where to go after signing in is decided by /login, not here: this modal
+  // unmounts as soon as it closes (so a school picker set here was never
+  // shown), and /login already runs that decision as one bounded,
+  // cancellable attempt with a translated error + Retry. `oauth=1` makes
+  // /login continue with the session that now exists.
+  const resolveRedirect = () => {
+    const safeTo = safeRedirect(redirectTo)
+    window.location.href = `/login?oauth=1${safeTo ? `&redirect=${encodeURIComponent(safeTo)}` : ''}`
   }
 
   // Gated on oauthCallback.active (captured above) so this never double-fires
@@ -235,19 +184,34 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const handleGoogleCredential = async (idToken: string) => {
     setError('')
     setOauthLoading('google')
-    const res = await fetch('/api/auth/google/idtoken', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    })
-    const json = await res.json()
-    if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setOauthLoading(null); return }
-    const safeTo = safeRedirect(redirectTo)
-    const redirectQuery = safeTo ? `&redirect=${encodeURIComponent(safeTo)}` : ''
+    let result: Awaited<ReturnType<typeof fetchJson<{ error?: string }>>>
+    try {
+      result = await fetchJson('/api/auth/google/idtoken', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      })
+    } catch {
+      setError(t.appErrors.network); setOauthLoading(null); return
+    }
+    if (!result.ok) {
+      setError(result.data?.error || (result.data ? 'Google sign-in failed. Please try again.' : t.appErrors.network))
+      setOauthLoading(null)
+      return
+    }
     onClose()
-    router.push(`/login?oauth=1${redirectQuery}`)
+    resolveRedirect()
   }
   const { containerRef: googleButtonRef, fallbackToRedirect: googleFallback } = useGoogleSignInButton(handleGoogleCredential)
+
+  // WebViews that can't open GSI's popup: same server-side Google round trip
+  // /login uses (api/auth/google/start → callback), not Supabase's redirect,
+  // so every entry point finishes through the same callback.
+  const handleGoogleWebViewFallback = () => {
+    setOauthLoading('google')
+    const safeTo = safeRedirect(redirectTo)
+    window.location.href = `/api/auth/google/start${safeTo ? `?redirect=${encodeURIComponent(safeTo)}` : ''}`
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -258,14 +222,24 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     if (!valid) return
 
     setLoading(true)
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    const json = await res.json()
-    setLoading(false)
-    if (!res.ok) { setError(json.error || 'Login failed. Please try again.'); return }
+    let result: Awaited<ReturnType<typeof fetchJson<{ error?: string; accessToken?: string }>>>
+    try {
+      result = await fetchJson('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+    } catch {
+      setLoading(false)
+      setError(t.appErrors.network)
+      return
+    }
+    const json = result.data ?? {}
+    if (!result.ok) {
+      setLoading(false)
+      setError(json.error || (result.data ? 'Login failed. Please try again.' : t.appErrors.network))
+      return
+    }
 
     if (json.accessToken) {
       fetch('/api/auth/login-event', {
@@ -276,7 +250,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     }
 
     onClose()
-    await resolveRedirect()
+    resolveRedirect()
   }
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -286,7 +260,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
 
     setResetLoading(true)
     try {
-      await fetch('/api/auth/forgot-password', {
+      await fetchJson('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail }),
@@ -294,21 +268,6 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     } catch { /* best-effort — see /api/auth/forgot-password's own error handling */ }
     setResetLoading(false)
     setResetSent(true)
-  }
-
-  // School picker shown after login when user has multiple staff roles
-  if (pickerSchools) {
-    return (
-      <SchoolPicker
-        schools={pickerSchools}
-        onSelect={(schoolId) => {
-          router.push('/dashboard')
-        }}
-        onPersonal={() => {
-          router.push('/explore')
-        }}
-      />
-    )
   }
 
   return (
@@ -374,7 +333,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                   <div className="relative h-[52px]">
                     <SSOButton icon={<GoogleIcon />} label="Continue with Google"
                       loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
-                      onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
+                      onClick={googleFallback ? handleGoogleWebViewFallback : () => {}} />
                     {/* Google's real button, invisible and stacked on top —
                         see app/login/page.tsx for the full "why". Skipped
                         inside WebViews that can't open popups — googleFallback

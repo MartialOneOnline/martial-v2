@@ -265,6 +265,26 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — regresión de rendimiento: formateador por zona y caché por sesión; 50.000 reservas en ~173 ms.
 - No verificado tras la aprobación: sesión autenticada y datos reales (Codex recorrió la UI con API simulada en escritorio, móvil y 4 idiomas).
 
+### Lote R — Auth y carga: social login, sesiones en móvil, fallos de carga (rama `claude/auth-loading-fixes`)
+
+- Estado: Codex **`RECHAZADO`** sobre `main@86c6d93` (1 P1, 4 P2) → **`APROBADO CON PENDIENTES`** en `5811804` (4 P2 + 1 P2 condicionado al despliegue) → correcciones, **pendiente de re-auditoría**. PR #55. Sin migración.
+- Pedido del usuario: "fallos de carga a muchos usuarios", social login (Apple) que redirige fuera de la app con error, sesiones que se cierran en el móvil.
+- Hallazgos de Codex y corrección:
+  1. P1 — `SocialAuthButtons` volvía a `/login?code=…` sin continuar: Apple/Microsoft → `/auth/callback`; Google → `/api/auth/google/idtoken`; fallback WebView → `/api/auth/google/start` (también `LoginModal`).
+  2. P2 — `/login` ignoraba una sesión existente: con cookie de sesión consulta `/api/auth/me` y sigue con `resolveRedirect()`; anti-bucle 15 s; timeout 10 s.
+  3. P2 — fallo de red dejaba "Logging in…" bloqueado: `fetchWithTimeout` (15 s) + mensaje `t.appErrors.network` y controles restablecidos.
+  4. P2 — `safeRedirect` aceptaba `/\example.test`: rechaza `\` y controles, y compara el origen tras `new URL()`.
+  5. P2 — se perdía la query al caducar la sesión: el proxy pasa `pathname + search` en `redirect`.
+- Hallazgos de Codex en `5811804` y corrección:
+  1. P2 — el timeout no cubría la lectura del cuerpo: `fetchJson()` mantiene el plazo hasta terminar `res.text()` y admite una señal externa; `boundedFetch()` hace lo mismo para `fetchAvailableContexts`.
+  2. P2 — la resolución tras el login fallaba sin recuperación: un único intento cancelable con límite global de 20 s, comprobación de `/me`, `/contexts` y `/context`, y pantalla con `t.appErrors.network`, Reintentar y «Volver al login»; ya no manda a `/my` por defecto. `/register` y `/claim/[id]` acotados en toda la cadena; `LoginModal` delega en `/login?oauth=1`.
+  3. P2 — una respuesta antigua navegaba tras volver al formulario: volver cancela el intento (`AbortController`) y cada navegación comprueba la señal.
+  4. P2 — el refresco público podía bloquear `/login`: `getUserBounded()` (fetch de Auth a 3 s, límite de 5 s); timeout, error de red o 5xx = «no disponible», sin tocar cookies; en rutas públicas se sirve la página; en APIs protegidas, 503 + `Retry-After`; en páginas protegidas, `/login` (que recupera la sesión o muestra el error).
+  5. P2 (despliegue) — www redirigía webhooks: excluidos `/api/webhooks/*` y `/api/cron/*`, validado con el `path-to-regexp` de Next. Pendiente: confirmar en Stripe/Revolut/Mux que los endpoints registrados usan el apex.
+- Cambios propios: región `dub1`; redirección www → apex; refresco de sesión en rutas públicas en `proxy.ts`; Header sin `getSession()`; `/register` y `/claim/[id]` con login en servidor; `app/error.tsx` + `app/global-error.tsx`.
+- A revisar: bucles login ↔ layouts (`/my` ↔ `/dashboard`) con el auto-continuar; que el refresco en rutas públicas no choque con `/auth/*`; Apple/Microsoft desde `/register` y `/join`; WebView (UA Chrome/62) con el fallback de Google.
+- No verificado: producción (token de Vercel caducado), navegador, la app de tienda.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
