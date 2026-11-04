@@ -46,7 +46,8 @@
 | Capa | Tecnología | Estado |
 |---|---|---|
 | Web / Dashboard | Next.js 16 + Tailwind v4 | ✅ Funcionando |
-| Mobile | Expo SDK 56 + React Native | ✅ Arrancando |
+| Mobile (tiendas) | **Flutter** WebView de `martialapp.com/login`, repo aparte `martial-mobile-app` (ver sección "App móvil (tiendas)") | ✅ Publicada en Google Play; iOS en revisión de Apple |
+| Mobile (`apps/mobile`) | Expo SDK 56 + React Native | ⚠️ Plantilla sin usar — NO es la app de las tiendas |
 | API | Node.js + Express + TypeScript | ✅ Local |
 | ORM | Prisma 7.8.0 | ✅ Configurado |
 | Base de datos | PostgreSQL — Supabase | ✅ Conectada |
@@ -269,7 +270,44 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 
 ---
 
+## App móvil (tiendas)
+
+La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flutter mínimo.
+
+- **Repo:** https://github.com/MartialOneOnline/martial-mobile-app · local `/Users/pablocabo/Projects/martial-mobile-app` · rama `main` (último commit `e614a9d`, 2026-11-04, al día con GitHub).
+- **Qué hace:** `lib/main.dart` carga `https://martialapp.com/login` (`_homeUrl`) en un `flutter_inappwebview`. Más splash nativo, icono, push con OneSignal y ajustes de gestos/selección de texto. Todo el producto es la web.
+- **IDs:** Android `com.martial.app` (el `com.martial.apps` quedó reservado por otra cuenta) · iOS `com.martial.apps` (el de la ficha ya existente, Apple ID `6443845277`, team `GP6LP9L5HV`). Versión `2.0.0+4`.
+- **Navegación del WebView:** lista blanca `_inlineHosts` = `martialapp.com`, `accounts.google.com`, `appleid.apple.com`, `login.microsoftonline.com`, `login.live.com`, `checkout.stripe.com`, `js.stripe.com`, `m.stripe.network`, `m.stripe.com`. Cualquier otra navegación de **frame principal** se abre fuera (`launchUrl` externo); los iframes (p. ej. mapa de Google en `/school/[slug]/events/[eventSlug]`) quedan exentos con `isForMainFrame`. Aplica también al WebView de popups. Motivo: antes solo WhatsApp salía fuera → Apple lo trata como "acceso web sin restricciones" (sube la edad a 17+). No se puede restringir solo a `martialapp.com`: el fallback de Google en WebView (`/api/auth/google/start`) y Stripe Checkout (`window.location.href`) navegan a su propio dominio en la misma ventana.
+- **Firma Android:** `android/keystore/martial-release.jks` + `android/key.properties`, ambos en `.gitignore` (no recuperables desde GitHub — hacer copia aparte).
+- **Compilar iOS:** requiere Xcode ≥ 26 (iOS 26 SDK; Apple rechaza 18.2). Hecho con macOS 26.6.2 + Xcode 26.6 → `DTSDKName iphoneos26.5`. `flutter build ipa --release` → `build/ios/ipa/apps.ipa` → subir con Transporter. Cada subida necesita un build number nuevo.
+- **Info.plist:** `NSLocationWhenInUseUsageDescription` añadida (aviso ITMS-90683 en el build 2); `UISupportedInterfaceOrientations~ipad` con las 4 orientaciones (exigido por Apple); iPhone solo vertical; `ITSAppUsesNonExemptEncryption=false`.
+
+### Estado de publicación (a 2026-11-04)
+- **Google Play:** app **publicada** (ficha pública verificada el 2026-09-14, AAB `2.0.0 (2)`, PEGI 3, categoría Salud y bienestar). Hubo dos rechazos antes: (1) declaración de apps de salud inexacta por la palabra "nutrition" en la descripción larga (el marketplace no está activo → quitada); (2) credenciales de revisión "inválidas".
+- **App Store:** el build `2.0.0 (2)` dio el aviso ITMS-90683; el `(3)` (con el permiso de ubicación) se subió por Transporter; el `(4)` (con la lista blanca del WebView) se compiló pero **no consta que se subiera**. Versión 2.0.0 **enviada a revisión** el 2026-09-07 con App Privacy y clasificación de edad completas (acceso web no restringido = NO, UGC = NO, redes sociales = NO, mensajería = NO). **No consta qué build quedó adjuntado a la versión enviada ni el resultado de la revisión.** El listado público seguía en la 1.0.3 (junio 2025, "Data Not Collected").
+- **Cuentas de revisión (permanentes, no borrar):** `googleplay-reviewer@martialapp.com` (alumno, `SchoolMember` STUDENT en Roger Gracie Malaga) y `googleplay-reviewer-school@martialapp.com` (OWNER, entra a `/dashboard`). Las contraseñas **no se guardan aquí**: están en Play Console → Contenido de la app → Detalles de acceso. La contraseña del alumno se rotó el 2026-09-13; si cambia otra vez hay que actualizar Play Console. Scripts de creación sin trackear en `scripts/create-play-store-*.ts`.
+- **Login en dos pasos:** hay que pulsar "Continue with Email" antes de ver el campo de contraseña. Se recomendó explicarlo en el campo "Cualquier otra información necesaria para acceder" de Play Console (0/500 vacío); no consta si se rellenó.
+- **Enlaces para compartir:** `https://martialapp.com/android` y `https://martialapp.com/ios` (commit web `9b6a807`). Páginas con og:tags propios + redirección en cliente a la tienda, porque Google Play no genera vista previa en WhatsApp aunque su HTML tenga og:tags correctos. No usar `redirect()` de servidor ahí (el bot seguiría al destino sin leer los og:tags). Los 4 botones de descarga de la homepage (`HeroSection.tsx`, `AppDownloadBanner.tsx`) apuntan a ellas; el de Google Play era `href="#"`.
+
+### Pendientes de la app móvil
+1. Comprobar el resultado de la revisión de Apple y qué build (3 o 4) quedó adjuntado; si fue el 3, no incluye la lista blanca del WebView.
+2. **Probar en dispositivo real** (TestFlight) login con Google, con Apple o Microsoft y un pago de membresía: en el simulador los toques no llegaban al WebView, así que la lista blanca solo está verificada por código y `flutter analyze`.
+3. La descripción de Play sigue mencionando el marketplace ("Earn commission on every marketplace sale…", "…in the marketplace") aunque no está activo.
+4. Subir las capturas de iPad/iPhone nuevas si Apple pide cambios; sets en 1284×2778 (iPhone, bucket 6,5") y 2048×2732 (iPad).
+
+---
+
 ## Historial de sesiones
+
+### Sesión — 2026-09-04 → 2026-11-04 (rama `main` de `martial-v2` y de `martial-mobile-app`; sin Project Audit)
+
+**Publicación de la app móvil en Google Play y App Store.** Detalle de estado y pendientes en la sección "App móvil (tiendas)".
+- Android: keystore y firma en Gradle, `applicationId` → `com.martial.app`, AAB firmado, ficha completa (descripciones, gráfico de funciones, 8 capturas), cuestionarios de contenido/Data safety/apps de salud/ID de publicidad (sin AD_ID: no hay SDK de anuncios), cuenta de revisión alumno + cuenta escuela.
+- iOS: macOS 14.5 → 26.6.2 y Xcode 26.6 (liberando ~50 GB), IPA con iOS 26 SDK, `NSLocationWhenInUseUsageDescription`, lista blanca del WebView, App Privacy (Contacto, Salud, Financiera, Ubicación aproximada, Identificadores), clasificación por edades, capturas iPhone (1284×2778) e iPad (2048×2732) y envío a revisión.
+- Web (`martial-v2`, commit `9b6a807`): `apps/web/app/android/page.tsx`, `apps/web/app/ios/page.tsx` y arreglo de los botones de descarga de la homepage.
+- Capturas hechas con Playwright sobre cuentas de prueba, con marca/PII tapadas donde procedía (email de la cuenta de prueba; en el dashboard de iPad la tabla de transacciones mostraba nombres y fotos reales de alumnos y se tapó antes de entregar). Las cuentas temporales de dashboard creadas solo para capturar se borraron.
+- Dejado sin tocar a propósito: cambios ajenos pendientes en el árbol de `martial-v2` (tokens de invitación, cliente Prisma regenerado, etc.) — no entraron en ningún commit de esta sesión.
+- Sin tests automáticos nuevos: no hay suite en el repo Flutter y las páginas `/android` y `/ios` se comprobaron con `curl` (200 + og:tags) en local y en producción.
 
 ### Sesión — 2026-11-02 (o) (rama `claude/bookings-report`, PR [#53](https://github.com/MartialOneOnline/martial-v2/pull/53) — `APROBADO CON PENDIENTES` en `6e7f31d` (5 P2) → `APROBADO CON PENDIENTES` en `6eb7dd1` (3 P2) → **`APROBADO`** en `106331a`; sin migración)
 
