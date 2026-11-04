@@ -4,11 +4,15 @@ const nextConfig = {
   // its own cookie jar: a session started on one host didn't exist on the
   // other, and OAuth round trips (Apple/Microsoft via Supabase, Google GSI)
   // only allow-list the apex domain, so sign-ins started on www bounced to a
-  // different host and failed. 308 keeps the method, so POSTs survive too.
+  // different host and failed.
+  //
+  // Webhooks and crons are left alone on www: a provider registered against
+  // www (Stripe, Revolut, Mux…) may refuse to follow a redirect even when it
+  // keeps the method, so they're served on www exactly as before.
   async redirects() {
     return [
       {
-        source: '/:path*',
+        source: '/:path((?!api/webhooks(?:/|$)|api/cron(?:/|$)).*)',
         has: [{ type: 'host', value: 'www.martialapp.com' }],
         destination: 'https://martialapp.com/:path*',
         permanent: true,

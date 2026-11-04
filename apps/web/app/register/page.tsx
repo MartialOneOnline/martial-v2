@@ -8,6 +8,7 @@ import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { SocialAuthButtons } from '@/components/SocialAuthButtons'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 import { useT, useLanguage } from '@/lib/i18n/LanguageContext'
+import { fetchJson } from '@/lib/fetchWithTimeout'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -75,22 +76,34 @@ function RegisterPageInner() {
 
     setLoading(true)
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountType,
-          fullName,
-          email,
-          password,
-          redirect: redirectParam,
-          lang: locale,
-        }),
-      })
-      const data = await res.json()
+      // Every request here is bounded (fetchJson covers the body too), so a
+      // dropped connection ends in a message instead of a stuck button.
+      let registered: Awaited<ReturnType<typeof fetchJson<RegisterResponse>>>
+      try {
+        registered = await fetchJson<RegisterResponse>('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountType,
+            fullName,
+            email,
+            password,
+            redirect: redirectParam,
+            lang: locale,
+          }),
+        })
+      } catch {
+        setApiError(t.appErrors.network)
+        return
+      }
+      const data = registered.data
+      if (!data) {
+        setApiError(t.appErrors.network)
+        return
+      }
 
       if (!data.ok) {
-        setApiError(ERROR_MESSAGES[data.code] ?? data.message ?? 'Something went wrong. Please try again.')
+        setApiError((data.code ? ERROR_MESSAGES[data.code] : undefined) ?? data.message ?? 'Something went wrong. Please try again.')
         return
       }
 
@@ -106,22 +119,26 @@ function RegisterPageInner() {
       // the browser Supabase client, whose document.cookie writes Safari's
       // ITP caps to 7 days — see that route for the details.
       setSigningIn(true)
-      const signInRes = await fetch('/api/auth/login', {
+      // If it fails (bad response, network, timeout) the account still
+      // exists: /login?registered=1 explains that and lets them sign in.
+      const signedIn = await fetchJson('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-      }).catch(() => null)
-      if (!signInRes?.ok) {
+      }).then(r => r.ok, () => false)
+      if (!signedIn) {
         router.push(`/login?registered=1&type=${accountType}&email=${encodeURIComponent(email)}`)
         return
       }
 
       if (accountType === 'school' && data.schoolId) {
-        await fetch('/api/auth/context', {
+        // Best-effort hint: the dashboard picks the school itself if this
+        // didn't land.
+        await fetchJson('/api/auth/context', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ schoolId: data.schoolId }),
-        })
+        }).catch(() => null)
       }
 
       window.location.href = redirectParam ?? data.redirectTo ?? (accountType === 'school' ? '/dashboard' : '/my')
@@ -386,6 +403,16 @@ function PasswordField({ label, value, onChange, error, placeholder }: {
       {error && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{error}</p>}
     </div>
   )
+}
+
+type RegisterResponse = {
+  ok?: boolean
+  code?: string
+  message?: string
+  requiresEmailConfirmation?: boolean
+  emailSent?: boolean
+  schoolId?: string
+  redirectTo?: string
 }
 
 export default function RegisterPage() {

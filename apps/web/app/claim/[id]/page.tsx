@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
+import { fetchJson } from '@/lib/fetchWithTimeout'
+import { useT } from '@/lib/i18n/LanguageContext'
 
 type InvitationData = {
   id: string
@@ -30,6 +32,7 @@ type InvitationData = {
 export default function ClaimPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const t = useT()
 
   const [data, setData]         = useState<InvitationData | null>(null)
   const [loading, setLoading]   = useState(true)
@@ -64,16 +67,24 @@ export default function ClaimPage() {
 
     setSubmitting(true)
 
-    const res = await fetch(`/api/claim/${id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, password }),
-    })
+    // Bounded requests (fetchJson covers the body too): a dropped
+    // connection ends in a message and a usable form, not a stuck button.
+    let claimed: Awaited<ReturnType<typeof fetchJson<{ error?: string; schoolId?: string }>>>
+    try {
+      claimed = await fetchJson(`/api/claim/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, password }),
+      })
+    } catch {
+      setFormError(t.appErrors.network)
+      setSubmitting(false)
+      return
+    }
+    const result = claimed.data ?? {}
 
-    const result = await res.json()
-
-    if (!res.ok) {
-      setFormError(result.error || 'Something went wrong')
+    if (!claimed.ok) {
+      setFormError(result.error || (claimed.data ? 'Something went wrong' : t.appErrors.network))
       setSubmitting(false)
       return
     }
@@ -81,24 +92,25 @@ export default function ClaimPage() {
     // Sign in server-side (real Set-Cookie) — the browser Supabase client's
     // document.cookie session gets capped to 7 days by Safari's ITP. See
     // api/auth/login/route.ts.
-    const signInRes = await fetch('/api/auth/login', {
+    const signedIn = await fetchJson('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: data!.email, password }),
-    }).catch(() => null)
+    }).then(r => r.ok, () => false)
 
-    if (!signInRes?.ok) {
+    if (!signedIn) {
       setFormError('Account created but sign-in failed. Please go to login.')
       setSubmitting(false)
       return
     }
 
-    // Set school context cookie
-    await fetch('/api/auth/context', {
+    // Set school context cookie (best-effort hint — the dashboard falls
+    // back to choosing the school itself).
+    await fetchJson('/api/auth/context', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ schoolId: result.schoolId }),
-    })
+    }).catch(() => null)
 
     setDone(true)
     setTimeout(() => router.replace('/dashboard'), 1500)

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
-import { fetchWithTimeout } from '@/lib/fetchWithTimeout'
+import { fetchJson } from '@/lib/fetchWithTimeout'
 import { useT } from '@/lib/i18n/LanguageContext'
 
 const BORDER = '#E5E7EB'
@@ -80,19 +80,21 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
   async function handleGoogleCredential(idToken: string) {
     setError('')
     setLoading('google')
-    let res: Response
-    let json: { error?: string }
+    let result: Awaited<ReturnType<typeof fetchJson<{ error?: string }>>>
     try {
-      res = await fetchWithTimeout('/api/auth/google/idtoken', {
+      result = await fetchJson('/api/auth/google/idtoken', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken }),
       })
-      json = await res.json()
     } catch {
       setError(t.appErrors.network); setLoading(null); return
     }
-    if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setLoading(null); return }
+    if (!result.ok) {
+      setError(result.data?.error || (result.data ? 'Google sign-in failed. Please try again.' : t.appErrors.network))
+      setLoading(null)
+      return
+    }
     const redirectQuery = redirectPath ? `&redirect=${encodeURIComponent(redirectPath)}` : ''
     window.location.href = `/login?oauth=1${redirectQuery}`
   }

@@ -25,7 +25,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { isSessionCookieName, shouldRefreshPublic } from '@/lib/auth/proxyRefresh'
+import { authFetchWithTimeout, getUserBounded, isSessionCookieName, shouldRefreshPublic } from '@/lib/auth/proxyRefresh'
 
 function createProxyClient(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -33,6 +33,7 @@ function createProxyClient(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      global: { fetch: authFetchWithTimeout },
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookies) => {
@@ -81,13 +82,31 @@ export async function proxy(request: NextRequest) {
     if (!hasSession || !shouldRefreshPublic(pathname)) {
       return NextResponse.next({ request })
     }
+    // Bounded: if Auth is slow or down, serve the page untouched (cookies
+    // as they were) rather than block it or sign the user out.
     const { supabase, getResponse } = createProxyClient(request)
-    await supabase.auth.getUser()
+    const auth = await getUserBounded(() => supabase.auth.getUser())
+    if (auth.kind === 'unavailable') return NextResponse.next({ request })
     return getResponse()
   }
 
   const { supabase, getResponse } = createProxyClient(request)
-  const { data: { user } } = await supabase.auth.getUser()
+  const auth = await getUserBounded(() => supabase.auth.getUser())
+
+  if (auth.kind === 'unavailable') {
+    // Auth is slow/unreachable — not a verdict on the session, so no cookie
+    // changes go out. APIs get a retryable 503; pages go to /login, which
+    // resumes the session (cookie still there) or shows its network error
+    // with Retry, instead of hanging here.
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Auth temporarily unavailable' }, { status: 503, headers: { 'Retry-After': '5' } })
+    }
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirect', pathname + request.nextUrl.search)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  const user = auth.kind === 'user' ? auth.user : null
 
   if (!user) {
     // API routes expect JSON — redirecting to the login page here would hand

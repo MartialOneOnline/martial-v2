@@ -34,3 +34,35 @@ describe('proxy public-route session refresh', () => {
     expect(isSessionCookieName('currentSchoolId')).toBe(false)
   })
 })
+
+import { getUserBounded } from '../lib/auth/proxyRefresh'
+
+describe('getUserBounded', () => {
+  const user = { id: 'u1' }
+
+  it('returns the user when Auth answers', async () => {
+    await expect(getUserBounded(async () => ({ data: { user }, error: null }))).resolves.toEqual({ kind: 'user', user })
+  })
+
+  it('reports no session for a real auth rejection', async () => {
+    const error = { name: 'AuthApiError', status: 400, message: 'Invalid Refresh Token' }
+    await expect(getUserBounded(async () => ({ data: { user: null }, error }))).resolves.toEqual({ kind: 'none' })
+  })
+
+  it('treats a hung Auth call as unavailable instead of waiting', async () => {
+    const started = Date.now()
+    const result = await getUserBounded<{ id: string }>(() => new Promise(() => {}), 30)
+    expect(result).toEqual({ kind: 'unavailable' })
+    expect(Date.now() - started).toBeLessThan(1000)
+  })
+
+  it('treats network / server errors as unavailable, not as signed out', async () => {
+    for (const error of [
+      { name: 'AuthRetryableFetchError', status: 0 },
+      { name: 'AuthUnknownError', status: 502 },
+    ]) {
+      await expect(getUserBounded(async () => ({ data: { user: null }, error }))).resolves.toEqual({ kind: 'unavailable' })
+    }
+    await expect(getUserBounded(async () => { throw new Error('boom') })).resolves.toEqual({ kind: 'unavailable' })
+  })
+})

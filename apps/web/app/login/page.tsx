@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
@@ -14,7 +14,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 import { isSessionCookieName } from '@/lib/auth/proxyRefresh'
-import { fetchWithTimeout } from '@/lib/fetchWithTimeout'
+import { fetchJson, boundedFetch } from '@/lib/fetchWithTimeout'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -63,6 +63,14 @@ function EmailIcon() {
 type OAuthProvider = 'google' | 'apple' | 'azure'
 
 const RESUME_KEY = 'martial:login-resume-at'
+// Overall cap on "where to after sign-in" (each request also has its own).
+const SIGN_IN_DEADLINE_MS = 20000
+
+type ResolveOutcome = 'navigated' | 'stayed' | 'no-session'
+type MeResponse = {
+  user?: { globalRole?: string }
+  contexts?: { schools?: SchoolContext[] }
+}
 
 function SocialButton({ provider, label, loading, disabled, onClick }: {
   provider: OAuthProvider; label: string; loading: boolean; disabled: boolean; onClick: () => void
@@ -160,98 +168,151 @@ function LoginPageInner() {
     } catch { /* storage blocked: no loop guard, still fine */ }
     return true
   })
+  // Signed in, but working out where to go next failed (network, timeout,
+  // error response). Shows a translated message with Retry instead of
+  // guessing a destination.
+  const [resolveFailed, setResolveFailed] = useState(false)
 
-  // Resolves true when it navigated away, false when it stayed on this page
-  // (school picker shown, or nothing to do).
-  const resolveRedirect = async (): Promise<boolean> => {
-    // Hard navigation (not router.push) for every destination here: proxy.ts
-    // reads the Supabase session cookie fresh on each request, and Google's
-    // sign-in (see handleGoogleCredential) reaches this function in the same
-    // render as the cookie write, with no intervening page load — unlike the
-    // Apple/Microsoft flow (full redirect round trip via Supabase) or the
-    // modal's Google path (client nav to /login first). Without a real
-    // navigation here, that first /dashboard request can beat the cookie to
-    // the browser's jar and bounce back to /login, forcing a second attempt.
+  // Each "where to after sign-in" run is one attempt with its own
+  // AbortController: every fetch in it uses that signal, an overall deadline
+  // aborts it, and returning to the form cancels it — so a late response
+  // from an abandoned attempt can never navigate away.
+  const attemptRef = useRef<AbortController | null>(null)
+  const cancelAttempt = () => {
+    attemptRef.current?.abort()
+    attemptRef.current = null
+  }
+  useEffect(() => cancelAttempt, [])
+
+  // Hard navigation (not router.push) for every destination here: proxy.ts
+  // reads the Supabase session cookie fresh on each request, and Google's
+  // sign-in (see handleGoogleCredential) reaches this function in the same
+  // render as the cookie write, with no intervening page load. Without a
+  // real navigation, that first /dashboard request can beat the cookie to
+  // the browser's jar and bounce back to /login, forcing a second attempt.
+  const resolveRedirect = async (
+    signal: AbortSignal,
+    { requireSession = false }: { requireSession?: boolean } = {},
+  ): Promise<ResolveOutcome> => {
+    const go = (url: string): ResolveOutcome => {
+      if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
+      window.location.href = url
+      return 'navigated'
+    }
+
+    if (redirectTo && !requireSession) return go(redirectTo)
+
+    const me = await fetchJson<MeResponse>('/api/auth/me', {}, { signal })
+    if (me.status === 401) return 'no-session'
+    if (!me.ok || !me.data?.user) throw new Error(`/api/auth/me ${me.status}`)
+
+    if (redirectTo) return go(redirectTo)
+    if (me.data.user.globalRole === 'SUPERADMIN') return go('/admin')
+
+    // Decision extracted to lib/auth/loginRedirect.ts — see that file for
+    // the full priority order (explicit redirect / SUPERADMIN already
+    // handled above, so this only ever resolves the "how many real
+    // contexts does this user have" branch, with a safe fallback to the
+    // pre-existing staffSchools logic if GET /api/auth/contexts fails).
+    const action = await resolveLoginRedirectAction({
+      explicitPath: undefined,
+      isSuperAdmin: false,
+      legacySchools: me.data.contexts?.schools ?? [],
+      isOnChooseProfile: pathname === '/choose-profile',
+      fetchContexts: () => fetchAvailableContexts(boundedFetch(signal)),
+    })
+    if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
+
+    switch (action.kind) {
+      case 'dashboard-auto': {
+        const selected = await fetchJson('/api/auth/context', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ schoolId: action.schoolId }),
+        }, { signal })
+        if (!selected.ok) throw new Error(`/api/auth/context ${selected.status}`)
+        return go('/dashboard')
+      }
+      case 'legacy-picker':
+        setPickerSchools(action.schools)
+        return 'stayed'
+      case 'noop':
+        return 'stayed'
+      case 'push':
+        return go(action.path)
+    }
+    return 'stayed'
+  }
+
+  const continueSignedIn = async (
+    opts: { requireSession?: boolean } = {},
+  ): Promise<ResolveOutcome | 'failed' | 'cancelled'> => {
+    cancelAttempt()
+    const attempt = new AbortController()
+    attemptRef.current = attempt
+    const deadline = setTimeout(() => attempt.abort(), SIGN_IN_DEADLINE_MS)
     try {
-      if (redirectTo) {
-        window.location.href = redirectTo
-        return true
-      }
-
-      const res = await fetchWithTimeout('/api/auth/me')
-      const json = await res.json()
-
-      if (json.user?.globalRole === 'SUPERADMIN') {
-        window.location.href = '/admin'
-        return true
-      }
-
-      const legacySchools: SchoolContext[] = json.contexts?.schools ?? []
-
-      // Decision extracted to lib/auth/loginRedirect.ts — see that file for
-      // the full priority order (explicit redirect / SUPERADMIN already
-      // handled above, so this only ever resolves the "how many real
-      // contexts does this user have" branch, with a safe fallback to the
-      // pre-existing staffSchools logic if GET /api/auth/contexts fails).
-      const action = await resolveLoginRedirectAction({
-        explicitPath: undefined,
-        isSuperAdmin: false,
-        legacySchools,
-        isOnChooseProfile: pathname === '/choose-profile',
-        fetchContexts: () => fetchAvailableContexts(),
-      })
-
-      switch (action.kind) {
-        case 'dashboard-auto':
-          await fetch('/api/auth/context', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ schoolId: action.schoolId }),
-          })
-          window.location.href = '/dashboard'
-          return true
-        case 'legacy-picker':
-          setPickerSchools(action.schools)
-          return false
-        case 'noop':
-          return false
-        case 'push':
-          window.location.href = action.path
-          return true
-      }
-      return false
+      return await resolveRedirect(attempt.signal, opts)
     } catch {
-      window.location.href = '/my'
-      return true
+      // Cancelled on purpose (back to the form, superseded) vs. a real
+      // failure (deadline, network, error response).
+      return attemptRef.current === attempt ? 'failed' : 'cancelled'
+    } finally {
+      clearTimeout(deadline)
+      if (attemptRef.current === attempt) attemptRef.current = null
     }
   }
 
-  useEffect(() => {
-    if (!resumingSession) return
+  const showResolveFailure = () => {
+    setLoading(false)
+    setOauthLoading(null)
+    setShowOauthSpinner(false)
+    setResumingSession(false)
+    setResolveFailed(true)
+  }
+
+  // After a successful sign-in on this page (password, Google, OAuth callback).
+  const finishSignIn = async () => {
+    const outcome = await continueSignedIn()
+    if (outcome === 'failed' || outcome === 'no-session') {
+      showResolveFailure()
+    } else if (outcome === 'stayed') {
+      setLoading(false)
+      setOauthLoading(null)
+      setShowOauthSpinner(false)
+    }
+  }
+
+  // Existing session on page load, and the Retry button after a failure.
+  const resumeSession = async () => {
+    setResolveFailed(false)
+    setResumingSession(true)
     try { sessionStorage.setItem(RESUME_KEY, String(Date.now())) } catch { /* storage blocked */ }
-    let cancelled = false
-    fetchWithTimeout('/api/auth/me', {}, 8000)
-      .then(res => (res.ok ? res.json() : null))
-      .then(async json => {
-        if (cancelled) return
-        if (!json?.user) { setResumingSession(false); return }
-        const navigated = await resolveRedirect()
-        if (!navigated && !cancelled) setResumingSession(false)
-      })
-      .catch(() => { if (!cancelled) setResumingSession(false) })
-    // Never leave the user stuck on the spinner.
-    const timer = setTimeout(() => setResumingSession(false), 10000)
-    return () => { cancelled = true; clearTimeout(timer) }
+    const outcome = await continueSignedIn({ requireSession: true })
+    if (outcome === 'navigated' || outcome === 'cancelled') return
+    if (outcome === 'failed') { showResolveFailure(); return }
+    setResumingSession(false)
+  }
+
+  const backToForm = () => {
+    cancelAttempt()
+    setResolveFailed(false)
+    setResumingSession(false)
+    setShowOauthSpinner(false)
+  }
+
+  useEffect(() => {
+    if (resumingSession) resumeSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Gated on oauthCallback.active (captured above) so this never double-fires
-  // alongside handleLogin's own resolveRedirect() call for password logins.
+  // alongside handleLogin's own finishSignIn() call for password logins.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       // INITIAL_SESSION covers the `?oauth=1` case: the session already
       // exists in cookies by the time this page's client initializes (set
-      // by signInWithIdToken on the previous page), so it's never a
+      // by the server-side callback that redirected here), so it's never a
       // SIGNED_IN transition here.
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && oauthCallback.active) {
         // handleLogin sends this for password logins — OAuth never went
@@ -262,19 +323,19 @@ function LoginPageInner() {
           headers: { Authorization: `Bearer ${session.access_token}` },
           keepalive: true,
         }).catch(() => {})
-        resolveRedirect()
+        finishSignIn()
       }
     })
     return () => subscription.unsubscribe()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Safety net for the spinner above: if the code exchange fails in a way
-  // that never fires SIGNED_IN and never sets ?error= either, don't leave the
-  // user staring at a spinner indefinitely — drop back to the normal form.
+  // Safety net for the spinner above: if the session never shows up
+  // (INITIAL_SESSION without a session, no ?error= either), drop back to the
+  // normal form. An attempt already in flight has its own deadline instead.
   useEffect(() => {
     if (!showOauthSpinner) return
-    const timer = setTimeout(() => setShowOauthSpinner(false), 10000)
+    const timer = setTimeout(() => { if (!attemptRef.current) setShowOauthSpinner(false) }, 10000)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -335,27 +396,29 @@ function LoginPageInner() {
   const handleGoogleCredential = async (idToken: string) => {
     setError('')
     setOauthLoading('google')
-    let res: Response
-    let json: { error?: string; accessToken?: string }
+    let result: Awaited<ReturnType<typeof fetchJson<{ error?: string; accessToken?: string }>>>
     try {
-      res = await fetchWithTimeout('/api/auth/google/idtoken', {
+      result = await fetchJson('/api/auth/google/idtoken', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken }),
       })
-      json = await res.json()
     } catch {
       setError(t.appErrors.network); setOauthLoading(null); return
     }
-    if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setOauthLoading(null); return }
-    if (json.accessToken) {
+    if (!result.ok) {
+      setError(result.data?.error || (result.data ? 'Google sign-in failed. Please try again.' : t.appErrors.network))
+      setOauthLoading(null)
+      return
+    }
+    if (result.data?.accessToken) {
       fetch('/api/auth/login-event', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${json.accessToken}` },
+        headers: { Authorization: `Bearer ${result.data.accessToken}` },
         keepalive: true,
       }).catch(() => {})
     }
-    await resolveRedirect()
+    await finishSignIn()
   }
   const { containerRef: googleButtonRef, fallbackToRedirect: googleFallback } = useGoogleSignInButton(handleGoogleCredential)
 
@@ -372,15 +435,13 @@ function LoginPageInner() {
     if (!password) { setPassErr('Password field cannot be left blank.'); return }
 
     setLoading(true)
-    let res: Response
-    let json: { error?: string; accessToken?: string }
+    let result: Awaited<ReturnType<typeof fetchJson<{ error?: string; accessToken?: string }>>>
     try {
-      res = await fetchWithTimeout('/api/auth/login', {
+      result = await fetchJson('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
-      json = await res.json()
     } catch {
       // Network drop, timeout, or a non-JSON error page (502/504): give the
       // controls back and say so, instead of a forever-disabled button.
@@ -388,8 +449,13 @@ function LoginPageInner() {
       setError(t.appErrors.network)
       return
     }
-    if (!res.ok) {
+    const json = result.data ?? {}
+    if (!result.ok) {
       setLoading(false)
+      // A non-JSON error page (502/504 from the platform) means the request
+      // never reached our route — that's a connectivity problem, not bad
+      // credentials.
+      if (!result.data) { setError(t.appErrors.network); return }
       // Only reachable if the Supabase project's "Confirm email" toggle is
       // on — proxy.ts's email_confirmed_at gate is the authoritative check
       // otherwise (a session can exist for an unconfirmed user).
@@ -409,11 +475,12 @@ function LoginPageInner() {
       }).catch(() => {})
     }
 
-    // Left true deliberately — resolveRedirect() below does its own fetches
+    // Left true deliberately — finishSignIn() below does its own fetches
     // before navigating away, and clearing it here would flip the button
     // back to its idle state for that whole window, making the page look
-    // unresponsive right after a successful login.
-    await resolveRedirect()
+    // unresponsive right after a successful login. On failure it resets the
+    // button and shows the retry screen.
+    await finishSignIn()
   }
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -423,7 +490,7 @@ function LoginPageInner() {
 
     setResetLoading(true)
     try {
-      await fetchWithTimeout('/api/auth/forgot-password', {
+      await fetchJson('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail, lang: locale }),
@@ -440,6 +507,28 @@ function LoginPageInner() {
         onSelect={() => router.push('/dashboard')}
         onPersonal={() => router.push('/explore')}
       />
+    )
+  }
+
+  if (resolveFailed) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: '#F9FAFB' }}>
+        <div role="alert" style={{ maxWidth: 380, width: '100%', background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 16, padding: 28, textAlign: 'center' }}>
+          <p style={{ margin: '0 0 24px', fontSize: 15, color: TEXT, lineHeight: 1.5 }}>{t.appErrors.network}</p>
+          <button
+            type="button"
+            onClick={resumeSession}
+            style={{ width: '100%', height: 48, border: 'none', borderRadius: 999, background: BLUE, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+            {t.appErrors.retry}
+          </button>
+          <button
+            type="button"
+            onClick={backToForm}
+            style={{ marginTop: 16, background: 'none', border: 'none', fontSize: 14, color: MUTED, cursor: 'pointer' }}>
+            {t.authVerify.backToLogin}
+          </button>
+        </div>
+      </div>
     )
   }
 
