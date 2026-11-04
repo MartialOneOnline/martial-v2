@@ -1,5 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // www.martialapp.com used to serve the whole app as a second origin with
+  // its own cookie jar: a session started on one host didn't exist on the
+  // other, and OAuth round trips (Apple/Microsoft via Supabase, Google GSI)
+  // only allow-list the apex domain, so sign-ins started on www bounced to a
+  // different host and failed. 308 keeps the method, so POSTs survive too.
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.martialapp.com' }],
+        destination: 'https://martialapp.com/:path*',
+        permanent: true,
+      },
+    ]
+  },
   experimental: {
     // Disable router cache so protected pages never serve a stale redirect-to-login
     staleTimes: { dynamic: 0 },

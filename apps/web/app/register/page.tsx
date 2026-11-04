@@ -4,7 +4,6 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { ArrowLeft, Building2, GraduationCap, Mail, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { SocialAuthButtons } from '@/components/SocialAuthButtons'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
@@ -27,7 +26,6 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 function RegisterPageInner() {
   const router = useRouter()
-  const supabase = createClient()
   const t = useT()
   const { locale } = useLanguage()
   const searchParams = useSearchParams()
@@ -104,9 +102,16 @@ function RegisterPageInner() {
 
       // Auto-login using the password just submitted, then land where the
       // account type belongs (or wherever ?redirect= sanitized to).
+      // Signs in through /api/auth/login (server-side Set-Cookie) rather than
+      // the browser Supabase client, whose document.cookie writes Safari's
+      // ITP caps to 7 days — see that route for the details.
       setSigningIn(true)
-      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
-      if (signInErr) {
+      const signInRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      }).catch(() => null)
+      if (!signInRes?.ok) {
         router.push(`/login?registered=1&type=${accountType}&email=${encodeURIComponent(email)}`)
         return
       }
@@ -119,7 +124,7 @@ function RegisterPageInner() {
         })
       }
 
-      router.push(redirectParam ?? data.redirectTo ?? (accountType === 'school' ? '/dashboard' : '/my'))
+      window.location.href = redirectParam ?? data.redirectTo ?? (accountType === 'school' ? '/dashboard' : '/my')
     } finally {
       setLoading(false)
     }

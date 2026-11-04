@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { fetchWithTimeout } from '@/lib/fetchWithTimeout'
+import { useT } from '@/lib/i18n/LanguageContext'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowLeft } from 'lucide-react'
@@ -78,6 +80,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const router   = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
+  const t        = useT()
 
   const [view, setView]             = useState<'sso' | 'email' | 'forgot'>('sso')
   const [email, setEmail]           = useState('')
@@ -120,7 +123,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
         return
       }
 
-      const res = await fetch('/api/auth/me')
+      const res = await fetchWithTimeout('/api/auth/me')
       const json = await res.json()
 
       // 1. SUPERADMIN → /admin
@@ -235,12 +238,18 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const handleGoogleCredential = async (idToken: string) => {
     setError('')
     setOauthLoading('google')
-    const res = await fetch('/api/auth/google/idtoken', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    })
-    const json = await res.json()
+    let res: Response
+    let json: { error?: string }
+    try {
+      res = await fetchWithTimeout('/api/auth/google/idtoken', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      })
+      json = await res.json()
+    } catch {
+      setError(t.appErrors.network); setOauthLoading(null); return
+    }
     if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setOauthLoading(null); return }
     const safeTo = safeRedirect(redirectTo)
     const redirectQuery = safeTo ? `&redirect=${encodeURIComponent(safeTo)}` : ''
@@ -248,6 +257,15 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     router.push(`/login?oauth=1${redirectQuery}`)
   }
   const { containerRef: googleButtonRef, fallbackToRedirect: googleFallback } = useGoogleSignInButton(handleGoogleCredential)
+
+  // WebViews that can't open GSI's popup: same server-side Google round trip
+  // /login uses (api/auth/google/start → callback), not Supabase's redirect,
+  // so every entry point finishes through the same callback.
+  const handleGoogleWebViewFallback = () => {
+    setOauthLoading('google')
+    const safeTo = safeRedirect(redirectTo)
+    window.location.href = `/api/auth/google/start${safeTo ? `?redirect=${encodeURIComponent(safeTo)}` : ''}`
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -258,12 +276,20 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     if (!valid) return
 
     setLoading(true)
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    const json = await res.json()
+    let res: Response
+    let json: { error?: string; accessToken?: string }
+    try {
+      res = await fetchWithTimeout('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      json = await res.json()
+    } catch {
+      setLoading(false)
+      setError(t.appErrors.network)
+      return
+    }
     setLoading(false)
     if (!res.ok) { setError(json.error || 'Login failed. Please try again.'); return }
 
@@ -374,7 +400,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                   <div className="relative h-[52px]">
                     <SSOButton icon={<GoogleIcon />} label="Continue with Google"
                       loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
-                      onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
+                      onClick={googleFallback ? handleGoogleWebViewFallback : () => {}} />
                     {/* Google's real button, invisible and stacked on top —
                         see app/login/page.tsx for the full "why". Skipped
                         inside WebViews that can't open popups — googleFallback

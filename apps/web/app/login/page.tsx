@@ -13,6 +13,8 @@ import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
+import { isSessionCookieName } from '@/lib/auth/proxyRefresh'
+import { fetchWithTimeout } from '@/lib/fetchWithTimeout'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -59,6 +61,8 @@ function EmailIcon() {
 }
 
 type OAuthProvider = 'google' | 'apple' | 'azure'
+
+const RESUME_KEY = 'martial:login-resume-at'
 
 function SocialButton({ provider, label, loading, disabled, onClick }: {
   provider: OAuthProvider; label: string; loading: boolean; disabled: boolean; onClick: () => void
@@ -139,7 +143,27 @@ function LoginPageInner() {
   // network hiccup) so the user isn't stuck looking at a spinner forever.
   const [showOauthSpinner, setShowOauthSpinner] = useState(oauthCallback.active && !oauthCallback.error)
 
-  const resolveRedirect = async () => {
+  // This page is the mobile app's entry screen, so it loads every time the
+  // app opens. It used to always show the login form, even with a valid
+  // session — which users read as "the app logged me out". When a session
+  // cookie is present, check it server-side and carry on to the usual
+  // destination instead. Loop guard: a second attempt within 15s (e.g. a
+  // layout bouncing straight back here) just shows the form.
+  const [resumingSession, setResumingSession] = useState(() => {
+    if (typeof window === 'undefined') return false
+    if (oauthCallback.active || oauthCallback.error) return false
+    const hasSession = document.cookie.split('; ').some(c => isSessionCookieName(c.split('=')[0] ?? ''))
+    if (!hasSession) return false
+    try {
+      const last = Number(sessionStorage.getItem(RESUME_KEY) ?? 0)
+      if (Date.now() - last < 15000) return false
+    } catch { /* storage blocked: no loop guard, still fine */ }
+    return true
+  })
+
+  // Resolves true when it navigated away, false when it stayed on this page
+  // (school picker shown, or nothing to do).
+  const resolveRedirect = async (): Promise<boolean> => {
     // Hard navigation (not router.push) for every destination here: proxy.ts
     // reads the Supabase session cookie fresh on each request, and Google's
     // sign-in (see handleGoogleCredential) reaches this function in the same
@@ -151,15 +175,15 @@ function LoginPageInner() {
     try {
       if (redirectTo) {
         window.location.href = redirectTo
-        return
+        return true
       }
 
-      const res = await fetch('/api/auth/me')
+      const res = await fetchWithTimeout('/api/auth/me')
       const json = await res.json()
 
       if (json.user?.globalRole === 'SUPERADMIN') {
         window.location.href = '/admin'
-        return
+        return true
       }
 
       const legacySchools: SchoolContext[] = json.contexts?.schools ?? []
@@ -185,20 +209,41 @@ function LoginPageInner() {
             body: JSON.stringify({ schoolId: action.schoolId }),
           })
           window.location.href = '/dashboard'
-          return
+          return true
         case 'legacy-picker':
           setPickerSchools(action.schools)
-          return
+          return false
         case 'noop':
-          return
+          return false
         case 'push':
           window.location.href = action.path
-          return
+          return true
       }
+      return false
     } catch {
       window.location.href = '/my'
+      return true
     }
   }
+
+  useEffect(() => {
+    if (!resumingSession) return
+    try { sessionStorage.setItem(RESUME_KEY, String(Date.now())) } catch { /* storage blocked */ }
+    let cancelled = false
+    fetchWithTimeout('/api/auth/me', {}, 8000)
+      .then(res => (res.ok ? res.json() : null))
+      .then(async json => {
+        if (cancelled) return
+        if (!json?.user) { setResumingSession(false); return }
+        const navigated = await resolveRedirect()
+        if (!navigated && !cancelled) setResumingSession(false)
+      })
+      .catch(() => { if (!cancelled) setResumingSession(false) })
+    // Never leave the user stuck on the spinner.
+    const timer = setTimeout(() => setResumingSession(false), 10000)
+    return () => { cancelled = true; clearTimeout(timer) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Gated on oauthCallback.active (captured above) so this never double-fires
   // alongside handleLogin's own resolveRedirect() call for password logins.
@@ -290,12 +335,18 @@ function LoginPageInner() {
   const handleGoogleCredential = async (idToken: string) => {
     setError('')
     setOauthLoading('google')
-    const res = await fetch('/api/auth/google/idtoken', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    })
-    const json = await res.json()
+    let res: Response
+    let json: { error?: string; accessToken?: string }
+    try {
+      res = await fetchWithTimeout('/api/auth/google/idtoken', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      })
+      json = await res.json()
+    } catch {
+      setError(t.appErrors.network); setOauthLoading(null); return
+    }
     if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setOauthLoading(null); return }
     if (json.accessToken) {
       fetch('/api/auth/login-event', {
@@ -321,12 +372,22 @@ function LoginPageInner() {
     if (!password) { setPassErr('Password field cannot be left blank.'); return }
 
     setLoading(true)
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-    const json = await res.json()
+    let res: Response
+    let json: { error?: string; accessToken?: string }
+    try {
+      res = await fetchWithTimeout('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      json = await res.json()
+    } catch {
+      // Network drop, timeout, or a non-JSON error page (502/504): give the
+      // controls back and say so, instead of a forever-disabled button.
+      setLoading(false)
+      setError(t.appErrors.network)
+      return
+    }
     if (!res.ok) {
       setLoading(false)
       // Only reachable if the Supabase project's "Confirm email" toggle is
@@ -362,7 +423,7 @@ function LoginPageInner() {
 
     setResetLoading(true)
     try {
-      await fetch('/api/auth/forgot-password', {
+      await fetchWithTimeout('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail, lang: locale }),
@@ -382,7 +443,7 @@ function LoginPageInner() {
     )
   }
 
-  if (showOauthSpinner) {
+  if (showOauthSpinner || resumingSession) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' }}>
         <div style={{ width: 32, height: 32, border: `3px solid ${BLUE}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
+import { fetchWithTimeout } from '@/lib/fetchWithTimeout'
+import { useT } from '@/lib/i18n/LanguageContext'
 
 const BORDER = '#E5E7EB'
 const MUTED = '#6B7280'
@@ -45,20 +46,20 @@ const PROVIDERS: { id: OAuthProvider; label: string; icon: () => React.JSX.Eleme
   { id: 'azure', label: 'Continue with Microsoft', icon: MicrosoftIcon },
 ]
 
-// Lands the OAuth round trip on /login (not here) — that page already owns
-// the PKCE `?code=` exchange, the login-event ping that provisions the
-// prisma.user row for a first-time signup, and resolveRedirect(). Reusing it
-// avoids re-implementing that sequence wherever this component is dropped in.
-//
-// Google is the exception: it signs in with an ID token right here (see
-// useGoogleSignInButton) instead of redirecting through Supabase's OAuth
-// endpoint, so there's already a session by the time /login loads. It still
-// gets sent there with `?oauth=1` so the login-event ping and
-// resolveRedirect() logic isn't duplicated — see the matching branch in
-// app/login/page.tsx's onAuthStateChange effect.
+// Every provider finishes sign-in server-side and then lands on
+// /login?oauth=1, the same as the /login page and the homepage modal:
+// - Apple/Microsoft: Supabase redirect → auth/callback/route.ts, which
+//   exchanges the PKCE code server-side. This used to return to
+//   /login?code=… instead, where nothing continued the flow (login only
+//   resumes on `oauth=1`) and the browser client wrote the session via
+//   document.cookie (capped to 7 days by Safari's ITP).
+// - Google: GSI ID token → POST /api/auth/google/idtoken (server-side
+//   sign-in), or, in WebViews that can't open GSI's popup,
+//   api/auth/google/start → api/auth/google/callback.
+// /login?oauth=1 then runs the login-event ping and resolveRedirect().
 export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
-  const router = useRouter()
   const supabase = createClient()
+  const t = useT()
   const [loading, setLoading] = useState<OAuthProvider | null>(null)
   const [error, setError] = useState('')
 
@@ -69,7 +70,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/login${redirectQuery}`,
+        redirectTo: `${window.location.origin}/auth/callback${redirectQuery}`,
         ...(provider === 'azure' ? { scopes: 'openid profile email' } : {}),
       },
     })
@@ -79,10 +80,27 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
   async function handleGoogleCredential(idToken: string) {
     setError('')
     setLoading('google')
-    const { error: err } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
-    if (err) { setError(err.message); setLoading(null); return }
+    let res: Response
+    let json: { error?: string }
+    try {
+      res = await fetchWithTimeout('/api/auth/google/idtoken', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      })
+      json = await res.json()
+    } catch {
+      setError(t.appErrors.network); setLoading(null); return
+    }
+    if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setLoading(null); return }
     const redirectQuery = redirectPath ? `&redirect=${encodeURIComponent(redirectPath)}` : ''
-    router.push(`/login?oauth=1${redirectQuery}`)
+    window.location.href = `/login?oauth=1${redirectQuery}`
+  }
+
+  function handleGoogleWebViewFallback() {
+    setLoading('google')
+    const redirectQuery = redirectPath ? `?redirect=${encodeURIComponent(redirectPath)}` : ''
+    window.location.href = `/api/auth/google/start${redirectQuery}`
   }
   const { containerRef: googleButtonRef, fallbackToRedirect: googleFallback } = useGoogleSignInButton(handleGoogleCredential)
 
@@ -93,7 +111,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
           <button
             type="button"
             disabled={loading !== null}
-            onClick={googleFallback ? () => handleOAuth('google') : undefined}
+            onClick={googleFallback ? handleGoogleWebViewFallback : undefined}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               height: 52, border: `1px solid ${BORDER}`, borderRadius: 12, background: '#fff',

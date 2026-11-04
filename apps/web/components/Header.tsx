@@ -71,21 +71,25 @@ export default function Header({ onOpenLoginModal }: HeaderProps) {
   const t                           = useT()
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getSession().then(({ data }) => {
-      setIsLoggedIn(!!data.session)
-      if (!data.session) return
-
-      fetch('/api/auth/me').then(res => res.json()).then(json => {
-        if (json.user?.globalRole === 'SUPERADMIN') {
+    // Asks the server, not the browser Supabase client: getSession() there
+    // refreshes an expired token client-side (even with autoRefreshToken
+    // off), rewriting the session via document.cookie — which Safari's ITP
+    // caps to 7 days — and racing proxy.ts for the single-use refresh token.
+    // proxy.ts refreshes /api/auth/me's session before the route runs.
+    fetch('/api/auth/me')
+      .then(res => (res.ok ? res.json() : null))
+      .then(json => {
+        if (!json?.user) return
+        setIsLoggedIn(true)
+        if (json.user.globalRole === 'SUPERADMIN') {
           setAccountLink({ label: 'Admin', href: '/admin' })
           return
         }
         const schools = json.contexts?.schools ?? []
         const isStaff = schools.some((s: { role: string }) => s.role !== 'STUDENT')
         setAccountLink(isStaff ? { label: 'Dashboard', href: '/dashboard' } : { label: 'My Profile', href: '/my' })
-      }).catch(() => {})
-    })
+      })
+      .catch(() => {})
   }, [])
 
   const handleSignOut = async () => {

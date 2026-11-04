@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 
 type InvitationData = {
@@ -79,15 +78,16 @@ export default function ClaimPage() {
       return
     }
 
-    // Sign in with Supabase
-    const supabase = createClient()
+    // Sign in server-side (real Set-Cookie) — the browser Supabase client's
+    // document.cookie session gets capped to 7 days by Safari's ITP. See
+    // api/auth/login/route.ts.
+    const signInRes = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: data!.email, password }),
+    }).catch(() => null)
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: data!.email,
-      password,
-    })
-
-    if (signInError) {
+    if (!signInRes?.ok) {
       setFormError('Account created but sign-in failed. Please go to login.')
       setSubmitting(false)
       return

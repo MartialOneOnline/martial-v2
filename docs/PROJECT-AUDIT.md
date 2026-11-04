@@ -265,6 +265,20 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — regresión de rendimiento: formateador por zona y caché por sesión; 50.000 reservas en ~173 ms.
 - No verificado tras la aprobación: sesión autenticada y datos reales (Codex recorrió la UI con API simulada en escritorio, móvil y 4 idiomas).
 
+### Lote R — Auth y carga: social login, sesiones en móvil, fallos de carga (rama `claude/auth-loading-fixes`)
+
+- Estado: Codex **`RECHAZADO`** sobre `main@86c6d93` (1 P1, 4 P2) → correcciones en la rama, **pendiente de re-auditoría**. Sin migración.
+- Pedido del usuario: "fallos de carga a muchos usuarios", social login (Apple) que redirige fuera de la app con error, sesiones que se cierran en el móvil.
+- Hallazgos de Codex y corrección:
+  1. P1 — `SocialAuthButtons` volvía a `/login?code=…` sin continuar: Apple/Microsoft → `/auth/callback`; Google → `/api/auth/google/idtoken`; fallback WebView → `/api/auth/google/start` (también `LoginModal`).
+  2. P2 — `/login` ignoraba una sesión existente: con cookie de sesión consulta `/api/auth/me` y sigue con `resolveRedirect()`; anti-bucle 15 s; timeout 10 s.
+  3. P2 — fallo de red dejaba "Logging in…" bloqueado: `fetchWithTimeout` (15 s) + mensaje `t.appErrors.network` y controles restablecidos.
+  4. P2 — `safeRedirect` aceptaba `/\example.test`: rechaza `\` y controles, y compara el origen tras `new URL()`.
+  5. P2 — se perdía la query al caducar la sesión: el proxy pasa `pathname + search` en `redirect`.
+- Cambios propios: región `dub1`; redirección www → apex; refresco de sesión en rutas públicas en `proxy.ts`; Header sin `getSession()`; `/register` y `/claim/[id]` con login en servidor; `app/error.tsx` + `app/global-error.tsx`.
+- A revisar: bucles login ↔ layouts (`/my` ↔ `/dashboard`) con el auto-continuar; que el refresco en rutas públicas no choque con `/auth/*`; Apple/Microsoft desde `/register` y `/join`; WebView (UA Chrome/62) con el fallback de Google.
+- No verificado: producción (token de Vercel caducado), navegador, la app de tienda.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
