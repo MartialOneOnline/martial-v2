@@ -265,6 +265,14 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — regresión de rendimiento: formateador por zona y caché por sesión; 50.000 reservas en ~173 ms.
 - No verificado tras la aprobación: sesión autenticada y datos reales (Codex recorrió la UI con API simulada en escritorio, móvil y 4 idiomas).
 
+### Lote R — Email de prueba en reservas con cuota gratis (rama `claude/trial-email-detection`)
+
+- Estado: pendiente de auditoría. Sin migración.
+- Pedido del usuario: un alumno con cuota "Access" (precio 0, importada de V1) recibía "tu prueba gratuita ha sido confirmada" al reservar.
+- Criterios: el email solo sale si `isTrialMembership()` (plan `TRIAL` o prueba pública sin plan); una membresía gratis que no es prueba no lo recibe; las pruebas con plan `TRIAL` y la prueba pública sí.
+- A revisar: otros sitios que traten `price === 0` como prueba; que `findFirst` sin orden elija la membresía de prueba cuando el alumno tiene prueba y cuota activas a la vez.
+- No verificado: reserva real.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
