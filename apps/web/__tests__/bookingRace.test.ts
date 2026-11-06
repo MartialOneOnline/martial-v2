@@ -28,15 +28,27 @@ vi.mock('@/lib/db', () => ({
   prisma: {
     user: { findUnique: mockUserFindUnique },
     class: { findUnique: mockClassFindUnique },
+    classCancellation: { findUnique: vi.fn().mockResolvedValue(null) },
     membership: { findFirst: mockMembershipFindFirst },
     $transaction: mockTransaction,
   },
+}))
+
+vi.mock('@/lib/waivers', () => ({
+  getBlockingWaivers: vi.fn().mockResolvedValue([]),
+}))
+
+vi.mock('@/lib/services/trial', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/services/trial')>()),
+  syncTrials: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/email/sendEmails', () => ({
   sendTrialConfirmedEmail: vi.fn(),
 }))
 
+const { sendTrialConfirmedEmail } = await import('@/lib/email/sendEmails')
+const mockSendTrialEmail = vi.mocked(sendTrialConfirmedEmail)
 const { Prisma } = await import('@/lib/prisma-client/client')
 const { POST } = await import('@/app/api/bookings/route')
 
@@ -159,5 +171,51 @@ describe('POST /api/bookings', () => {
     const json = await res.json()
     expect(json.error).toMatch(/no active membership/i)
     expect(mockTransaction).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/bookings — trial-confirmed email', () => {
+  beforeEach(() => {
+    mockSendTrialEmail.mockResolvedValue(undefined as never)
+    mockTransaction.mockImplementation((fn) => fn(makeTx({})))
+  })
+
+  const book = () => POST(makeRequest({ classId: 'class-1', scheduledAt: futureDate }))
+
+  it('does not send it for a free non-trial plan (e.g. V1 "Access", price 0, no plan)', async () => {
+    mockMembershipFindFirst.mockResolvedValue({
+      id: 'm-access', startDate: new Date('2026-01-01'), endDate: null,
+      price: 0, planName: 'Access', planId: null, plan: null,
+    })
+    const res = await book()
+    expect(res.status).toBe(200)
+    expect(mockSendTrialEmail).not.toHaveBeenCalled()
+  })
+
+  it('does not send it for a paid plan', async () => {
+    const res = await book()
+    expect(res.status).toBe(200)
+    expect(mockSendTrialEmail).not.toHaveBeenCalled()
+  })
+
+  it('sends it for a TRIAL plan', async () => {
+    mockMembershipFindFirst.mockResolvedValue({
+      id: 'm-trial', startDate: new Date('2026-01-01'), endDate: null,
+      price: 0, planName: 'Prueba 1 Dia', planId: 'plan-trial',
+      plan: { classAccess: null, planType: 'TRIAL', validityDays: 1 },
+    })
+    const res = await book()
+    expect(res.status).toBe(200)
+    expect(mockSendTrialEmail).toHaveBeenCalledTimes(1)
+  })
+
+  it('sends it for the public-page trial (no plan)', async () => {
+    mockMembershipFindFirst.mockResolvedValue({
+      id: 'm-public', startDate: new Date('2026-01-01'), endDate: null,
+      price: 0, planName: 'Free Trial — 1 Week', planId: null, plan: null,
+    })
+    const res = await book()
+    expect(res.status).toBe(200)
+    expect(mockSendTrialEmail).toHaveBeenCalledTimes(1)
   })
 })

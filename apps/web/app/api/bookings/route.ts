@@ -5,7 +5,7 @@ import { Prisma } from '@/lib/prisma-client/client'
 import { isValidScheduledAt, type ScheduleSlot } from '@/lib/scheduling'
 import { type ClassAccessConfig } from '@/lib/services/classAccess'
 import { checkBookingEligibility } from '@/lib/services/bookingEligibility'
-import { syncTrials } from '@/lib/services/trial'
+import { isTrialMembership, syncTrials } from '@/lib/services/trial'
 import { sendTrialConfirmedEmail } from '@/lib/email/sendEmails'
 import { getBlockingWaivers } from '@/lib/waivers'
 
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
       status: { in: ['ACTIVE'] },
       OR: [{ endDate: null }, { endDate: { gte: scheduledDate } }],
     },
-    include: { plan: { select: { classAccess: true } } },
+    include: { plan: { select: { classAccess: true, planType: true, validityDays: true } } },
   })
   if (!activeMembership) {
     return NextResponse.json(
@@ -239,9 +239,9 @@ export async function POST(req: NextRequest) {
 
   if (booking instanceof NextResponse) return booking
 
-  // Send trial confirmed email when the active membership is a free trial
-  const isTrial = activeMembership.price === 0 || activeMembership.planName.toLowerCase().includes('trial')
-  if (isTrial && cls.school && dbUser.email) {
+  // Send the trial-confirmed email only for a real trial (TRIAL plan or the
+  // public-page trial). A free plan such as "Access" (price 0) is not a trial.
+  if (isTrialMembership(activeMembership) && cls.school && dbUser.email) {
     sendTrialConfirmedEmail({
       to: dbUser.email,
       studentName: dbUser.name,

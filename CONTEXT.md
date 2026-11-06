@@ -299,6 +299,14 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-06 (rama `claude/trial-email-detection` — pendiente de Project Audit; sin migración)
+
+**El email "prueba gratuita confirmada" llegaba a alumnos con cuota normal.** Caso: Alvaro Cañas (RGM) reservó NOGI con su membresía "Access" (V1, precio 0, sin plan) y recibió el email de prueba.
+- Causa: `POST /api/bookings` decidía "es prueba" con `price === 0 || planName incluye 'trial'`. Afectaba a las 37 membresías "Access" activas (precio 0).
+- Arreglo (`apps/web/app/api/bookings/route.ts`): usa `isTrialMembership()` de `lib/services/trial.ts` (plan `TRIAL` o la prueba pública sin plan); la consulta carga `planType` y `validityDays`. Las 10 pruebas gratis activas (Prueba 1 Dia / 1 Semana) tienen plan `TRIAL` y siguen recibiendo el email.
+- Tests (`__tests__/bookingRace.test.ts`): el archivo fallaba entero en `main` (mock sin `classCancellation`); mock completado (+ `getBlockingWaivers` y `syncTrials`) y 4 casos nuevos del email. El caso "Access" falla con el código antiguo.
+- No verificado: reserva real en producción.
+
 ### Sesión — 2026-09-04 → 2026-11-04 (rama `main` de `martial-v2` y de `martial-mobile-app`; sin Project Audit)
 
 **Publicación de la app móvil en Google Play y App Store.** Detalle de estado y pendientes en la sección "App móvil (tiendas)".
