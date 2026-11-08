@@ -1,18 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { Search, Users as UsersIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Users as UsersIcon } from 'lucide-react'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
-import { useT } from '../../../lib/i18n/LanguageContext'
+import { useLanguage } from '../../../lib/i18n/LanguageContext'
 import { matchesSearch } from '../../../lib/search'
+import { alphabetFor, groupAlphabetically, groupByMonth, type Section } from '../../../lib/alphaIndex'
 import type { StudentListItem } from './data'
 
-const ITEMS_PER_PAGE = 8
+// One continuous list (no pages): every student is already loaded client-side.
+// Below this many results the A–Z rail adds nothing, so it's hidden.
+const RAIL_MIN_RESULTS = 20
+const SORT_STORAGE_KEY = 'martial_users_list_sort'
 
-function getPaginationLabel(current: number, total: number, count: number) {
-  return { from: (current - 1) * ITEMS_PER_PAGE + 1, to: Math.min(current * ITEMS_PER_PAGE, count) }
-}
+type SortMode = 'az' | 'recent'
 
 type FilterType = 'All' | 'Active' | 'Inactive' | 'Pending' | 'Invited' | 'Archived'
 const STATUS_DISPLAY: Record<string, FilterType> = {
@@ -21,14 +23,16 @@ const STATUS_DISPLAY: Record<string, FilterType> = {
 const FILTERS: FilterType[] = ['All', 'Active', 'Inactive', 'Pending', 'Invited', 'Archived']
 
 export default function StudentListPanel({ students }: { students: StudentListItem[] }) {
-  const t = useT()
+  const { t, locale } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
   const selectedId = pathname.startsWith('/dashboard/users/') ? pathname.split('/dashboard/users/')[1] : null
 
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterType>('All')
-  const [currentPage, setCurrentPage] = useState(1)
+  const [sort, setSort] = useState<SortMode>('az')
+  const [currentKey, setCurrentKey] = useState<string | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
   // Parity with UsersClient: seed search from the dashboard's global-search
   // deep link (/dashboard/users?search=X) so it still works when the full
@@ -37,37 +41,90 @@ export default function StudentListPanel({ students }: { students: StudentListIt
   useEffect(() => {
     const q = searchParams.get('search')
     if (q) setSearch(q)
+    try {
+      const saved = localStorage.getItem(SORT_STORAGE_KEY)
+      if (saved === 'az' || saved === 'recent') setSort(saved)
+    } catch { /* storage blocked: keep the default */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const filtered = students.filter(s => {
+  const filtered = useMemo(() => students.filter(s => {
     const displayStatus = STATUS_DISPLAY[s.status] ?? s.status
     const matchStatusTab = activeFilter === 'All' || displayStatus === activeFilter
       || (activeFilter === 'Invited' && s.status === 'PENDING')
     const matchSearch = matchesSearch(s.name, search) || matchesSearch(s.email, search)
     return matchStatusTab && matchSearch
-  })
+  }), [students, activeFilter, search])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const safePage = Math.min(currentPage, totalPages)
-  const paginated = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE)
-  const { from, to } = getPaginationLabel(safePage, totalPages, filtered.length)
+  const sections: Section<StudentListItem>[] = useMemo(
+    () => (sort === 'az' ? groupAlphabetically(filtered, locale) : groupByMonth(filtered, locale)),
+    [filtered, sort, locale],
+  )
+  const showRail = sort === 'az' && filtered.length >= RAIL_MIN_RESULTS
+  const presentKeys = useMemo(() => new Set(sections.map(s => s.key)), [sections])
+
+  // A new filter, search or order is a different list: start it from the top.
+  useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = 0
+  }, [activeFilter, search, sort])
+
+  // Opening a student from elsewhere (deep link, global search) — bring their
+  // row into view. A row clicked here is already visible, so this is a no-op.
+  useEffect(() => {
+    if (!selectedId || !listRef.current) return
+    const row = listRef.current.querySelector<HTMLElement>(`[data-student-id="${CSS.escape(selectedId)}"]`)
+    row?.scrollIntoView({ block: 'nearest' })
+  }, [selectedId, sort])
+
+  // Which section the top of the list is in — highlighted on the rail.
+  const updateCurrentKey = useCallback(() => {
+    const list = listRef.current
+    if (!list) return
+    let key: string | null = null
+    for (const el of list.querySelectorAll<HTMLElement>('[data-section-key]')) {
+      if (el.offsetTop <= list.scrollTop + 4) key = el.dataset.sectionKey ?? null
+      else break
+    }
+    setCurrentKey(key ?? sections[0]?.key ?? null)
+  }, [sections])
+  useEffect(() => { updateCurrentKey() }, [updateCurrentKey])
+
+  const jumpTo = (key: string) => {
+    const list = listRef.current
+    const el = list?.querySelector<HTMLElement>(`[data-section-key="${CSS.escape(key)}"]`)
+    if (list && el) list.scrollTop = el.offsetTop
+  }
+
+  const changeSort = (next: SortMode) => {
+    setSort(next)
+    try { localStorage.setItem(SORT_STORAGE_KEY, next) } catch { /* ignore */ }
+  }
+
+  const sortBtn = (mode: SortMode, label: string) => (
+    <button key={mode} type="button" onClick={() => changeSort(mode)} aria-pressed={sort === mode}
+      className="cursor-pointer"
+      style={{ border: 'none', fontSize: 11, padding: '3px 9px', borderRadius: 6,
+        background: sort === mode ? '#fff' : 'transparent', color: sort === mode ? '#111827' : '#6B7280',
+        fontWeight: sort === mode ? 600 : 400, boxShadow: sort === mode ? '0 1px 2px rgba(17,24,39,0.08)' : 'none' }}>
+      {label}
+    </button>
+  )
 
   return (
     <div className="flex flex-col" style={{ width: 340, flexShrink: 0, borderRight: '1px solid #E5E7EB', background: '#fff', height: '100vh', position: 'sticky', top: 0 }}>
 
       {/* Header */}
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
+      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', marginBottom: 10 }}>
           <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
           <input type="text" placeholder={t.users.searchPlaceholder} value={search}
-            onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
+            onChange={e => setSearch(e.target.value)}
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
         <div className="flex items-center gap-1.5" style={{ overflowX: 'auto' }}>
           {FILTERS.map(f => (
-            <button key={f} onClick={() => { setActiveFilter(f); setCurrentPage(1) }}
+            <button key={f} onClick={() => setActiveFilter(f)}
               className="cursor-pointer"
               style={{ fontSize: 11, fontWeight: activeFilter === f ? 600 : 400, padding: '4px 9px', borderRadius: 999,
                 whiteSpace: 'nowrap', border: '1px solid ' + (activeFilter === f ? '#111827' : '#E5E7EB'),
@@ -76,61 +133,83 @@ export default function StudentListPanel({ students }: { students: StudentListIt
             </button>
           ))}
         </div>
+        <div className="flex items-center justify-between" style={{ marginTop: 10, gap: 8 }}>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: 0, fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span>{' '}
+            {filtered.length === 1 ? t.users.student : t.users.students}
+          </p>
+          <div role="group" aria-label={t.users.sortLabel} className="inline-flex"
+            style={{ background: '#F3F4F6', borderRadius: 8, padding: 2 }}>
+            {sortBtn('az', t.users.sortAz)}
+            {sortBtn('recent', t.users.sortRecent)}
+          </div>
+        </div>
       </div>
 
       {/* Rows */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {paginated.length === 0 ? (
-          <div className="flex flex-col items-center" style={{ padding: '40px 16px', gap: 8 }}>
-            <UsersIcon size={24} style={{ color: '#E5E7EB' }} />
-            <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0, textAlign: 'center' }}>{t.users.noStudents}</p>
-          </div>
-        ) : paginated.map(s => {
-          const isSelected = s.id === selectedId
-          return (
-            <button key={s.id} onClick={() => router.push('/dashboard/users/' + s.id)}
-              className="w-full flex items-center gap-2.5 cursor-pointer text-left"
-              style={{ padding: '10px 16px', border: 'none', borderBottom: '1px solid #F9FAFB',
-                background: isSelected ? '#EFF6FF' : 'transparent' }}>
-              {s.avatarUrl ? (
-                <img src={s.avatarUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-              ) : (
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>{s.name.charAt(0).toUpperCase()}</span>
-                </div>
-              )}
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: isSelected ? 700 : 600, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</p>
-                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.email}</p>
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex' }}>
+        <div ref={listRef} onScroll={showRail ? updateCurrentKey : undefined}
+          style={{ position: 'relative', flex: 1, minWidth: 0, overflowY: 'auto', paddingRight: showRail ? 18 : 0 }}>
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center" style={{ padding: '40px 16px', gap: 8 }}>
+              <UsersIcon size={24} style={{ color: '#E5E7EB' }} />
+              <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0, textAlign: 'center' }}>{t.users.noStudents}</p>
+            </div>
+          ) : sections.map(section => (
+            <div key={section.key} data-section-key={section.key}>
+              <div style={{ position: 'sticky', top: 0, zIndex: 1, background: 'rgba(249,250,251,0.96)', backdropFilter: 'blur(4px)',
+                fontSize: 11, fontWeight: 700, color: '#6B7280', letterSpacing: '0.06em', padding: '5px 16px', borderBottom: '1px solid #F3F4F6' }}>
+                {section.label}
               </div>
-              <StatusBadge status={s.status} size="sm" showDot={false} />
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between" style={{ padding: '10px 16px', borderTop: '1px solid #F3F4F6', flexShrink: 0 }}>
-          <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
-            {from}–{to} {t.common.of} {filtered.length}
-          </p>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6,
-                border: '1px solid #E5E7EB', background: '#fff', color: safePage === 1 ? '#D1D5DB' : '#374151',
-                cursor: safePage === 1 ? 'not-allowed' : 'pointer' }}>
-              <ChevronLeft size={13} />
-            </button>
-            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6,
-                border: '1px solid #E5E7EB', background: '#fff', color: safePage === totalPages ? '#D1D5DB' : '#374151',
-                cursor: safePage === totalPages ? 'not-allowed' : 'pointer' }}>
-              <ChevronRight size={13} />
-            </button>
-          </div>
+              {section.items.map(s => {
+                const isSelected = s.id === selectedId
+                return (
+                  <button key={s.id} data-student-id={s.id} onClick={() => router.push('/dashboard/users/' + s.id)}
+                    className="w-full flex items-center gap-2.5 cursor-pointer text-left"
+                    style={{ padding: '10px 16px', border: 'none', borderBottom: '1px solid #F9FAFB',
+                      background: isSelected ? '#EFF6FF' : 'transparent' }}>
+                    {s.avatarUrl ? (
+                      <img src={s.avatarUrl} alt="" loading="lazy" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>{s.name.charAt(0).toUpperCase()}</span>
+                      </div>
+                    )}
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p style={{ fontSize: 13, fontWeight: isSelected ? 700 : 600, color: '#111827', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.email}</p>
+                    </div>
+                    <StatusBadge status={s.status} size="sm" showDot={false} />
+                  </button>
+                )
+              })}
+            </div>
+          ))}
         </div>
-      )}
+
+        {/* A–Z rail */}
+        {showRail && (
+          <nav aria-label={t.users.alphaIndex}
+            style={{ position: 'absolute', right: 2, top: 6, bottom: 6, width: 16, zIndex: 2,
+              display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
+            {alphabetFor(locale).map(letter => {
+              const present = presentKeys.has(letter)
+              const current = letter === currentKey
+              return (
+                <button key={letter} type="button" disabled={!present} onClick={() => jumpTo(letter)}
+                  aria-label={t.users.jumpToLetter.replace('{l}', letter)}
+                  className={present ? 'cursor-pointer' : undefined}
+                  style={{ flex: 1, maxHeight: 22, width: 16, padding: 0, border: 'none', borderRadius: 4, lineHeight: 1,
+                    fontSize: 9.5, fontWeight: 600,
+                    background: current ? '#0870E2' : 'transparent',
+                    color: current ? '#fff' : present ? '#0870E2' : '#D1D5DB' }}>
+                  {letter}
+                </button>
+              )
+            })}
+          </nav>
+        )}
+      </div>
     </div>
   )
 }
