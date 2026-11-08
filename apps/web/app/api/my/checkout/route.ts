@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
 import { getStripe } from '@/lib/stripe'
 import { createRevolutOrder } from '@/lib/revolut'
+import { findSamePlanMembership } from '@/lib/samePlan'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 
 // POST /api/my/checkout — create a checkout session for a membership plan
@@ -48,9 +49,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const existing = await prisma.membership.findFirst({
-    where: { userId: dbUser.id, planId: plan.id, status: { in: ['ACTIVE', 'PAUSED', 'PENDING'] } },
-  })
+  // Name match covers memberships imported from V1, which have no planId
+  const existing = await findSamePlanMembership(prisma, {
+    userId: dbUser.id, schoolId: plan.schoolId, planId: plan.id, planName: plan.name,
+  }, [MembershipStatus.ACTIVE, MembershipStatus.PAUSED, MembershipStatus.PENDING])
   if (existing) {
     // Revolut still pre-creates a PENDING row before redirecting to checkout, so a
     // stale one left over from an abandoned order isn't a real commitment (nothing

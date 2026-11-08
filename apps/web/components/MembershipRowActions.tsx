@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { MoreVertical, Loader2, CheckCircle, Pause, Play, XCircle, Pencil, X } from 'lucide-react'
 import RowMenu from './RowMenu'
+import { useT } from '@/lib/i18n/LanguageContext'
 
 export type MembershipAction = 'activate' | 'pause' | 'resume' | 'cancel'
 
@@ -123,6 +124,7 @@ export default function MembershipRowActions({
 }) {
   const [loading, setLoading] = useState<MembershipAction | null>(null)
   const [editingDates, setEditingDates] = useState(false)
+  const tt = useT()
   const actions = allowedMembershipActions(status)
   const canEditDates = paymentMethod === 'CASH' && startDate !== undefined && onDatesUpdated
 
@@ -136,7 +138,12 @@ export default function MembershipRowActions({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       })
-      if (!res.ok) throw new Error(await res.text())
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string; code?: string }
+        // A duplicate is a staff mistake to explain, not just a console log
+        if (data.code === 'DUPLICATE_ACTIVE_PLAN') alert(tt.studentProfile.duplicateActivePlan)
+        throw new Error(data.error ?? `HTTP ${res.status}`)
+      }
       const { status: newStatus } = await res.json()
       onDone(membershipId, newStatus)
       // Notify sidebar to re-fetch pending count when PENDING status changes

@@ -6,6 +6,7 @@ import { memberHasPermission } from '@/lib/auth/customRoles'
 import { cancelMembership, computeEndDate, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
 import { isTrialPlanType } from '@/lib/services/trial'
+import { findSamePlanMembership } from '@/lib/samePlan'
 import { MembershipStatus, TransactionType, TransactionStatus, TransactionCategory } from '@/lib/prisma-client/enums'
 
 async function authorise() {
@@ -142,6 +143,18 @@ export async function PATCH(
       return NextResponse.json({ error: `Cannot activate a ${membership.status} membership` }, { status: 400 })
     if (!membership.planId)
       return NextResponse.json({ error: 'Membership has no plan' }, { status: 400 })
+
+    // Siblings stay untouched (see above), but a second copy of the SAME plan
+    // would bill the student twice: each copy generates its own renewals.
+    const samePlan = await findSamePlanMembership(prisma, {
+      userId: membership.userId, schoolId: auth.schoolId, excludeId: membership.id,
+      planId: membership.planId, planName: membership.planName,
+    }, [MembershipStatus.ACTIVE, MembershipStatus.PAUSED])
+    if (samePlan)
+      return NextResponse.json(
+        { error: 'This student already has this plan active — cancel or renew that one instead', code: 'DUPLICATE_ACTIVE_PLAN' },
+        { status: 409 },
+      )
 
     // Fetch plan to compute proper start/end dates
     const plan = await prisma.membershipPlan.findFirst({

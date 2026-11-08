@@ -299,6 +299,16 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-08 (rama `claude/multi-active-memberships`; sin migración; pendiente de Project Audit)
+
+**Ficha del alumno con varias membresías activas + bloqueo del mismo plan duplicado.**
+- Caso real: Stefano Alessi (RGM) tenía **dos "Jiu Jitsu Mensual" ACTIVE** en efectivo: la importada de V1 (`planId` null, vence 05 dic) y la pedida desde `/my` el 06 ago y activada por staff el 07 ago (vence 07 nov). Cada una generaba su renovación mensual, así que hay cobros duplicados. La ficha solo mostraba la primera ACTIVE y el historial ocultaba las ACTIVE, así que la otra no se veía y no se podía cancelar.
+- Recordatorio de comportamiento: **cancelar un pago pendiente no cancela la membresía**. La membresía sigue ACTIVE y el cron diario vuelve a generar la misma renovación al día siguiente. Para dar de baja hay que usar "Cancel" en la tarjeta de membresía.
+- `StudentProfileClient.tsx`: nuevo `ActiveMembershipCard`, una tarjeta por membresía ACTIVE, con sus propios Payment / Cancel / renovación pendiente / editar fechas. La cabecera de la sección solo conserva "Change plan". Si hay más de una, se muestra un aviso. La tarjeta muestra "Renews <fecha>" (o "Expires" en pases/prueba/cancelación programada) en lugar de "Started … · Expires …". El contador del historial ahora cuenta solo las no activas. `page.tsx` envía `activeMemberships[]`.
+- `lib/samePlan.ts` (`isSamePlan`, `findSamePlanMembership`): considera el mismo plan si coincide el `planId` o, si falta en uno de los dos lados (importadas de V1), el nombre. Se usa en `PATCH /api/dashboard/memberships/[id]` activate (409 `DUPLICATE_ACTIVE_PLAN` si ya hay el mismo plan ACTIVE/PAUSED), `POST /api/my/memberships/[id]` y `POST /api/my/checkout` (antes solo comparaban `planId`, por eso el duplicado se coló). `MembershipRowActions` ahora muestra ese error (antes cualquier error de acción solo iba a consola).
+- Tests: `__tests__/samePlanMembership.test.ts`. Los 12 ficheros de tests que fallan también fallan en `main` sin estos cambios.
+- **Datos de Stefano sin tocar:** falta que la escuela confirme cuántas mensualidades ha pagado de verdad (hay 6 cobros de 65 € registrados entre ago y nov) antes de cancelar una de las dos membresías y anular los cobros sobrantes. Ningún otro alumno tiene el mismo plan duplicado (Juanma Domínguez tiene dos ACTIVE pero de planes distintos).
+
 ### Sesión — 2026-09-04 → 2026-11-04 (rama `main` de `martial-v2` y de `martial-mobile-app`; sin Project Audit)
 
 **Publicación de la app móvil en Google Play y App Store.** Detalle de estado y pendientes en la sección "App móvil (tiendas)".

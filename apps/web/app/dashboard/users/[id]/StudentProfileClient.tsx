@@ -69,7 +69,7 @@ type Profile = {
   bookings: Booking[]
   transactions: Transaction[]
   memberships: MembershipRecord[]
-  activeMembership: ActiveMembership | null
+  activeMemberships: ActiveMembership[]
   availablePlans: AvailablePlan[]
 }
 
@@ -1185,27 +1185,28 @@ function EditTransactionModal({ tx, membershipEndDate, onClose, onSaved }: {
 }
 
 // ── Membership Section ─────────────────────────────────────────────────────────
-function MembershipSection({
-  memberId, activeMembership: initialActiveMembership, memberships: initialMemberships, availablePlans,
-  pendingRenewal, onAssigned, onRenewalCreated, onRenewalPaid, onRenewalCancelled, onCancelled,
+const fmtCardDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+
+// One ACTIVE membership with everything that acts on it. A student can hold
+// several at once, so each card owns its own Payment / Cancel / renewal
+// actions — the section header only keeps "Change plan".
+function ActiveMembershipCard({
+  memberId, membership: initialMembership, pendingRenewal, onOpenAssign,
+  onRenewalCreated, onRenewalPaid, onRenewalCancelled, onDatesSaved, onCancelled,
 }: {
   memberId: string
-  activeMembership: ActiveMembership | null
-  memberships: MembershipRecord[]
-  availablePlans: AvailablePlan[]
+  membership: ActiveMembership
   pendingRenewal: Transaction | null
-  onAssigned: (m: ActiveMembership) => void
+  onOpenAssign: () => void
   onRenewalCreated: (t: Transaction) => void
-  onRenewalPaid: (transactionId: string, newEndDate: string | null) => void
+  onRenewalPaid: (membershipId: string, transactionId: string, newEndDate: string | null) => void
   onRenewalCancelled: (transactionId: string) => void
+  onDatesSaved: (membershipId: string, startDate: string, endDate: string | null) => void
   onCancelled: (membershipId: string, deferredCancelledAt?: string) => void
 }) {
   const tt = useT()
-  const memStatusMap = getMemStatusMap(tt)
-  const [activeMembership, setActiveMembership] = useState(initialActiveMembership)
-  const [memberships, setMemberships] = useState(initialMemberships)
-  const [showModal, setShowModal] = useState(false)
-  const [showHistory, setShowHistory] = useState(false)
+  const [membership, setMembership] = useState(initialMembership)
   const [cancelling, setCancelling] = useState(false)
   const [creatingRenewal, setCreatingRenewal] = useState(false)
   const [markingPaid, setMarkingPaid] = useState(false)
@@ -1216,28 +1217,26 @@ function MembershipSection({
   const [savingDates, setSavingDates] = useState(false)
   const [dateError, setDateError] = useState<string | null>(null)
 
-  // Editing/deleting a transaction happens in the parent's Payment history
-  // section, outside this component — when it changes the linked
-  // membership's endDate, the parent updates its own activeMembership state
-  // and this re-syncs the local copy (which otherwise only seeds once from
-  // props on mount).
-  useEffect(() => { setActiveMembership(initialActiveMembership) }, [initialActiveMembership])
-  useEffect(() => { setMemberships(initialMemberships) }, [initialMemberships])
+  // Transaction edits/deletes in the parent's Payment history can move this
+  // membership's endDate — re-sync the local copy when the parent's changes.
+  useEffect(() => { setMembership(initialMembership) }, [initialMembership])
 
-  const isPastDue = !!(activeMembership?.expiresAt && new Date(activeMembership.expiresAt) < new Date())
+  const isPastDue = !!(membership.expiresAt && new Date(membership.expiresAt) < new Date())
   // A trial or single pass doesn't renew: past its end it's simply over
-  const isOneOff = activeMembership?.planType === 'TRIAL' || activeMembership?.planType === 'SINGLE_PASS'
+  const isOneOff = membership.planType === 'TRIAL' || membership.planType === 'SINGLE_PASS'
   const isExpiredOneOff = isPastDue && isOneOff
-  const trialNotStarted = activeMembership?.planType === 'TRIAL' && !activeMembership.expiresAt
+  const trialNotStarted = membership.planType === 'TRIAL' && !membership.expiresAt
+  // What staff need at a glance is when it renews; the start date lives in
+  // the date editor and the membership history.
+  const renews = !isOneOff && !membership.cancelledAt
 
   async function handleCreateRenewalPayment() {
-    if (!activeMembership) return
     setCreatingRenewal(true)
     try {
       const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ membershipId: activeMembership.id, action: 'createRenewalPayment' }),
+        body: JSON.stringify({ membershipId: membership.id, action: 'createRenewalPayment' }),
       })
       if (res.ok) {
         const txn = await res.json()
@@ -1274,8 +1273,8 @@ function MembershipSection({
       if (res.ok) {
         const m = await res.json()
         const newEndDate = m.endDate ?? null
-        setActiveMembership(prev => prev ? { ...prev, expiresAt: newEndDate, status: m.status } : prev)
-        onRenewalPaid(pendingRenewal.id, newEndDate)
+        setMembership(prev => ({ ...prev, expiresAt: newEndDate, status: m.status }))
+        onRenewalPaid(membership.id, pendingRenewal.id, newEndDate)
       } else {
         const d = await res.json().catch(() => ({}))
         alert(d.error ?? tt.studentProfile.couldNotMarkPaid)
@@ -1306,31 +1305,25 @@ function MembershipSection({
   }
 
   function openDateEdit() {
-    if (!activeMembership) return
-    setEditStart(activeMembership.startDate.slice(0, 10))
-    setEditEnd(activeMembership.expiresAt ? activeMembership.expiresAt.slice(0, 10) : '')
+    setEditStart(membership.startDate.slice(0, 10))
+    setEditEnd(membership.expiresAt ? membership.expiresAt.slice(0, 10) : '')
     setDateError(null)
     setEditingDates(true)
   }
 
   async function handleSaveDates() {
-    if (!activeMembership) return
     setDateError(null)
     setSavingDates(true)
     try {
-      const res = await fetch(`/api/dashboard/memberships/${activeMembership.id}`, {
+      const res = await fetch(`/api/dashboard/memberships/${membership.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'updateDates',
-          startDate: editStart,
-          endDate: editEnd || null,
-        }),
+        body: JSON.stringify({ action: 'updateDates', startDate: editStart, endDate: editEnd || null }),
       })
       if (res.ok) {
         const m = await res.json()
-        setActiveMembership(prev => prev ? { ...prev, startDate: m.startDate, expiresAt: m.endDate } : prev)
-        setMemberships(prev => prev.map(mem => mem.id === activeMembership.id ? { ...mem, startDate: m.startDate, endDate: m.endDate } : mem))
+        setMembership(prev => ({ ...prev, startDate: m.startDate, expiresAt: m.endDate }))
+        onDatesSaved(membership.id, m.startDate, m.endDate)
         setEditingDates(false)
       } else {
         const d = await res.json().catch(() => ({}))
@@ -1342,242 +1335,275 @@ function MembershipSection({
   }
 
   async function handleCancel() {
-    if (!activeMembership || !confirm(tt.studentProfile.cancelMembershipConfirm)) return
+    if (!confirm(tt.studentProfile.cancelMembershipConfirm)) return
     setCancelling(true)
     try {
       const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ membershipId: activeMembership.id, action: 'cancel' }),
+        body: JSON.stringify({ membershipId: membership.id, action: 'cancel' }),
       })
       if (res.ok) {
         // The school's cancel policy decides: UNTIL_END_OF_PERIOD keeps the
         // membership ACTIVE (access continues, Stripe is scheduled to cancel at
-        // period end) — only an immediate cancellation empties the card.
+        // period end) — only an immediate cancellation removes the card.
         const result = await res.json().catch(() => null) as { status?: string; cancelledAt?: string } | null
         if (result?.status === 'ACTIVE') {
-          onCancelled(activeMembership.id, result.cancelledAt ?? new Date().toISOString())
-          return
+          onCancelled(membership.id, result.cancelledAt ?? new Date().toISOString())
+        } else {
+          onCancelled(membership.id)
         }
-        const updated: MembershipRecord = {
-          id: activeMembership.id,
-          planName: activeMembership.planName,
-          planType: 'SUBSCRIPTION',
-          billingCycle: activeMembership.interval,
-          price: activeMembership.price,
-          currency: 'EUR',
-          status: 'CANCELLED',
-          startDate: activeMembership.startDate,
-          endDate: activeMembership.expiresAt,
-          consumed: activeMembership.consumed,
-        }
-        setActiveMembership(null)
-        setMemberships(prev => prev.map(m => m.id === activeMembership.id ? updated : m))
-        onCancelled(activeMembership.id)
+      } else {
+        const d = await res.json().catch(() => ({})) as { error?: string }
+        if (d.error) alert(d.error)
       }
     } finally {
       setCancelling(false)
     }
   }
 
+  const showPaymentBtn = membership.paymentMethod === 'CASH' && !pendingRenewal && Number(membership.price) > 0
+  const showCancelBtn = !membership.cancelledAt
+
   return (
-    <Card>
-      <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{tt.studentProfile.membershipTitle}</p>
+    <div style={{
+      background: isPastDue ? '#FFFBEB' : '#F0FDF4',
+      border: `1px solid ${isPastDue ? '#FDE68A' : '#BBF7D0'}`,
+      borderRadius: 12, padding: '14px 16px',
+    }}>
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{membership.planName}</p>
+          {editingDates ? (
+            <div style={{ marginTop: 4 }}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <label className="flex items-center gap-1" style={{ fontSize: 11, color: '#6B7280' }}>
+                  {tt.studentProfile.startDateLabel}
+                  <input type="date" value={editStart} onChange={e => setEditStart(e.target.value)}
+                    style={{ fontSize: 12, padding: '3px 6px', borderRadius: 6, border: '1px solid #D1D5DB' }} />
+                </label>
+                <label className="flex items-center gap-1" style={{ fontSize: 11, color: '#6B7280' }}>
+                  {tt.studentProfile.expiresLabel}
+                  <input type="date" value={editEnd} onChange={e => setEditEnd(e.target.value)}
+                    style={{ fontSize: 12, padding: '3px 6px', borderRadius: 6, border: '1px solid #D1D5DB' }} />
+                </label>
+                <button onClick={handleSaveDates} disabled={savingDates}
+                  style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: '#16A34A', border: 'none',
+                    padding: '4px 10px', borderRadius: 6, cursor: savingDates ? 'not-allowed' : 'pointer', opacity: savingDates ? 0.6 : 1 }}>
+                  {savingDates ? tt.studentProfile.saving : tt.common.save}
+                </button>
+                <button onClick={() => setEditingDates(false)} disabled={savingDates}
+                  style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>
+                  {tt.common.cancel}
+                </button>
+              </div>
+              {dateError && <p style={{ fontSize: 11, color: '#EF4444', margin: '4px 0 0' }}>{dateError}</p>}
+            </div>
+          ) : (
+            <p className="flex flex-wrap items-center gap-x-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+              {membership.expiresAt && (
+                <span style={{ whiteSpace: 'nowrap' }}>
+                  {renews ? tt.studentProfile.renewsLabel : tt.studentProfile.expiresLabel} {fmtCardDate(membership.expiresAt)}
+                </span>
+              )}
+              {trialNotStarted && (
+                <span style={{ whiteSpace: 'nowrap' }}>{tt.trial.startsAtFirstClass}</span>
+              )}
+              {membership.paymentMethod === 'CASH' && (
+                <button onClick={openDateEdit} title={tt.studentProfile.editDatesTitle}
+                  style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#9CA3AF' }}>
+                  <Edit2 size={11} />
+                </button>
+              )}
+            </p>
+          )}
+        </div>
         <div className="flex items-center gap-2">
-          {activeMembership && activeMembership.paymentMethod === 'CASH' && !pendingRenewal && Number(activeMembership.price) > 0 && (
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
+            {membership.price === 0 ? tt.studentProfile.free : fmtPrice(membership.price, membership.currency ?? 'EUR')}
+            {membership.interval && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF' }}>/{membership.interval}</span>}
+          </span>
+          <span style={{
+            fontSize: 11, fontWeight: 600, color: '#fff', padding: '2px 10px', borderRadius: 999,
+            background: isExpiredOneOff ? '#DC2626' : isPastDue ? '#D97706' : '#16A34A',
+          }}>
+            {isExpiredOneOff ? tt.trial.expired : isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
+          </span>
+          {membership.paymentStatus === 'PAST_DUE' && (
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: '#DC2626', padding: '2px 10px', borderRadius: 999,
+              background: '#FEF2F2', border: '1px solid #FECACA',
+            }}>
+              {tt.studentProfile.paymentFailed}
+            </span>
+          )}
+        </div>
+      </div>
+      {membership.paymentStatus === 'PAST_DUE' && (
+        <p style={{ fontSize: 12, color: '#B45309', margin: '10px 0 0' }}>
+          {tt.studentProfile.paymentFailedHint}
+        </p>
+      )}
+      {isExpiredOneOff && (
+        <div className="flex flex-wrap items-center justify-between gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDE68A' }}>
+          <p style={{ fontSize: 12, color: '#92400E', margin: 0, flex: '1 1 200px' }}>
+            {membership.planType === 'TRIAL' ? tt.trial.expiredHint : tt.trial.passExpiredHint}
+          </p>
+          <button onClick={onOpenAssign}
+            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#0870E2', border: 'none', padding: '6px 14px', borderRadius: 999, cursor: 'pointer' }}>
+            {tt.trial.assignPlan}
+          </button>
+        </div>
+      )}
+
+      {/* Scheduled cancellation — access continues until the period ends */}
+      {membership.cancelledAt && membership.expiresAt && (
+        <div className="flex items-center gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #BBF7D0' }}>
+          <Clock size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+          <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
+            {tt.studentProfile.cancelsOn}{' '}
+            <span style={{ fontWeight: 600, color: '#111827' }}>{fmtCardDate(membership.expiresAt)}</span>
+            {' · '}{tt.studentProfile.accessUntilThen}
+          </p>
+        </div>
+      )}
+
+      {/* Usage bar — only for class-pack plans (SINGLE_PASS/TRIAL); a
+          SUBSCRIPTION membership is unlimited, so "classes used" has
+          no ceiling to show progress against. */}
+      {membership.planType !== 'SUBSCRIPTION' && membership.consumed > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <div className="flex justify-between" style={{ marginBottom: 4 }}>
+            <span style={{ fontSize: 11, color: '#6B7280' }}>{tt.studentProfile.classesUsedLabel}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#111827' }}>{membership.consumed}</span>
+          </div>
+          <div style={{ height: 4, background: '#D1FAE5', borderRadius: 999 }}>
+            <div style={{ height: '100%', width: '100%', background: '#16A34A', borderRadius: 999 }} />
+          </div>
+        </div>
+      )}
+
+      {/* Pending renewal payment — cash memberships only */}
+      {pendingRenewal && (
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDE68A' }}>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <p style={{ fontSize: 12, color: '#92400E', margin: 0 }}>
+              {tt.studentProfile.renewalPendingText.replace('{amount}', fmtPrice(pendingRenewal.amount, pendingRenewal.currency))}
+            </p>
+            <div className="flex items-center gap-2">
+              <button onClick={onOpenAssign}
+                style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 6px' }}>
+                {tt.studentProfile.createNewInstead}
+              </button>
+              <button onClick={handleCancelRenewal} disabled={cancellingRenewal}
+                style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
+                  padding: '6px 12px', borderRadius: 8, cursor: cancellingRenewal ? 'not-allowed' : 'pointer', opacity: cancellingRenewal ? 0.6 : 1 }}>
+                {cancellingRenewal ? tt.studentProfile.cancelling : tt.studentProfile.cancelPayment}
+              </button>
+              <button onClick={handleMarkPaid} disabled={markingPaid}
+                style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
+                  padding: '6px 12px', borderRadius: 8, cursor: markingPaid ? 'not-allowed' : 'pointer', opacity: markingPaid ? 0.6 : 1 }}>
+                {markingPaid ? tt.studentProfile.marking : tt.studentProfile.markAsPaid}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Actions on this membership */}
+      {(showPaymentBtn || showCancelBtn) && (
+        <div className="flex items-center justify-end gap-2" style={{ marginTop: 12 }}>
+          {showPaymentBtn && (
             <button onClick={handleCreateRenewalPayment} disabled={creatingRenewal}
               className="flex items-center gap-1"
-              style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: '#FFFBEB', border: 'none',
+              style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: '#fff', border: '1px solid #FDE68A',
                 padding: '5px 10px', borderRadius: 8, cursor: creatingRenewal ? 'not-allowed' : 'pointer', opacity: creatingRenewal ? 0.6 : 1 }}>
               <Plus size={11} />
               {creatingRenewal ? tt.studentProfile.adding : tt.studentProfile.paymentBtn}
             </button>
           )}
-          {activeMembership && !activeMembership.cancelledAt && (
+          {showCancelBtn && (
             <button onClick={handleCancel} disabled={cancelling}
               className="flex items-center gap-1"
-              style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
+              style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#fff', border: '1px solid #FECACA',
                 padding: '5px 10px', borderRadius: 8, cursor: cancelling ? 'not-allowed' : 'pointer', opacity: cancelling ? 0.6 : 1 }}>
               <X size={11} />
               {cancelling ? tt.studentProfile.cancelling : tt.common.cancel}
             </button>
           )}
-          <button onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5"
-            style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', border: 'none',
-              padding: '5px 12px', borderRadius: 8, cursor: 'pointer' }}>
-            <Plus size={12} />
-            {activeMembership ? tt.studentProfile.changePlan : tt.studentProfile.assignPlanBtn}
-          </button>
         </div>
+      )}
+    </div>
+  )
+}
+
+function MembershipSection({
+  memberId, activeMemberships, memberships, availablePlans, transactions,
+  onAssigned, onRenewalCreated, onRenewalPaid, onRenewalCancelled, onDatesSaved, onCancelled,
+}: {
+  memberId: string
+  activeMemberships: ActiveMembership[]
+  memberships: MembershipRecord[]
+  availablePlans: AvailablePlan[]
+  transactions: Transaction[]
+  onAssigned: (m: ActiveMembership) => void
+  onRenewalCreated: (t: Transaction) => void
+  onRenewalPaid: (membershipId: string, transactionId: string, newEndDate: string | null) => void
+  onRenewalCancelled: (transactionId: string) => void
+  onDatesSaved: (membershipId: string, startDate: string, endDate: string | null) => void
+  onCancelled: (membershipId: string, deferredCancelledAt?: string) => void
+}) {
+  const tt = useT()
+  const memStatusMap = getMemStatusMap(tt)
+  const [showModal, setShowModal] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+
+  const pastMemberships = memberships.filter(m => m.status !== 'ACTIVE')
+  const pendingRenewalFor = (membershipId: string) =>
+    transactions.find(t => t.membershipId === membershipId && t.status === 'PENDING') ?? null
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{tt.studentProfile.membershipTitle}</p>
+        <button onClick={() => setShowModal(true)}
+          className="flex items-center gap-1.5"
+          style={{ fontSize: 12, fontWeight: 600, color: '#0071E3', background: '#EFF6FF', border: 'none',
+            padding: '5px 12px', borderRadius: 8, cursor: 'pointer' }}>
+          <Plus size={12} />
+          {activeMemberships.length > 0 ? tt.studentProfile.changePlan : tt.studentProfile.assignPlanBtn}
+        </button>
       </div>
 
-      {activeMembership ? (
+      {activeMemberships.length > 0 ? (
         <div>
-          {/* Active plan card */}
-          <div style={{
-            background: isPastDue ? '#FFFBEB' : '#F0FDF4',
-            border: `1px solid ${isPastDue ? '#FDE68A' : '#BBF7D0'}`,
-            borderRadius: 12, padding: '14px 16px', marginBottom: 12,
-          }}>
-            <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-              <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{activeMembership.planName}</p>
-                {editingDates ? (
-                  <div style={{ marginTop: 4 }}>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <label className="flex items-center gap-1" style={{ fontSize: 11, color: '#6B7280' }}>
-                        {tt.studentProfile.startDateLabel}
-                        <input type="date" value={editStart} onChange={e => setEditStart(e.target.value)}
-                          style={{ fontSize: 12, padding: '3px 6px', borderRadius: 6, border: '1px solid #D1D5DB' }} />
-                      </label>
-                      <label className="flex items-center gap-1" style={{ fontSize: 11, color: '#6B7280' }}>
-                        {tt.studentProfile.expiresLabel}
-                        <input type="date" value={editEnd} onChange={e => setEditEnd(e.target.value)}
-                          style={{ fontSize: 12, padding: '3px 6px', borderRadius: 6, border: '1px solid #D1D5DB' }} />
-                      </label>
-                      <button onClick={handleSaveDates} disabled={savingDates}
-                        style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: '#16A34A', border: 'none',
-                          padding: '4px 10px', borderRadius: 6, cursor: savingDates ? 'not-allowed' : 'pointer', opacity: savingDates ? 0.6 : 1 }}>
-                        {savingDates ? tt.studentProfile.saving : tt.common.save}
-                      </button>
-                      <button onClick={() => setEditingDates(false)} disabled={savingDates}
-                        style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px' }}>
-                        {tt.common.cancel}
-                      </button>
-                    </div>
-                    {dateError && <p style={{ fontSize: 11, color: '#EF4444', margin: '4px 0 0' }}>{dateError}</p>}
-                  </div>
-                ) : (
-                  <p className="flex flex-wrap items-center gap-x-1.5" style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
-                    <span style={{ whiteSpace: 'nowrap' }}>
-                      {tt.studentProfile.started} {new Date(activeMembership.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      {activeMembership.expiresAt && ' ·'}
-                    </span>
-                    {activeMembership.expiresAt && (
-                      <span style={{ whiteSpace: 'nowrap' }}>
-                        {tt.studentProfile.expiresLabel} {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </span>
-                    )}
-                    {trialNotStarted && (
-                      <span style={{ whiteSpace: 'nowrap' }}>· {tt.trial.startsAtFirstClass}</span>
-                    )}
-                    {activeMembership.paymentMethod === 'CASH' && (
-                      <button onClick={openDateEdit} title={tt.studentProfile.editDatesTitle}
-                        style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: '#9CA3AF' }}>
-                        <Edit2 size={11} />
-                      </button>
-                    )}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
-                  {activeMembership.price === 0 ? tt.studentProfile.free : fmtPrice(activeMembership.price, activeMembership.currency ?? 'EUR')}
-                  {activeMembership.interval && <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF' }}>/{activeMembership.interval}</span>}
-                </span>
-                <span style={{
-                  fontSize: 11, fontWeight: 600, color: '#fff', padding: '2px 10px', borderRadius: 999,
-                  background: isExpiredOneOff ? '#DC2626' : isPastDue ? '#D97706' : '#16A34A',
-                }}>
-                  {isExpiredOneOff ? tt.trial.expired : isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
-                </span>
-                {activeMembership.paymentStatus === 'PAST_DUE' && (
-                  <span style={{
-                    fontSize: 11, fontWeight: 600, color: '#DC2626', padding: '2px 10px', borderRadius: 999,
-                    background: '#FEF2F2', border: '1px solid #FECACA',
-                  }}>
-                    {tt.studentProfile.paymentFailed}
-                  </span>
-                )}
-              </div>
-            </div>
-            {activeMembership.paymentStatus === 'PAST_DUE' && (
-              <p style={{ fontSize: 12, color: '#B45309', margin: '10px 0 0' }}>
-                {tt.studentProfile.paymentFailedHint}
+          {activeMemberships.length > 1 && (
+            <div className="flex items-start gap-2" style={{
+              background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 10,
+              padding: '10px 12px', marginBottom: 12,
+            }}>
+              <AlertCircle size={14} style={{ color: '#EA580C', flexShrink: 0, marginTop: 1 }} />
+              <p style={{ fontSize: 12, color: '#9A3412', margin: 0 }}>
+                {tt.studentProfile.multipleActive.replace('{n}', String(activeMemberships.length))}
               </p>
-            )}
-            {isExpiredOneOff && (
-              <div className="flex flex-wrap items-center justify-between gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDE68A' }}>
-                <p style={{ fontSize: 12, color: '#92400E', margin: 0, flex: '1 1 200px' }}>
-                  {activeMembership.planType === 'TRIAL' ? tt.trial.expiredHint : tt.trial.passExpiredHint}
-                </p>
-                <button onClick={() => setShowModal(true)}
-                  style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#0870E2', border: 'none', padding: '6px 14px', borderRadius: 999, cursor: 'pointer' }}>
-                  {tt.trial.assignPlan}
-                </button>
-              </div>
-            )}
-
-            {/* Scheduled cancellation — access continues until the period ends */}
-            {activeMembership.cancelledAt && activeMembership.expiresAt && (
-              <div className="flex items-center gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #BBF7D0' }}>
-                <Clock size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
-                <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
-                  {tt.studentProfile.cancelsOn}{' '}
-                  <span style={{ fontWeight: 600, color: '#111827' }}>
-                    {new Date(activeMembership.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </span>
-                  {' · '}{tt.studentProfile.accessUntilThen}
-                </p>
-              </div>
-            )}
-
-            {/* Usage bar — only for class-pack plans (SINGLE_PASS/TRIAL); a
-                SUBSCRIPTION membership is unlimited, so "classes used" has
-                no ceiling to show progress against. */}
-            {activeMembership.planType !== 'SUBSCRIPTION' && activeMembership.consumed > 0 && (
-              <div style={{ marginTop: 10 }}>
-                <div className="flex justify-between" style={{ marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, color: '#6B7280' }}>{tt.studentProfile.classesUsedLabel}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#111827' }}>{activeMembership.consumed}</span>
-                </div>
-                <div style={{ height: 4, background: '#D1FAE5', borderRadius: 999 }}>
-                  <div style={{ height: '100%', width: '100%', background: '#16A34A', borderRadius: 999 }} />
-                </div>
-              </div>
-            )}
-
-            {/* Pending renewal payment — cash memberships only */}
-            {pendingRenewal && (
-              <div style={{
-                marginTop: 12, paddingTop: 12, borderTop: '1px solid #FDE68A',
-              }}>
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <p style={{ fontSize: 12, color: '#92400E', margin: 0 }}>
-                    {tt.studentProfile.renewalPendingText.replace('{amount}', fmtPrice(pendingRenewal.amount, pendingRenewal.currency))}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setShowModal(true)}
-                      style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 6px' }}>
-                      {tt.studentProfile.createNewInstead}
-                    </button>
-                    <button onClick={handleCancelRenewal} disabled={cancellingRenewal}
-                      style={{ fontSize: 12, fontWeight: 600, color: '#EF4444', background: '#FEF2F2', border: 'none',
-                        padding: '6px 12px', borderRadius: 8, cursor: cancellingRenewal ? 'not-allowed' : 'pointer', opacity: cancellingRenewal ? 0.6 : 1 }}>
-                      {cancellingRenewal ? tt.studentProfile.cancelling : tt.studentProfile.cancelPayment}
-                    </button>
-                    <button onClick={handleMarkPaid} disabled={markingPaid}
-                      style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: '#D97706', border: 'none',
-                        padding: '6px 12px', borderRadius: 8, cursor: markingPaid ? 'not-allowed' : 'pointer', opacity: markingPaid ? 0.6 : 1 }}>
-                      {markingPaid ? tt.studentProfile.marking : tt.studentProfile.markAsPaid}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* History toggle */}
-          {memberships.length > 1 && (
-            <button onClick={() => setShowHistory(v => !v)}
-              className="flex items-center gap-1.5"
-              style={{ fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              <ChevronRight size={13} style={{ transform: showHistory ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }} />
-              {showHistory ? tt.studentProfile.hideHistory : tt.studentProfile.showHistory} {tt.studentProfile.historyPrevious.replace('{n}', String(memberships.length - 1))}
-            </button>
+            </div>
           )}
+          <div className="flex flex-col gap-3" style={{ marginBottom: 12 }}>
+            {activeMemberships.map(m => (
+              <ActiveMembershipCard
+                key={m.id}
+                memberId={memberId}
+                membership={m}
+                pendingRenewal={pendingRenewalFor(m.id)}
+                onOpenAssign={() => setShowModal(true)}
+                onRenewalCreated={onRenewalCreated}
+                onRenewalPaid={onRenewalPaid}
+                onRenewalCancelled={onRenewalCancelled}
+                onDatesSaved={onDatesSaved}
+                onCancelled={onCancelled}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -1593,12 +1619,20 @@ function MembershipSection({
         </div>
       )}
 
-      {/* History list */}
-      {showHistory && memberships.filter(m => m.status !== 'ACTIVE').length > 0 && (
+      {/* History — past (non-active) memberships only */}
+      {pastMemberships.length > 0 && (
+        <button onClick={() => setShowHistory(v => !v)}
+          className="flex items-center gap-1.5"
+          style={{ fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <ChevronRight size={13} style={{ transform: showHistory ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }} />
+          {showHistory ? tt.studentProfile.hideHistory : tt.studentProfile.showHistory} {tt.studentProfile.historyPrevious.replace('{n}', String(pastMemberships.length))}
+        </button>
+      )}
+      {showHistory && pastMemberships.length > 0 && (
         <div style={{ marginTop: 12, borderTop: '1px solid #F3F4F6', paddingTop: 12 }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>{tt.studentProfile.historyTitle}</p>
           <div className="flex flex-col gap-2">
-            {memberships.filter(m => m.status !== 'ACTIVE').map(m => {
+            {pastMemberships.map(m => {
               const ms = memStatusMap[m.status] ?? { bg: '#F3F4F6', color: '#6B7280', label: m.status }
               return (
                 <div key={m.id} className="flex items-center justify-between"
@@ -1606,8 +1640,8 @@ function MembershipSection({
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: 0 }}>{m.planName}</p>
                     <p style={{ fontSize: 11, color: '#9CA3AF', margin: '1px 0 0' }}>
-                      {new Date(m.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      {m.endDate && ` → ${new Date(m.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                      {fmtCardDate(m.startDate)}
+                      {m.endDate && ` → ${fmtCardDate(m.endDate)}`}
                       {m.planType !== 'SUBSCRIPTION' && m.consumed > 0 && ` · ${m.consumed} ${tt.studentProfile.classesSuffix}`}
                     </p>
                   </div>
@@ -1627,13 +1661,6 @@ function MembershipSection({
           plans={availablePlans}
           onClose={() => setShowModal(false)}
           onAssigned={m => {
-            setActiveMembership(m)
-            setMemberships(prev => [
-              { id: m.id, planName: m.planName, planType: 'SUBSCRIPTION', billingCycle: m.interval,
-                price: m.price, currency: 'EUR', status: 'ACTIVE',
-                startDate: m.startDate, endDate: m.expiresAt, consumed: 0 },
-              ...prev.map(p => p.status === 'ACTIVE' ? { ...p, status: 'CANCELLED' } : p),
-            ])
             onAssigned(m)
             setShowModal(false)
           }}
@@ -1673,7 +1700,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
   const [archiving, setArchiving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const { toasts, show: showToast, remove: removeToast } = useToast()
-  const [activeMembership, setActiveMembership] = useState(initialProfile.activeMembership)
+  const [activeMemberships, setActiveMemberships] = useState(initialProfile.activeMemberships)
   const [memberships, setMemberships] = useState(initialProfile.memberships)
   const [bookings] = useState(initialProfile.bookings)
   const [transactions, setTransactions] = useState(initialProfile.transactions)
@@ -1681,9 +1708,6 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
   const [cancellingTxId, setCancellingTxId] = useState<string | null>(null)
   const [deletingTxId, setDeletingTxId] = useState<string | null>(null)
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
-  const pendingRenewal = activeMembership
-    ? transactions.find(t => t.membershipId === activeMembership.id && t.status === 'PENDING') ?? null
-    : null
   const [bookingsShown, setBookingsShown] = useState(10)
 
   // Counted server-side over the full history at this school (page.tsx) —
@@ -1792,7 +1816,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
   // in sync without a page reload.
   const applyMembershipUpdate = (u: MembershipUpdate | null) => {
     if (!u) return
-    setActiveMembership(prev => prev && prev.id === u.id ? { ...prev, expiresAt: u.endDate, status: u.status ?? prev.status } : prev)
+    setActiveMemberships(prev => prev.map(m => m.id === u.id ? { ...m, expiresAt: u.endDate, status: u.status ?? m.status } : m))
     setMemberships(prev => prev.map(m => m.id === u.id ? { ...m, endDate: u.endDate, status: u.status ?? m.status } : m))
   }
 
@@ -2197,32 +2221,45 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
             {/* Membership — active + history + assign */}
             <MembershipSection
               memberId={profile.memberId}
-              activeMembership={activeMembership}
+              activeMemberships={activeMemberships}
               memberships={memberships}
               availablePlans={profile.availablePlans}
-              pendingRenewal={pendingRenewal}
+              transactions={transactions}
               onAssigned={m => {
-                setActiveMembership(m)
+                // assignPlan cancels every membership that was active and
+                // their pending renewals, so the new plan is the only one left.
+                const replacedIds = new Set(activeMemberships.map(a => a.id))
+                setActiveMemberships([m])
                 setMemberships(prev => [{
                   id: m.id, planName: m.planName, planType: 'SUBSCRIPTION',
                   billingCycle: m.interval, price: m.price, currency: 'EUR',
                   status: m.status, startDate: m.startDate, endDate: m.expiresAt, consumed: 0,
-                } satisfies MembershipRecord, ...prev])
-                // A new plan assignment supersedes any pending renewal on the old membership.
+                } satisfies MembershipRecord, ...prev.map(p => replacedIds.has(p.id) ? { ...p, status: 'CANCELLED' } : p)])
                 setTransactions(prev => prev.map(t =>
-                  t.membershipId === activeMembership?.id && t.status === 'PENDING' ? { ...t, status: 'CANCELLED' } : t
+                  t.membershipId && replacedIds.has(t.membershipId) && t.status === 'PENDING' ? { ...t, status: 'CANCELLED' } : t
                 ))
               }}
               onRenewalCreated={t => setTransactions(prev => [t, ...prev])}
-              onRenewalPaid={(transactionId, newEndDate) => {
+              onRenewalPaid={(membershipId, transactionId, newEndDate) => {
                 setTransactions(prev => prev.map(t => t.id === transactionId ? { ...t, status: 'PAID' } : t))
-                setActiveMembership(prev => prev ? { ...prev, expiresAt: newEndDate, status: 'ACTIVE' } : prev)
+                setActiveMemberships(prev => prev.map(m => m.id === membershipId ? { ...m, expiresAt: newEndDate, status: 'ACTIVE' } : m))
+                setMemberships(prev => prev.map(m => m.id === membershipId ? { ...m, endDate: newEndDate } : m))
               }}
               onRenewalCancelled={transactionId => {
                 setTransactions(prev => prev.map(t => t.id === transactionId ? { ...t, status: 'CANCELLED' } : t))
               }}
+              onDatesSaved={(membershipId, startDate, endDate) => {
+                setActiveMemberships(prev => prev.map(m => m.id === membershipId ? { ...m, startDate, expiresAt: endDate } : m))
+                setMemberships(prev => prev.map(m => m.id === membershipId ? { ...m, startDate, endDate } : m))
+              }}
               onCancelled={(membershipId, deferredCancelledAt) => {
-                setActiveMembership(prev => deferredCancelledAt && prev ? { ...prev, cancelledAt: deferredCancelledAt } : null)
+                if (deferredCancelledAt) {
+                  // Cancels at period end: stays active until then
+                  setActiveMemberships(prev => prev.map(m => m.id === membershipId ? { ...m, cancelledAt: deferredCancelledAt } : m))
+                } else {
+                  setActiveMemberships(prev => prev.filter(m => m.id !== membershipId))
+                  setMemberships(prev => prev.map(m => m.id === membershipId ? { ...m, status: 'CANCELLED' } : m))
+                }
                 setTransactions(prev => prev.map(t =>
                   t.membershipId === membershipId && t.status === 'PENDING' ? { ...t, status: 'CANCELLED' } : t
                 ))

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth/server'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 import { cancelMembership, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
+import { findSamePlanMembership } from '@/lib/samePlan'
 import { sendMembershipRequestEmail } from '@/lib/email/sendEmails'
 import { notifyMembershipRequest } from '@/lib/notifications/create'
 
@@ -94,9 +95,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   // Check no active/pending/paused membership for this plan already
   // PENDING is included so students can't spam multiple requests for the same plan
-  const existing = await prisma.membership.findFirst({
-    where: { userId: dbUser.id, planId: plan.id, status: { in: ['ACTIVE', 'PAUSED', 'PENDING'] } },
-  })
+  // Name match covers memberships imported from V1, which have no planId
+  const existing = await findSamePlanMembership(prisma, {
+    userId: dbUser.id, schoolId: plan.schoolId, planId: plan.id, planName: plan.name,
+  }, [MembershipStatus.ACTIVE, MembershipStatus.PAUSED, MembershipStatus.PENDING])
   if (existing) return NextResponse.json({ error: 'Already have this plan' }, { status: 409 })
 
   const membership = await prisma.membership.create({

@@ -117,7 +117,9 @@ export default async function StudentProfilePage({
     : []
   const usageMap = Object.fromEntries(usageCounts.map(u => [u.membershipId, u._count.id]))
 
-  const activeMembership = memberships.find(m => m.status === 'ACTIVE') ?? null
+  // Every ACTIVE one, not just the first: a student can hold two at once
+  // (e.g. a pass on top of a subscription), and each needs its own actions.
+  const activeMemberships = memberships.filter(m => m.status === 'ACTIVE')
 
   const profile = {
     memberId: member.id,
@@ -170,7 +172,7 @@ export default async function StudentProfilePage({
       endDate: m.endDate?.toISOString() ?? null,
       consumed: usageMap[m.id] ?? m.classesUsed,
     })),
-    activeMembership: activeMembership ? {
+    activeMemberships: activeMemberships.map(activeMembership => ({
       id: activeMembership.id,
       planName: activeMembership.plan?.name ?? activeMembership.planName,
       planType: activeMembership.plan?.planType ?? 'SUBSCRIPTION',
@@ -183,7 +185,7 @@ export default async function StudentProfilePage({
       price: Number(activeMembership.plan?.price ?? activeMembership.price),
       interval: activeMembership.plan?.billingCycle ?? null,
       consumed: usageMap[activeMembership.id] ?? activeMembership.classesUsed,
-    } : null,
+    })),
     availablePlans: membershipPlans.map(p => ({
       id: p.id,
       name: p.name,
