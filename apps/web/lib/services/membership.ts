@@ -440,7 +440,8 @@ export async function assignPlan(input: AssignPlanInput) {
  * - UNTIL_END_OF_PERIOD: marks cancelledAt but keeps Membership ACTIVE until endDate.
  *   SchoolMember transitions to INACTIVE lazily when endDate passes (checkAndExpireMembership).
  *
- * TRIAL plans always cancel immediately regardless of school policy.
+ * TRIAL plans always cancel immediately regardless of school policy, and so
+ * does a membership whose endDate has already passed.
  *
  * If a Stripe subscription is attached, Stripe is cancelled (or scheduled to
  * cancel at period end) *first*, awaited — local state is only written once
@@ -464,7 +465,11 @@ export async function cancelMembership(input: CancelMembershipInput) {
 
   const isTrial = membership.plan?.planType === 'TRIAL'
   const policy = membership.school?.cancelPolicy ?? 'IMMEDIATE'
-  const immediate = isTrial || policy === 'IMMEDIATE' || !membership.endDate
+  // "Until end of period" only makes sense while the period is running. If
+  // it already ended (an unpaid renewal), there is no access left to keep:
+  // waiting would leave it ACTIVE with "Renewal due" until the 30-day grace.
+  const periodOver = !!membership.endDate && membership.endDate <= new Date()
+  const immediate = isTrial || policy === 'IMMEDIATE' || !membership.endDate || periodOver
 
   const updatedNotes = reason
     ? [membership.notes, `Cancelled: ${reason}`].filter(Boolean).join(' | ')

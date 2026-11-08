@@ -34,7 +34,7 @@ describe('findSamePlanMembership', () => {
     }, ['ACTIVE', 'PAUSED'])
 
     expect(found?.id).toBe('v1')
-    expect(findMany.mock.calls[0][0].where).toEqual({
+    expect(findMany.mock.calls[0]?.[0].where).toEqual({
       userId: 'u1', schoolId: 's1', status: { in: ['ACTIVE', 'PAUSED'] }, id: { not: 'self' },
     })
   })

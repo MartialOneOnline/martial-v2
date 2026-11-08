@@ -13,10 +13,12 @@ const mockMembershipUpdate = vi.fn()
 const mockMembershipFindUnique = vi.fn()
 const mockTransaction = vi.fn()
 const mockSchoolMemberUpdateMany = vi.fn().mockResolvedValue({ count: 1 })
+const mockTxUpdateMany = vi.fn().mockResolvedValue({ count: 0 })
 
 vi.mock('@/lib/db', () => ({
   prisma: {
     membership: { findFirst: mockMembershipFindFirst, update: mockMembershipUpdate, findUnique: mockMembershipFindUnique },
+    transaction: { updateMany: mockTxUpdateMany },
     $transaction: mockTransaction,
   },
 }))
@@ -52,6 +54,7 @@ beforeEach(() => {
     fn({
       membership: { update: mockMembershipUpdate, findFirst: vi.fn().mockResolvedValue(null) },
       schoolMember: { updateMany: mockSchoolMemberUpdateMany },
+      transaction: { updateMany: mockTxUpdateMany },
     }),
   )
   mockMembershipFindUnique.mockResolvedValue({ id: 'membership-1', status: 'CANCELLED' })
@@ -140,6 +143,25 @@ describe('cancelMembership — UNTIL_END_OF_PERIOD policy', () => {
 
     await expect(cancelMembership({ membershipId: 'membership-1', schoolId: 'school-1' })).rejects.toThrow(/Stripe subscription cancel failed/)
     expect(mockMembershipUpdate).not.toHaveBeenCalled()
+  })
+
+  it('cancels immediately when the period already ended (unpaid renewal) instead of staying ACTIVE', async () => {
+    // Real case (RGM, 2026-11-08): endDate 06 nov, cancelled on 08 nov — the
+    // card kept saying "Renewal due" and "access continues until 06 nov".
+    mockMembershipFindFirst.mockResolvedValue(fakeMembership({
+      endDate: new Date(Date.now() - 2 * 86_400_000),
+      school: { cancelPolicy: 'UNTIL_END_OF_PERIOD', stripeSecretKey: null },
+    }))
+
+    await cancelMembership({ membershipId: 'membership-1', schoolId: 'school-1' })
+
+    expect(mockMembershipUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: 'CANCELLED' }),
+    }))
+    expect(mockTxUpdateMany).toHaveBeenCalledWith({
+      where: { membershipId: 'membership-1', status: 'PENDING' },
+      data: { status: 'CANCELLED' },
+    })
   })
 
   it('TRIAL plans always cancel immediately regardless of school policy', async () => {

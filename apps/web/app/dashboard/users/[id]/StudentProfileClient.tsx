@@ -1221,10 +1221,14 @@ function ActiveMembershipCard({
   // membership's endDate — re-sync the local copy when the parent's changes.
   useEffect(() => { setMembership(initialMembership) }, [initialMembership])
 
-  const isPastDue = !!(membership.expiresAt && new Date(membership.expiresAt) < new Date())
+  const isPastEnd = !!(membership.expiresAt && new Date(membership.expiresAt) < new Date())
+  // Cancelled and already past its end: nothing to renew, only waiting for
+  // the expiry sweep to flip it to CANCELLED — never show it as "Renewal due".
+  const isEndedCancelled = isPastEnd && !!membership.cancelledAt
+  const isPastDue = isPastEnd && !membership.cancelledAt
   // A trial or single pass doesn't renew: past its end it's simply over
   const isOneOff = membership.planType === 'TRIAL' || membership.planType === 'SINGLE_PASS'
-  const isExpiredOneOff = isPastDue && isOneOff
+  const isExpiredOneOff = isPastEnd && isOneOff
   const trialNotStarted = membership.planType === 'TRIAL' && !membership.expiresAt
   // What staff need at a glance is when it renews; the start date lives in
   // the date editor and the membership history.
@@ -1362,13 +1366,13 @@ function ActiveMembershipCard({
     }
   }
 
-  const showPaymentBtn = membership.paymentMethod === 'CASH' && !pendingRenewal && Number(membership.price) > 0
+  const showPaymentBtn = membership.paymentMethod === 'CASH' && !pendingRenewal && Number(membership.price) > 0 && !membership.cancelledAt
   const showCancelBtn = !membership.cancelledAt
 
   return (
     <div style={{
-      background: isPastDue ? '#FFFBEB' : '#F0FDF4',
-      border: `1px solid ${isPastDue ? '#FDE68A' : '#BBF7D0'}`,
+      background: isEndedCancelled ? '#F9FAFB' : isPastDue ? '#FFFBEB' : '#F0FDF4',
+      border: `1px solid ${isEndedCancelled ? '#E5E7EB' : isPastDue ? '#FDE68A' : '#BBF7D0'}`,
       borderRadius: 12, padding: '14px 16px',
     }}>
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
@@ -1425,9 +1429,9 @@ function ActiveMembershipCard({
           </span>
           <span style={{
             fontSize: 11, fontWeight: 600, color: '#fff', padding: '2px 10px', borderRadius: 999,
-            background: isExpiredOneOff ? '#DC2626' : isPastDue ? '#D97706' : '#16A34A',
+            background: isExpiredOneOff ? '#DC2626' : isEndedCancelled ? '#6B7280' : isPastDue ? '#D97706' : '#16A34A',
           }}>
-            {isExpiredOneOff ? tt.trial.expired : isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
+            {isExpiredOneOff ? tt.trial.expired : isEndedCancelled ? tt.common.cancelled : isPastDue ? tt.studentProfile.renewalDue : tt.common.active}
           </span>
           {membership.paymentStatus === 'PAST_DUE' && (
             <span style={{
@@ -1457,7 +1461,7 @@ function ActiveMembershipCard({
       )}
 
       {/* Scheduled cancellation — access continues until the period ends */}
-      {membership.cancelledAt && membership.expiresAt && (
+      {membership.cancelledAt && membership.expiresAt && !isPastEnd && (
         <div className="flex items-center gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #BBF7D0' }}>
           <Clock size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
           <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>
