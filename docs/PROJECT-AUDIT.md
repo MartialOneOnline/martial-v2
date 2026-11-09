@@ -280,6 +280,15 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Hallazgos de Codex corregidos: email adjudicado sin verificar (P1); Auth y Prisma desalineados con cambios simultáneos; rollback que ignoraba el `{ error }` devuelto; `/my` sin el control; textos sin i18n; borrado del bloqueo por un 5.º intento fallido; respuesta perdida de Auth liberada como si nada; cooldown no atómico; `AuthRetryableFetchError` devuelto (no lanzado) por el SDK; una confirmación antigua que borraba el código nuevo.
 - No verificado: navegador, Resend real y cuenta real de Apple.
 
+### Lote T — Moneda según el país de la escuela (rama `claude/currency-by-country`)
+
+- Estado: **pendiente de auditoría** sobre `942b643`. Sin migración.
+- Pedido del usuario: ACT Pinoy Taekwondo (Holt, AU) tenía su plan en "65 €" y no se podía poner AUD. Debe haber un selector de monedas según el país (EUR, USD, GBP y otras como AUD).
+- Criterios: (1) planes, clases, entradas de evento y pago manual nuevos nacen en la moneda del país de la escuela (`School.country`, ISO-2) — AU→AUD, GB→GBP, US→USD, zona euro→EUR, desconocido→EUR; (2) los selectores ofrecen 18 monedas, todas de 2 decimales (el checkout de Stripe envía `precio × 100`); (3) editar un registro con una moneda fuera de la lista no la cambia en silencio; (4) EUR/GBP/USD se muestran igual que antes, las demás con su símbolo (A$65); (5) las APIs de creación sin `currency` usan la del país, no 'EUR'; (6) sin cambios de esquema.
+- Fuera de alcance (documentado): transacciones automáticas en `api/bookings`, `api/memberships/trial`, `api/dashboard/checkin` siguen en 'EUR'; informe de pagos del super admin solo suma EUR; MRR de suscripciones en EUR.
+- Evidencia: `tsc --noEmit` limpio; `__tests__/currency.test.ts` 9/9; suite completa 12 ficheros / 55 tests fallando **idénticos en `origin/main`** (mocks de Prisma); avisos de lint en los 4 clientes tocados iguales a `main`.
+- No verificado: navegador (el usuario prueba la UI), Stripe checkout real en AUD.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
