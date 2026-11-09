@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
   let school = schoolId
     ? await prisma.school.findUnique({
         where: { id: schoolId },
-        select: { stripeSecretKey: true, stripeWebhookSecret: true },
+        select: { id: true, stripeSecretKey: true, stripeWebhookSecret: true },
       })
     : null
 
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       if (membership) {
         school = await prisma.school.findUnique({
           where: { id: membership.schoolId },
-          select: { stripeSecretKey: true, stripeWebhookSecret: true },
+          select: { id: true, stripeSecretKey: true, stripeWebhookSecret: true },
         })
       }
     }
@@ -177,7 +177,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true })
 
   try {
-    await handleStripeEvent(event)
+    // The school whose secret verified the signature is the only tenant this
+    // event may touch. Metadata and object ids inside the payload are chosen
+    // by whoever holds that secret, so they are checked against it below.
+    await handleStripeEvent(event, school.id)
     await prisma.stripeWebhookEvent.update({
       where: { eventId: event.id },
       data: { status: StripeWebhookEventStatus.PROCESSED, processedAt: new Date() },
@@ -252,7 +255,11 @@ async function applyPaymentStatus(
   return result.count > 0
 }
 
-async function handleStripeEvent(event: Stripe.Event) {
+function logForeignObject(eventType: string, verifiedSchoolId: string, detail: string) {
+  console.error(`[stripe webhook] ignored ${eventType}: ${detail} does not belong to the school whose secret signed it (${verifiedSchoolId}).`)
+}
+
+async function handleStripeEvent(event: Stripe.Event, verifiedSchoolId: string) {
   const eventAt = new Date((event.created ?? Math.floor(Date.now() / 1000)) * 1000)
 
   switch (event.type) {
@@ -280,7 +287,24 @@ async function handleStripeEvent(event: Stripe.Event) {
 
       if (session.payment_status !== 'paid') break
 
+      // Our checkouts always stamp the school; a different one here means the
+      // payload names another tenant.
+      if (meta.schoolId && meta.schoolId !== verifiedSchoolId) {
+        logForeignObject(event.type, verifiedSchoolId, `metadata.schoolId=${meta.schoolId}`)
+        break
+      }
+
       if (collectibleUnitId) {
+        const unit = await prisma.collectibleUnit.findUnique({
+          where: { id: collectibleUnitId },
+          select: { collection: { select: { schoolId: true } } },
+        })
+        // Martial's own collections are sold through the platform webhook,
+        // never with a school's keys.
+        if (unit && unit.collection.schoolId !== verifiedSchoolId) {
+          logForeignObject(event.type, verifiedSchoolId, `collectibleUnit=${collectibleUnitId}`)
+          break
+        }
         await fulfillCollectibleCheckout({
           collectibleUnitId,
           userId: meta.userId!,
@@ -305,6 +329,10 @@ async function handleStripeEvent(event: Stripe.Event) {
             },
           })
           if (!booking) return null
+          if (booking.event.schoolId !== verifiedSchoolId) {
+            logForeignObject(event.type, verifiedSchoolId, `eventBooking=${eventBookingId}`)
+            return null
+          }
 
           // /api/my/events/checkout doesn't currently block starting a
           // checkout while ARCHIVED (unlike /api/my/checkout for
@@ -435,6 +463,21 @@ async function handleStripeEvent(event: Stripe.Event) {
       }
 
       if (!planId) break
+
+      // The plan has to belong to the verified school too, and the school
+      // written on the membership is that one, never just the metadata's.
+      if (schoolId !== verifiedSchoolId) {
+        logForeignObject(event.type, verifiedSchoolId, `missing metadata.schoolId for plan ${planId}`)
+        break
+      }
+      const ownPlan = await prisma.membershipPlan.findFirst({
+        where: { id: planId, schoolId: verifiedSchoolId },
+        select: { id: true },
+      })
+      if (!ownPlan) {
+        logForeignObject(event.type, verifiedSchoolId, `plan=${planId}`)
+        break
+      }
 
       // The membership is created here, on confirmed payment — not before checkout.
       // An abandoned/cancelled Stripe session simply never reaches this handler, so
@@ -586,7 +629,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       if (invoice.billing_reason === 'subscription_create') break
 
       const membership = await prisma.membership.findFirst({
-        where: { stripeSubId: invoice.subscription },
+        where: { stripeSubId: invoice.subscription, schoolId: verifiedSchoolId },
         select: {
           id: true, schoolId: true, userId: true, planName: true, currency: true, stripeInvoiceId: true,
           plan: { select: { billingCycle: true } },
@@ -683,7 +726,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       await prisma.$transaction(async (tx) => {
         await applyPaymentStatus(
           tx,
-          { stripeSubId: invoice.subscription, paymentStatus: { in: [MembershipPaymentStatus.ACTIVE, MembershipPaymentStatus.TRIALING] } },
+          { stripeSubId: invoice.subscription, schoolId: verifiedSchoolId, paymentStatus: { in: [MembershipPaymentStatus.ACTIVE, MembershipPaymentStatus.TRIALING] } },
           MembershipPaymentStatus.PAST_DUE,
           eventAt,
         )
@@ -696,14 +739,14 @@ async function handleStripeEvent(event: Stripe.Event) {
       const sub = event.data.object as { id: string }
 
       const membership = await prisma.membership.findFirst({
-        where: { stripeSubId: sub.id },
+        where: { stripeSubId: sub.id, schoolId: verifiedSchoolId },
         select: { id: true, userId: true, schoolId: true },
       })
       if (!membership) break
 
       await prisma.$transaction(async (tx) => {
         await tx.membership.updateMany({
-          where: { stripeSubId: sub.id },
+          where: { stripeSubId: sub.id, schoolId: verifiedSchoolId },
           data:  {
             status: MembershipStatus.CANCELLED, cancelledAt: new Date(),
             paymentStatus: MembershipPaymentStatus.CANCELED, paymentStatusAt: eventAt,
@@ -727,7 +770,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       }
 
       const membership = await prisma.membership.findFirst({
-        where: { stripeSubId: sub.id },
+        where: { stripeSubId: sub.id, schoolId: verifiedSchoolId },
         select: { id: true, userId: true, schoolId: true, endDate: true, status: true },
       })
       if (!membership) break
@@ -769,7 +812,7 @@ async function handleStripeEvent(event: Stripe.Event) {
 
       await prisma.$transaction(async (tx) => {
         const paymentStatusApplied = paymentStatus
-          ? await applyPaymentStatus(tx, { stripeSubId: sub.id }, paymentStatus, eventAt)
+          ? await applyPaymentStatus(tx, { stripeSubId: sub.id, schoolId: verifiedSchoolId }, paymentStatus, eventAt)
           : false
 
         // past_due leaves access untouched (Stripe is still retrying — that
@@ -788,7 +831,7 @@ async function handleStripeEvent(event: Stripe.Event) {
           ...(periodEndDate && { endDate: periodEndDate }),
         }
         if (Object.keys(data).length > 0) {
-          await tx.membership.updateMany({ where: { stripeSubId: sub.id }, data })
+          await tx.membership.updateMany({ where: { stripeSubId: sub.id, schoolId: verifiedSchoolId }, data })
         }
         if (newStatus) {
           await syncSchoolMemberStatusForMembership(tx, {

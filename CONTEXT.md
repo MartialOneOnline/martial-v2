@@ -302,6 +302,13 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-09 (rama `claude/audit-lote1-tenant-isolation`; sin migración; auditoría completa de Codex `RECHAZADO` en `605e021`; lote 1 entregado a Project Audit)
+
+**Auditoría completa del proyecto + lote 1 (aislamiento financiero entre escuelas).** Codex hizo una primera pasada del proyecto entero sobre `main@605e021` (informe en `docs/audits/FULL-AUDIT-2026-11-08.md`, resumen en `docs/PROJECT-AUDIT.md`): `RECHAZADO` con 6 P1, 7 P2 y 1 P3, y 7 lotes de corrección propuestos.
+- Lote 1 corregido aquí: (SEC-01) `app/api/webhooks/stripe/route.ts` — `handleStripeEvent(event, verifiedSchoolId)`; una firma válida de la escuela A ya no puede cancelar, renovar ni cambiar membresías, entradas de evento o coleccionables de la escuela B; (SEC-02) `POST /api/dashboard/transactions` exige que el `userId` sea miembro de la escuela; (SEC-03) la ficha del alumno solo muestra pagos de la escuela actual.
+- Tests: 13 nuevos (fallan con el código anterior). La suite sigue con los mismos 55 fallos previos (mocks sin `classCancellation`/`notification`/`transaction`, lote 7 de la auditoría).
+- Siguiente según la auditoría: lote 2 (permisos efectivos: ficha para INSTRUCTOR sin permiso, informes sin permiso de analítica, roles CUSTOM).
+
 ### Sesión — 2026-11-05 → 2026-11-09 (rama `claude/apple-relay-email`, PR #59; migración aplicada en Supabase el 2026-11-09; Project Audit `27284ff`: RECHAZADO (1 P1, 4 P2) → `3428d88`: APROBADO CON PENDIENTES (3 P2) → `ecb927e`: APROBADO CON PENDIENTES (2 P2) → **`APROBADO`** en `9af08af`; pendiente: merge y prueba con Apple/Resend reales)
 
 **Email oculto de Apple ("Hide My Email") → email real verificado.** Quien entra con Apple y oculta su email queda con una dirección `@privaterelay.appleid.com`, que solo recibe correo de remitentes registrados en el relay de Apple, así que los emails de la escuela no le llegan. Trabajo empezado el 2026-11-05 sin commitear (estaba suelto en `claude/dashboard-day-strip`) y movido a su propia rama el 2026-11-09.

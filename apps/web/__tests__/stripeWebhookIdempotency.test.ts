@@ -47,7 +47,7 @@ function resetState() {
   membershipSeq = 0
 }
 
-const mockSchoolFindUnique = vi.fn().mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+const mockSchoolFindUnique = vi.fn().mockResolvedValue({ id: 'school-1', stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
 
 const mockStripeWebhookEventCreate = vi.fn((args: { data: { eventId: string; type: string; status: string } }) => {
   const { eventId, type, status } = args.data
@@ -127,8 +127,13 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
   return fn(tx)
 })
 
+// Every plan in these tests belongs to school-1.
+const mockMembershipPlanFindFirst = vi.fn((args: { where: { id: string; schoolId: string } }) =>
+  Promise.resolve(args.where.schoolId === 'school-1' ? { id: args.where.id } : null))
+
 vi.mock('@/lib/db', () => ({
   prisma: {
+    membershipPlan: { findFirst: mockMembershipPlanFindFirst },
     school: { findUnique: mockSchoolFindUnique },
     stripeWebhookEvent: {
       create: mockStripeWebhookEventCreate,
@@ -182,7 +187,7 @@ function eventBookingCheckoutEvent(eventId: string, bookingId: string) {
 beforeEach(() => {
   vi.clearAllMocks()
   resetState()
-  mockSchoolFindUnique.mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+  mockSchoolFindUnique.mockResolvedValue({ id: 'school-1', stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
   mockCheckEventCapacity.mockResolvedValue({ ok: true })
 })
 

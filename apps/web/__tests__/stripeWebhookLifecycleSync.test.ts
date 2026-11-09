@@ -118,7 +118,7 @@ function matchesMembershipWhere(m: Membership, where: Record<string, unknown>): 
   return true
 }
 
-const mockSchoolFindUnique = vi.fn().mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+const mockSchoolFindUnique = vi.fn().mockResolvedValue({ id: 'school-1', stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
 const mockSchoolFindMany = vi.fn().mockResolvedValue([])
 
 const mockStripeWebhookEventCreate = vi.fn((args: { data: { eventId: string; type: string; status: string } }) => {
@@ -241,8 +241,14 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
   return fn(tx)
 })
 
+// Every plan in these tests belongs to school-1, except 'plan-of-school-2'.
+const planSchool = (id: string) => id === 'plan-of-school-2' ? 'school-2' : 'school-1'
+const mockMembershipPlanFindFirst = vi.fn((args: { where: { id: string; schoolId: string } }) =>
+  Promise.resolve(planSchool(args.where.id) === args.where.schoolId ? { id: args.where.id } : null))
+
 vi.mock('@/lib/db', () => ({
   prisma: {
+    membershipPlan: { findFirst: mockMembershipPlanFindFirst },
     school: { findUnique: mockSchoolFindUnique, findMany: mockSchoolFindMany },
     stripeWebhookEvent: { create: mockStripeWebhookEventCreate, updateMany: mockStripeWebhookEventUpdateMany, update: mockStripeWebhookEventUpdate },
     membership: { findFirst: mockMembershipFindFirst, findUnique: mockMembershipFindUnique, create: mockMembershipCreate, updateMany: mockMembershipUpdateMany },
@@ -264,7 +270,7 @@ function makeRequest(event: unknown) {
 beforeEach(() => {
   vi.clearAllMocks()
   resetState()
-  mockSchoolFindUnique.mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+  mockSchoolFindUnique.mockResolvedValue({ id: 'school-1', stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
   mockSchoolFindMany.mockResolvedValue([])
 })
 
@@ -763,5 +769,90 @@ describe('failure alert', () => {
 
     await expect(POST(checkout('evt_fail3'))).rejects.toThrow()
     expect(webhookEvents['evt_fail3']?.status).toBe('FAILED')
+  })
+})
+
+// Audit SEC-01 (2026-11-09): an event signed with school-1's own webhook
+// secret must never change objects that belong to school-2, even when the
+// payload names school-2's subscription, plan or school id.
+describe('tenant isolation — a valid school-1 signature cannot touch school-2', () => {
+  function seedForeign() {
+    seedMembership({
+      id: 'membership-b', userId: 'user-b', schoolId: 'school-2', stripeSubId: 'sub_B',
+      status: 'ACTIVE', paymentStatus: 'ACTIVE', endDate: new Date('2026-12-01T00:00:00Z'),
+    })
+    seedSchoolMember('school-2', 'user-b', 'ACTIVE')
+  }
+  function expectForeignUntouched() {
+    expect(memberships['membership-b']).toMatchObject({ status: 'ACTIVE', paymentStatus: 'ACTIVE' })
+    expect(memberships['membership-b']!.stripeInvoiceId ?? null).toBeNull()
+    expect(memberships['membership-b']!.endDate).toEqual(new Date('2026-12-01T00:00:00Z'))
+    expect(schoolMembers[smKey('school-2', 'user-b')]!.status).toBe('ACTIVE')
+    expect(Object.values(transactions)).toHaveLength(0)
+  }
+
+  it('customer.subscription.deleted for school-2 subscription is ignored', async () => {
+    seedForeign()
+    const res = await POST(makeRequest({ id: 'evt_x1', type: 'customer.subscription.deleted', data: { object: { id: 'sub_B', metadata: { schoolId: 'school-1' } } } }))
+    expect(res.status).toBe(200)
+    expectForeignUntouched()
+  })
+
+  it('customer.subscription.updated (canceled / unpaid / new period) for school-2 is ignored', async () => {
+    seedForeign()
+    await POST(makeRequest({ id: 'evt_x2', type: 'customer.subscription.updated', data: { object: { id: 'sub_B', status: 'canceled', current_period_end: 1893456000, metadata: { schoolId: 'school-1' } } } }))
+    await POST(makeRequest({ id: 'evt_x3', type: 'customer.subscription.updated', data: { object: { id: 'sub_B', status: 'unpaid', metadata: { schoolId: 'school-1' } } } }))
+    expectForeignUntouched()
+  })
+
+  it('invoice.payment_failed for school-2 subscription leaves its payment status alone', async () => {
+    seedForeign()
+    await POST(makeRequest({ id: 'evt_x4', type: 'invoice.payment_failed', data: { object: { subscription: 'sub_B', metadata: { schoolId: 'school-1' } } } }))
+    expectForeignUntouched()
+  })
+
+  it('invoice.payment_succeeded for school-2 subscription does not renew it or record income', async () => {
+    seedForeign()
+    await POST(makeRequest({
+      id: 'evt_x5', type: 'invoice.payment_succeeded',
+      data: { object: { id: 'in_B', subscription: 'sub_B', billing_reason: 'subscription_cycle', amount_paid: 5000, lines: { data: [{ period: { start: 1893456000, end: 1896134400 } }] }, metadata: { schoolId: 'school-1' } } },
+    }))
+    expectForeignUntouched()
+  })
+
+  it('checkout.session.completed naming a school-2 plan creates nothing', async () => {
+    const res = await POST(makeRequest({
+      id: 'evt_x6', type: 'checkout.session.completed',
+      data: { object: { payment_status: 'paid', payment_intent: 'pi_x', metadata: { schoolId: 'school-1', userId: 'user-1', planId: 'plan-of-school-2', planName: 'Monthly', price: '50', currency: 'EUR' } } },
+    }))
+    expect(res.status).toBe(200)
+    expect(Object.keys(memberships)).toHaveLength(0)
+    expect(schoolMembers[smKey('school-1', 'user-1')]).toBeUndefined()
+    expect(Object.values(transactions)).toHaveLength(0)
+    expect(mockMembershipPlanFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'plan-of-school-2', schoolId: 'school-1' } }))
+  })
+
+  it('checkout.session.completed whose metadata names school-2 is ignored when school-1 signed it', async () => {
+    // Secret lookup for school-2 fails, brute force finds school-1's secret.
+    mockSchoolFindUnique.mockResolvedValueOnce({ id: 'school-2', stripeSecretKey: 'sk_2', stripeWebhookSecret: 'whsec_2' })
+    invalidSecrets.add('whsec_2')
+    mockSchoolFindMany.mockResolvedValueOnce([{ id: 'school-1', stripeSecretKey: 'sk_1', stripeWebhookSecret: 'whsec_1' }])
+
+    await POST(makeRequest({
+      id: 'evt_x7', type: 'checkout.session.completed',
+      data: { object: { payment_status: 'paid', payment_intent: 'pi_y', metadata: { schoolId: 'school-2', userId: 'user-b', planId: 'plan-1', planName: 'Monthly', price: '50', currency: 'EUR' } } },
+    }))
+    expect(Object.keys(memberships)).toHaveLength(0)
+    expect(schoolMembers[smKey('school-2', 'user-b')]).toBeUndefined()
+    expect(Object.values(transactions)).toHaveLength(0)
+  })
+
+  it('the same events still apply to school-1 own subscription (legit delivery)', async () => {
+    seedMembership({ id: 'membership-a', stripeSubId: 'sub_A', status: 'ACTIVE' })
+    seedSchoolMember('school-1', 'user-1', 'ACTIVE')
+    seedForeign()
+    await POST(makeRequest({ id: 'evt_x8', type: 'customer.subscription.deleted', data: { object: { id: 'sub_A', metadata: { schoolId: 'school-1' } } } }))
+    expect(memberships['membership-a']!.status).toBe('CANCELLED')
+    expectForeignUntouched()
   })
 })

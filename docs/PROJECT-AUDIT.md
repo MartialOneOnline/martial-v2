@@ -280,6 +280,20 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Hallazgos de Codex corregidos: email adjudicado sin verificar (P1); Auth y Prisma desalineados con cambios simultáneos; rollback que ignoraba el `{ error }` devuelto; `/my` sin el control; textos sin i18n; borrado del bloqueo por un 5.º intento fallido; respuesta perdida de Auth liberada como si nada; cooldown no atómico; `AuthRetryableFetchError` devuelto (no lanzado) por el SDK; una confirmación antigua que borraba el código nuevo.
 - No verificado: navegador, Resend real y cuenta real de Apple.
 
+### Auditoría completa del proyecto — primera pasada (Codex, sobre `605e021`, 2026-11-09)
+
+- Veredicto global: **`RECHAZADO`** — 6 P1, 7 P2, 1 P3. Informe: [`docs/audits/FULL-AUDIT-2026-11-08.md`](./audits/FULL-AUDIT-2026-11-08.md). Revisados con prioridad auth, pagos, webhooks, admin y seguridad; el resto de módulos sigue pendiente.
+- Lotes propuestos: 1 aislamiento financiero (SEC-01/02/03) · 2 permisos efectivos (SEC-04/05, ROLE-01) · 3 dependencias (SEC-06) · 4 acceso recuperable (AUTH-01/02, I18N-01) · 5 efectos externos (CRON-01, MAIL-01) · 6 controles de admin (ADMIN-01) · 7 base verificable (QA-01).
+
+### Lote T — Auditoría, lote 1: aislamiento financiero (rama `claude/audit-lote1-tenant-isolation`)
+
+- Estado: entregado a Project Audit, pendiente de veredicto. Sin migración.
+- SEC-01: el webhook de Stripe pasa al procesador la escuela cuya clave verificó la firma. Toda lectura/escritura por `stripeSubId` exige además `schoolId` de esa escuela; `checkout.session.completed` ignora el evento si `metadata.schoolId` es otra escuela, si el plan no es de la escuela, si la entrada de evento es de otra escuela o si el coleccionable no es de la escuela. Los ignorados se registran en el log.
+- SEC-02: `POST /api/dashboard/transactions` solo enlaza un `userId` con `SchoolMember` en la escuela actual; si no, 400 genérico sin PII y sin escribir. Los movimientos anónimos siguen funcionando.
+- SEC-03: la ficha `/dashboard/users/[id]` filtra las transacciones por `schoolId`.
+- Evidencia: tests nuevos en `stripeWebhookLifecycleSync.test.ts` (7, bloque «tenant isolation») y `auditTenantIsolationPayments.test.ts` (6); los 13 fallan con el código de `main` salvo la entrega legítima, y pasan con el arreglo. Mocks de escuela/plan actualizados en 3 tests de webhook. Suite: 1229 pasan / 55 fallan (los mismos 12 archivos que la base QA-01) / 1 todo. `tsc` y lint sin errores, `git diff --check` limpio.
+- No verificado: entrega real de Stripe, sesión real en el dashboard.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
