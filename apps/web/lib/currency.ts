@@ -76,3 +76,18 @@ export function currencyOptions(current?: string | null): { code: string; label:
   if (current && !list.some(c => c.code === current)) list.unshift({ code: current, label: current })
   return list
 }
+
+/**
+ * Currency to save for an event ticket on edit. What the form sent wins; a
+ * ticket sent without one keeps the currency it already had (never silently
+ * switches to the country default); a new ticket follows the event's existing
+ * tickets, and only then the school's country.
+ */
+export function resolveTicketCurrency(opts: {
+  sent?: string | null
+  existing?: string | null
+  eventCurrency?: string | null
+  schoolCurrency: string
+}): string {
+  return opts.sent || opts.existing || opts.eventCurrency || opts.schoolCurrency
+}

@@ -940,6 +940,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
         startDate: data.startDate,
         expiresAt: data.endDate ?? null,
         price: Number(data.price),
+        currency: data.currency ?? data.plan?.currency ?? selected?.currency ?? 'EUR',
         interval: data.plan?.billingCycle ?? null,
         consumed: 0,
       })

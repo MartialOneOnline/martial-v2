@@ -7,7 +7,7 @@ import {
   Users, Share2, Copy, Mail, Upload, MoreVertical, AlertTriangle, Download,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useDashboard, useSchoolDefaultCurrency } from '../../../components/DashboardShell'
+import { useDashboard, useSchoolDefaultCurrency, useFollowSchoolCurrency } from '../../../components/DashboardShell'
 import CurrencySelect from '../../../components/CurrencySelect'
 import NotificationBell from '../../../components/NotificationBell'
 import RowMenu from '../../../components/RowMenu'
@@ -435,6 +435,8 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes, availableMethod
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editPlan])
 
+  const markCurrencyTouched = useFollowSchoolCurrency(open && !editPlan, code => setForm(f => ({ ...f, currency: code })))
+
   function switchTab(tab: DrawerTab) {
     setActiveTab(tab)
     setForm(f => ({ ...f, planType: tab }))
@@ -557,7 +559,7 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes, availableMethod
                 </div>
                 <div style={{ flex: '1 1 90px' }}>
                   <label style={labelSt}>Currency</label>
-                  <CurrencySelect value={form.currency} onChange={v => set('currency', v)} style={inputSt} />
+                  <CurrencySelect value={form.currency} onChange={v => { markCurrencyTouched(); set('currency', v) }} style={inputSt} />
                 </div>
                 {isSubscription && (
                   <div style={{ flex: '2 1 140px' }}>

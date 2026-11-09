@@ -8,7 +8,7 @@ import {
   ChevronLeft, ChevronRight, TrendingUp, Check, Upload, Clock, Trash2, Pencil,
   ChevronDown, Users, CheckCircle2, AlertTriangle,
 } from 'lucide-react'
-import { useDashboard, useSchoolDefaultCurrency } from '../../../components/DashboardShell'
+import { useDashboard, useSchoolDefaultCurrency, useFollowSchoolCurrency } from '../../../components/DashboardShell'
 import CurrencySelect from '../../../components/CurrencySelect'
 import NotificationBell from '../../../components/NotificationBell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
@@ -558,6 +558,8 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editing])
 
+  const markCurrencyTouched = useFollowSchoolCurrency(open && !editing, code => setForm(p => ({ ...p, currency: code })))
+
   function set(field: keyof ClassFormData, value: unknown) {
     setForm(p => ({ ...p, [field]: value }))
   }
@@ -683,7 +685,7 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
                   <div style={{ display: 'flex', gap: 6 }}>
                     <input type="text" inputMode="decimal" placeholder="0 = included in membership"
                       value={form.price} onChange={e => set('price', e.target.value.replace(/[^0-9.]/g, ''))} style={{ ...drawerInputStyle, flex: 1, minWidth: 0 }} />
-                    <CurrencySelect value={form.currency} onChange={v => set('currency', v)} ariaLabel="Currency"
+                    <CurrencySelect value={form.currency} onChange={v => { markCurrencyTouched(); set('currency', v) }} ariaLabel="Currency"
                       style={{ ...drawerInputStyle, width: 'auto', flex: '0 0 auto' }} />
                   </div>
                 </Field>

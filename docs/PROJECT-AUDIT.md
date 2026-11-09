@@ -282,12 +282,19 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote T — Moneda según el país de la escuela (rama `claude/currency-by-country`)
 
-- Estado: **pendiente de auditoría** sobre `942b643`. Sin migración.
+- Estado: **`RECHAZADO`** en `942b643` (1 P1, 3 P2) → correcciones entregadas para re-auditoría (ver abajo). Sin migración.
 - Pedido del usuario: ACT Pinoy Taekwondo (Holt, AU) tenía su plan en "65 €" y no se podía poner AUD. Debe haber un selector de monedas según el país (EUR, USD, GBP y otras como AUD).
 - Criterios: (1) planes, clases, entradas de evento y pago manual nuevos nacen en la moneda del país de la escuela (`School.country`, ISO-2) — AU→AUD, GB→GBP, US→USD, zona euro→EUR, desconocido→EUR; (2) los selectores ofrecen 18 monedas, todas de 2 decimales (el checkout de Stripe envía `precio × 100`); (3) editar un registro con una moneda fuera de la lista no la cambia en silencio; (4) EUR/GBP/USD se muestran igual que antes, las demás con su símbolo (A$65); (5) las APIs de creación sin `currency` usan la del país, no 'EUR'; (6) sin cambios de esquema.
 - Fuera de alcance (documentado): transacciones automáticas en `api/bookings`, `api/memberships/trial`, `api/dashboard/checkin` siguen en 'EUR'; informe de pagos del super admin solo suma EUR; MRR de suscripciones en EUR.
 - Evidencia: `tsc --noEmit` limpio; `__tests__/currency.test.ts` 9/9; suite completa 12 ficheros / 55 tests fallando **idénticos en `origin/main`** (mocks de Prisma); avisos de lint en los 4 clientes tocados iguales a `main`.
 - No verificado: navegador (el usuario prueba la UI), Stripe checkout real en AUD.
+- Correcciones tras `RECHAZADO`:
+  - P1 PUT de evento cambiaba la moneda de una entrada existente: `resolveTicketCurrency()` (`lib/currency.ts`) — lo enviado gana; entrada existente sin moneda conserva la suya; entrada nueva sigue a las del evento y solo después al país. 4 tests nuevos.
+  - P2 contexto pendiente: hook `useFollowSchoolCurrency(active, apply)` en `DashboardShell` — mientras el formulario de alta está abierto y el usuario no ha tocado la moneda, la actualiza cuando llega el contexto; tocar el selector (o elegir plan en pago manual) la fija. Aplicado en planes, clases, eventos y pago manual.
+  - P2 `onAssigned` sin moneda: `AssignPlanModal` propaga `data.currency` (la membresía la trae de `plan.currency`).
+  - P2 euros fijos: vista previa del evento ("from …") y opciones de plan del pago manual con `fmtPrice`; elegir un plan en el pago manual pone su moneda. Extra: Pagos → Suscripciones mostraba "€" en las opciones de plan y enviaba `currency: 'EUR'` (el servidor ya lo ignoraba y usa `plan.currency`), ahora usa la del plan.
+  - Sin tocar (fuera de alcance, ya listado o etiqueta): "Monthly Salary (€)" en staff y la tasa de graduación "€" en Settings.
+  - Evidencia: `tsc` limpio; `currency.test.ts` 13/13; suite 1229 pasan / los mismos 55 fallan / 1 pendiente; avisos de lint iguales a `main` en los 8 ficheros tocados.
 
 ## Próxima entrega de Claude
 

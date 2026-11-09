@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import DashboardSidebar from './DashboardSidebar'
 import { useSchoolContext } from '../lib/auth/useSchoolContext'
 import { resolveGradingEnabled, gradingFromSchoolContext, schoolContextFailed } from '../lib/school-modules'
@@ -39,6 +39,26 @@ export function useDashboard() {
 export function useSchoolDefaultCurrency(): string {
   const { school } = useContext(DashboardContext)
   return school?.currentSchool?.defaultCurrency ?? DEFAULT_CURRENCY
+}
+
+/**
+ * Keeps a "new record" form on the school's default currency, including when
+ * the school context finishes loading after the form opened — until the user
+ * picks a currency themselves (call the returned `markTouched` from the select).
+ * `active` = form open for a NEW record; closing it resets the touched flag.
+ */
+export function useFollowSchoolCurrency(active: boolean, apply: (code: string) => void): () => void {
+  const currency = useSchoolDefaultCurrency()
+  const touched = useRef(false)
+  const applyRef = useRef(apply)
+  applyRef.current = apply
+
+  useEffect(() => {
+    if (!active) { touched.current = false; return }
+    if (!touched.current) applyRef.current(currency)
+  }, [active, currency])
+
+  return () => { touched.current = true }
 }
 
 /**

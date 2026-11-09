@@ -9,7 +9,7 @@ import {
   Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode, AlertTriangle, RefreshCw,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useDashboard, useSchoolDefaultCurrency } from '../../../../components/DashboardShell'
+import { useDashboard, useSchoolDefaultCurrency, useFollowSchoolCurrency } from '../../../../components/DashboardShell'
 import CurrencySelect from '../../../../components/CurrencySelect'
 import { fmtPrice, currencySymbol } from '../../../../lib/format'
 import NotificationBell from '../../../../components/NotificationBell'
@@ -404,6 +404,9 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editing])
 
+  const markCurrencyTouched = useFollowSchoolCurrency(open && !editing,
+    code => setForm(p => ({ ...p, tickets: p.tickets.map(tk => ({ ...tk, currency: code })) })))
+
   // One currency per event: every ticket follows the first one
   const ticketCurrency = form.tickets[0]?.currency ?? schoolCurrency
 
@@ -517,7 +520,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
                   <label style={eventLbl}>Ticket types</label>
                   <div className="flex items-center gap-2">
                   <CurrencySelect value={ticketCurrency} ariaLabel="Ticket currency"
-                    onChange={v => set('tickets', form.tickets.map(tk => ({ ...tk, currency: v })))}
+                    onChange={v => { markCurrencyTouched(); set('tickets', form.tickets.map(tk => ({ ...tk, currency: v }))) }}
                     style={{ fontSize: 12, padding: '4px 6px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }} />
                   <button type="button"
                     onClick={() => set('tickets', [...form.tickets, { ...EMPTY_TICKET, currency: ticketCurrency }])}
@@ -714,7 +717,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
                   { icon: Calendar, label: form.startDate ? fmtDate(form.startDate + 'T00:00') : t.classes.dateTbd },
                   { icon: Clock,    label: form.startTime || t.classes.timeTbd },
                   { icon: MapPin,   label: form.location   || t.classes.locationTbd },
-                  { icon: Ticket,   label: form.tickets.some(t => t.price > 0) ? `from €${Math.min(...form.tickets.map(t => t.price))}` : 'Free' },
+                  { icon: Ticket,   label: form.tickets.some(t => t.price > 0) ? `from ${fmtPrice(Math.min(...form.tickets.map(t => t.price)), ticketCurrency)}` : 'Free' },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2">
                     <Icon size={12} style={{ color: '#9CA3AF', flexShrink: 0 }} />

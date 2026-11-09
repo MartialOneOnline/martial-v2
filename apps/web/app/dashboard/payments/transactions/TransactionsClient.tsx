@@ -7,7 +7,7 @@ import {
   CreditCard, Banknote, Building2, Landmark, TrendingUp, TrendingDown,
   LayoutList, Eye, MoreHorizontal, Trash2, Flag, Pencil,
 } from 'lucide-react'
-import { useDashboard, useGradingEnabled, useSchoolDefaultCurrency } from '../../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled, useSchoolDefaultCurrency, useFollowSchoolCurrency } from '../../../../components/DashboardShell'
 import CurrencySelect from '../../../../components/CurrencySelect'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -623,7 +623,7 @@ const MODAL_LBL: React.CSSProperties = {
 
 function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [members, setMembers] = useState<MemberOption[]>([])
-  const [plans,   setPlans]   = useState<{ id: string; name: string; price: number }[]>([])
+  const [plans,   setPlans]   = useState<{ id: string; name: string; price: number; currency: string }[]>([])
   const schoolCurrency = useSchoolDefaultCurrency()
   const [form, setForm] = useState({
     userId: '', description: '', amount: '', currency: schoolCurrency,
@@ -638,15 +638,18 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
       setMembers((d.members ?? []).map((m: { userId: string; name: string; email: string; avatarUrl?: string | null }) => ({ id: m.userId, name: m.name, email: m.email, avatarUrl: m.avatarUrl ?? null })))
     )
     fetch('/api/dashboard/membership-plans').then(r => r.json()).then(d =>
-      setPlans((d.plans ?? []).map((p: { id: string; name: string; price: number }) => ({ id: p.id, name: p.name, price: p.price })))
+      setPlans((d.plans ?? []).map((p: { id: string; name: string; price: number; currency?: string }) => ({ id: p.id, name: p.name, price: p.price, currency: p.currency ?? 'EUR' })))
     )
   }, [])
 
   function set(k: string, v: string) { setForm(p => ({ ...p, [k]: v })) }
+  const markCurrencyTouched = useFollowSchoolCurrency(true, code => setForm(p => ({ ...p, currency: code })))
 
   function pickPlan(planName: string) {
     const plan = plans.find(p => p.name === planName)
-    setForm(p => ({ ...p, description: planName, amount: plan ? String(plan.price) : p.amount }))
+    // The payment is in the plan's currency — and that now counts as chosen
+    if (plan) markCurrencyTouched()
+    setForm(p => ({ ...p, description: planName, amount: plan ? String(plan.price) : p.amount, currency: plan ? plan.currency : p.currency }))
   }
 
   async function handleSave() {
@@ -694,7 +697,7 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
               <label style={MODAL_LBL}>Membership / Description</label>
               <select value={form.description} onChange={e => pickPlan(e.target.value)} style={{ ...MODAL_INP, marginBottom: 6 }}>
                 <option value="">Select plan…</option>
-                {plans.map(p => <option key={p.id} value={p.name}>{p.name} — €{p.price}</option>)}
+                {plans.map(p => <option key={p.id} value={p.name}>{p.name} — {fmtPrice(p.price, p.currency)}</option>)}
                 <option value="__custom">Custom description</option>
               </select>
               {(form.description === '__custom' || !plans.find(p => p.name === form.description)) && (
@@ -712,7 +715,7 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
               </div>
               <div style={{ flex: 1 }}>
                 <label style={MODAL_LBL}>Currency</label>
-                <CurrencySelect value={form.currency} onChange={v => set('currency', v)} style={MODAL_INP} />
+                <CurrencySelect value={form.currency} onChange={v => { markCurrencyTouched(); set('currency', v) }} style={MODAL_INP} />
               </div>
             </div>
 
