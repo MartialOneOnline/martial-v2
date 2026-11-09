@@ -9,7 +9,9 @@ import {
   Ticket, Calendar, Pencil, Trash2, Globe, EyeOff, QrCode, AlertTriangle, RefreshCw,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useDashboard } from '../../../../components/DashboardShell'
+import { useDashboard, useSchoolDefaultCurrency } from '../../../../components/DashboardShell'
+import CurrencySelect from '../../../../components/CurrencySelect'
+import { fmtPrice, currencySymbol } from '../../../../lib/format'
 import NotificationBell from '../../../../components/NotificationBell'
 import DashboardLanguageSelector from '../../../../components/DashboardLanguageSelector'
 import { useT } from '../../../../lib/i18n/LanguageContext'
@@ -106,10 +108,10 @@ function fmtTicketPrice(tickets: EventRow['tickets']): string {
   const prices = tickets.map(t => t.price)
   const min = Math.min(...prices)
   const max = Math.max(...prices)
-  const sym = (tickets[0]?.currency ?? 'EUR') === 'EUR' ? '€' : (tickets[0]?.currency ?? '')
+  const cur = tickets[0]?.currency ?? 'EUR'
   if (min === 0 && max === 0) return 'Free'
-  if (min === max) return `${sym}${min}`
-  return `${sym}${min} – ${sym}${max}`
+  if (min === max) return fmtPrice(min, cur)
+  return `${fmtPrice(min, cur)} – ${fmtPrice(max, cur)}`
 }
 
 function registrationSummary(ev: EventRow): { booked: number; capacity: number | null } {
@@ -387,13 +389,23 @@ function GalleryUploadZone({ value, onChange, label }: { value: string[]; onChan
 
 function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMethods }: EventDrawerProps) {
   const t = useT()
+  const schoolCurrency = useSchoolDefaultCurrency()
   const [form, setForm]     = useState<EventFormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState('')
 
   useEffect(() => {
-    if (open) { setForm(editing ? eventToForm(editing) : EMPTY_FORM); setError('') }
+    if (open) {
+      setForm(editing
+        ? eventToForm(editing)
+        : { ...EMPTY_FORM, tickets: EMPTY_FORM.tickets.map(tk => ({ ...tk, currency: schoolCurrency })) })
+      setError('')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editing])
+
+  // One currency per event: every ticket follows the first one
+  const ticketCurrency = form.tickets[0]?.currency ?? schoolCurrency
 
   function set(field: keyof EventFormData, value: unknown) {
     setForm(p => ({ ...p, [field]: value }))
@@ -503,12 +515,17 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label style={eventLbl}>Ticket types</label>
+                  <div className="flex items-center gap-2">
+                  <CurrencySelect value={ticketCurrency} ariaLabel="Ticket currency"
+                    onChange={v => set('tickets', form.tickets.map(tk => ({ ...tk, currency: v })))}
+                    style={{ fontSize: 12, padding: '4px 6px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }} />
                   <button type="button"
-                    onClick={() => set('tickets', [...form.tickets, { ...EMPTY_TICKET }])}
+                    onClick={() => set('tickets', [...form.tickets, { ...EMPTY_TICKET, currency: ticketCurrency }])}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg cursor-pointer"
                     style={{ fontSize: 12, fontWeight: 500, border: '1px solid #E5E7EB', background: '#fff', color: '#374151' }}>
                     <Plus size={12} /> Add ticket
                   </button>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   {form.tickets.map((ticket, idx) => {
@@ -524,7 +541,7 @@ function EventDrawer({ open, onClose, onSaved, editing, instructors, availableMe
                         onChange={e => updateTicket({ name: e.target.value })}
                         style={{ ...eventInp, flex: '1 1 160px', minWidth: 0 }} />
                       <div className="flex items-center gap-1 shrink-0" style={{ ...eventInp, width: 'auto', padding: '9px 10px' }}>
-                        <span style={{ fontSize: 12, color: '#9CA3AF' }}>€</span>
+                        <span style={{ fontSize: 12, color: '#9CA3AF' }}>{currencySymbol(ticketCurrency)}</span>
                         <input type="text" inputMode="decimal" placeholder="0"
                           value={ticket.price === 0 ? '' : ticket.price}
                           onChange={e => updateTicket({ price: Number(e.target.value.replace(/[^0-9.]/g, '')) || 0 })}

@@ -8,7 +8,8 @@ import {
   ChevronLeft, ChevronRight, TrendingUp, Check, Upload, Clock, Trash2, Pencil,
   ChevronDown, Users, CheckCircle2, AlertTriangle,
 } from 'lucide-react'
-import { useDashboard } from '../../../components/DashboardShell'
+import { useDashboard, useSchoolDefaultCurrency } from '../../../components/DashboardShell'
+import CurrencySelect from '../../../components/CurrencySelect'
 import NotificationBell from '../../../components/NotificationBell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import { useT } from '../../../lib/i18n/LanguageContext'
@@ -544,15 +545,17 @@ function BannerUploadZone({ value, onChange, label, height = 160, hint = 'PNG, J
 
 function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines, availableMethods }: ClassDrawerProps) {
   const t = useT()
+  const schoolCurrency = useSchoolDefaultCurrency()
   const [form, setForm] = useState<ClassFormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (open) {
-      setForm(editing ? classToForm(editing) : EMPTY_FORM)
+      setForm(editing ? classToForm(editing) : { ...EMPTY_FORM, currency: schoolCurrency })
       setError('')
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editing])
 
   function set(field: keyof ClassFormData, value: unknown) {
@@ -677,8 +680,12 @@ function ClassDrawer({ open, onClose, onSaved, editing, instructors, disciplines
                     value={form.capacity} onChange={e => set('capacity', e.target.value.replace(/\D/g, ''))} style={drawerInputStyle} />
                 </Field>
                 <Field label={t.classes.classFees}>
-                  <input type="text" inputMode="decimal" placeholder="0 = included in membership"
-                    value={form.price} onChange={e => set('price', e.target.value.replace(/[^0-9.]/g, ''))} style={drawerInputStyle} />
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input type="text" inputMode="decimal" placeholder="0 = included in membership"
+                      value={form.price} onChange={e => set('price', e.target.value.replace(/[^0-9.]/g, ''))} style={{ ...drawerInputStyle, flex: 1, minWidth: 0 }} />
+                    <CurrencySelect value={form.currency} onChange={v => set('currency', v)} ariaLabel="Currency"
+                      style={{ ...drawerInputStyle, width: 'auto', flex: '0 0 auto' }} />
+                  </div>
                 </Field>
               </div>
 

@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import DashboardSidebar from './DashboardSidebar'
 import { useSchoolContext } from '../lib/auth/useSchoolContext'
 import { resolveGradingEnabled, gradingFromSchoolContext, schoolContextFailed } from '../lib/school-modules'
+import { DEFAULT_CURRENCY } from '../lib/currency'
 
 const SIDEBAR_COLLAPSED_KEY = 'dashboard-sidebar-collapsed'
 
@@ -29,6 +30,15 @@ const DashboardContext = createContext<DashboardCtx>({
 
 export function useDashboard() {
   return useContext(DashboardContext)
+}
+
+/**
+ * Currency new plans, classes, tickets and transactions start in — derived from
+ * the current school's country (AU → AUD, GB → GBP…). EUR until it loads.
+ */
+export function useSchoolDefaultCurrency(): string {
+  const { school } = useContext(DashboardContext)
+  return school?.currentSchool?.defaultCurrency ?? DEFAULT_CURRENCY
 }
 
 /**

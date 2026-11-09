@@ -7,7 +7,8 @@ import {
   CreditCard, Banknote, Building2, Landmark, TrendingUp, TrendingDown,
   LayoutList, Eye, MoreHorizontal, Trash2, Flag, Pencil,
 } from 'lucide-react'
-import { useDashboard, useGradingEnabled } from '../../../../components/DashboardShell'
+import { useDashboard, useGradingEnabled, useSchoolDefaultCurrency } from '../../../../components/DashboardShell'
+import CurrencySelect from '../../../../components/CurrencySelect'
 import NotificationBell from '../../../../components/NotificationBell'
 import { useT } from '../../../../lib/i18n/LanguageContext'
 import { fmtPrice } from '../../../../lib/format'
@@ -623,8 +624,9 @@ const MODAL_LBL: React.CSSProperties = {
 function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [members, setMembers] = useState<MemberOption[]>([])
   const [plans,   setPlans]   = useState<{ id: string; name: string; price: number }[]>([])
+  const schoolCurrency = useSchoolDefaultCurrency()
   const [form, setForm] = useState({
-    userId: '', description: '', amount: '', currency: 'EUR',
+    userId: '', description: '', amount: '', currency: schoolCurrency,
     date: new Date().toISOString().slice(0, 10), status: 'PAID',
     type: 'INCOME', category: 'MEMBERSHIP', paymentMethod: 'CASH', notes: '',
   })
@@ -710,9 +712,7 @@ function AddPaymentModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
               </div>
               <div style={{ flex: 1 }}>
                 <label style={MODAL_LBL}>Currency</label>
-                <select value={form.currency} onChange={e => set('currency', e.target.value)} style={MODAL_INP}>
-                  <option>EUR</option><option>GBP</option><option>USD</option>
-                </select>
+                <CurrencySelect value={form.currency} onChange={v => set('currency', v)} style={MODAL_INP} />
               </div>
             </div>
 

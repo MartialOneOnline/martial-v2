@@ -5,6 +5,7 @@ import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 import { slugify, uniqueSlug } from '@/lib/slug'
+import { schoolDefaultCurrency } from '@/lib/schoolCurrency'
 
 async function authorise() {
   const user = await getAuthUser()
@@ -74,11 +75,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       .filter(t => !incomingIds.has(t.id) && t._count.bookings === 0)
       .map(t => t.id)
 
+    const fallbackCurrency = await schoolDefaultCurrency(auth.schoolId)
     const toTicketData = (t: (typeof tickets)[number]) => ({
       name: t.name.trim(),
       description: t.description?.trim() || null,
       price: t.price !== undefined ? Number(t.price) : 0,
-      currency: t.currency || 'EUR',
+      currency: t.currency || fallbackCurrency,
       // `!= null` (not truthy) — 0 is a valid capacity ("sold out"/"no seats"), distinct from unset (null = unlimited).
       capacity: t.capacity != null ? Number(t.capacity) : null,
     })
