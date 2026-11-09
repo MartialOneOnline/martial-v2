@@ -114,3 +114,28 @@ export async function resumeSession(deps: {
     return signal.aborted ? 'aborted' : 'form'
   }
 }
+
+// Longest /login keeps a spinner up while resuming a session, automatically
+// or after "Continue".
+export const RESUME_DEADLINE_MS = 8000
+
+// Runs `task` with its own AbortSignal and a deadline. On timeout the signal
+// is aborted (so a late response can't navigate) and onTimeout restores the
+// visible controls. `cancel` is for unmount.
+export function startResumeAttempt<T>(
+  task: (signal: AbortSignal) => Promise<T>,
+  opts: { ms?: number; onTimeout: () => void },
+): { promise: Promise<T>; signal: AbortSignal; settle: () => void; cancel: () => void } {
+  const controller = new AbortController()
+  const timer = setTimeout(() => {
+    controller.abort()
+    opts.onTimeout()
+  }, opts.ms ?? RESUME_DEADLINE_MS)
+  return {
+    promise: task(controller.signal),
+    signal: controller.signal,
+    // The attempt ended on its own (form / confirm shown): drop the deadline.
+    settle: () => clearTimeout(timer),
+    cancel: () => { controller.abort(); clearTimeout(timer) },
+  }
+}

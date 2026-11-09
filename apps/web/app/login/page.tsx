@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
@@ -12,7 +12,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 import type { ResumeGuardEnv } from '@/lib/auth/sessionCookie'
-import { resumeSession, runLoginRedirect } from '@/lib/auth/loginResume'
+import { resumeSession, runLoginRedirect, startResumeAttempt } from '@/lib/auth/loginResume'
 import { useSessionHint } from './SessionHint'
 
 const BLUE = '#0870E2'
@@ -153,6 +153,8 @@ function LoginPageInner() {
 
   // Signed in, but the loop guard couldn't be saved: ask before redirecting.
   const [confirmResume, setConfirmResume] = useState(false)
+  // The in-flight resume attempt (automatic or "Continue"), cancelled on unmount.
+  const resumeAttempt = useRef<{ cancel: () => void } | null>(null)
 
   // Hard navigation (not router.push) for every destination: proxy.ts
   // reads the Supabase session cookie fresh on each request, and Google's
@@ -201,31 +203,28 @@ function LoginPageInner() {
       readCookies: () => document.cookie,
       writeCookie: (c) => { document.cookie = c },
     }
-    // One controller for the whole chain (/api/auth/me, then everything
+    // One signal for the whole chain (/api/auth/me, then everything
     // resolveRedirect() does). The deadline aborts it, so a late response
     // can't navigate away from a form the user has started filling in.
-    const controller = new AbortController()
-    const timer = setTimeout(() => {
-      controller.abort()
-      setResumingSession(false)
-    }, 8000)
-    resumeSession({
+    const attempt = startResumeAttempt(signal => resumeSession({
       oauthCallback: oauthCallback.active,
       oauthError: !!oauthCallback.error,
       guardEnv,
       now: Date.now(),
       fetchImpl: (input, init) => fetch(input, init),
-      redirect: (signal) => resolveRedirect(signal),
-      signal: controller.signal,
-    }).then(outcome => {
+      redirect: (sig) => resolveRedirect(sig),
+      signal,
+    }), { onTimeout: () => setResumingSession(false) })
+    resumeAttempt.current = attempt
+    attempt.promise.then(outcome => {
       // 'redirecting': keep the spinner while the page navigates (or the
       // school picker, which renders first, is shown).
       if (outcome === 'redirecting' || outcome === 'aborted') return
-      clearTimeout(timer)
+      attempt.settle()
       setResumingSession(false)
       if (outcome === 'confirm') setConfirmResume(true)
     })
-    return () => { controller.abort(); clearTimeout(timer) }
+    return () => { resumeAttempt.current?.cancel() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -387,6 +386,22 @@ function LoginPageInner() {
     )
   }
 
+  // "Continue" on the already-signed-in card: same deadline and abort as the
+  // automatic attempt; on timeout the card (with "Use another account")
+  // comes back instead of an endless spinner.
+  const continueResume = () => {
+    resumeAttempt.current?.cancel()
+    setConfirmResume(false)
+    setResumingSession(true)
+    const attempt = startResumeAttempt(signal => resolveRedirect(signal), {
+      onTimeout: () => {
+        setResumingSession(false)
+        setConfirmResume(true)
+      },
+    })
+    resumeAttempt.current = attempt
+  }
+
   if (confirmResume) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB', padding: 16, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
@@ -394,7 +409,7 @@ function LoginPageInner() {
           <p style={{ fontSize: 18, fontWeight: 700, color: NAVY, margin: '0 0 20px' }}>{t.authVerify.resumeTitle}</p>
           <button
             type="button"
-            onClick={() => { setConfirmResume(false); setResumingSession(true); resolveRedirect() }}
+            onClick={continueResume}
             style={{ width: '100%', padding: '12px 16px', borderRadius: 999, border: 'none', background: BLUE, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
           >
             {t.authVerify.resumeContinue}

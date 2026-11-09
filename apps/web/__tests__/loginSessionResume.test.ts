@@ -196,3 +196,50 @@ describe('resumeSession + runLoginRedirect', () => {
     expect(navigate).toHaveBeenCalledWith('/my')
   })
 })
+
+// ── "Continue" with a hung response ─────────────────────────────────────────
+import { startResumeAttempt } from '@/lib/auth/loginResume'
+
+describe('"Continue" after the already-signed-in card', () => {
+  it('a held /api/auth/me times out back to the card and the late answer never navigates', async () => {
+    vi.useFakeTimers()
+    try {
+      const held = deferred<Response>()
+      const fetchImpl = abortableFetch(() => held.promise)
+      const navigate = vi.fn()
+      const showPicker = vi.fn()
+      const ui = { spinner: true, card: false }
+
+      const attempt = startResumeAttempt(
+        signal => runLoginRedirect({ redirectTo: undefined, pathname: '/login', fetchImpl, navigate, showPicker, signal }),
+        { ms: 8000, onTimeout: () => { ui.spinner = false; ui.card = true } },
+      )
+
+      await vi.advanceTimersByTimeAsync(9000)
+      expect(ui).toEqual({ spinner: false, card: true })
+      expect(attempt.signal.aborted).toBe(true)
+
+      held.resolve(json({ user: { id: 'u1', globalRole: 'STUDENT' }, contexts: { schools: [] } }))
+      await attempt.promise
+      await vi.advanceTimersByTimeAsync(0)
+      expect(navigate).not.toHaveBeenCalled()
+      expect(showPicker).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('cancel (unmount) aborts without touching the UI', async () => {
+    vi.useFakeTimers()
+    try {
+      const onTimeout = vi.fn()
+      const attempt = startResumeAttempt(() => new Promise<void>(() => {}), { ms: 8000, onTimeout })
+      attempt.cancel()
+      await vi.advanceTimersByTimeAsync(9000)
+      expect(attempt.signal.aborted).toBe(true)
+      expect(onTimeout).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
