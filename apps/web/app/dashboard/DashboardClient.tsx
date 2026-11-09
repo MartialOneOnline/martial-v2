@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -51,8 +51,9 @@ interface Props {
 // STATS labels/sub are resolved at render via t.*
 
 const DAY_LABELS = ['MON','TUE','WED','THU','FRI','SAT','SUN']
-// Generate 14 days starting from today — computed once at module load time (client-side)
-// This is mock data for the preview/demo dashboard only; the real dashboard uses API data.
+// 14 days starting from today. Built inside the component (keyed on today's
+// date) — never at module load, or a tab left open across midnight keeps a
+// stale strip while the header and class list move on to the real today.
 function buildDays() {
   const today = new Date()
   return Array.from({ length: 14 }, (_, i) => {
@@ -61,7 +62,9 @@ function buildDays() {
     return { long: DAY_LABELS[d.getDay() === 0 ? 6 : d.getDay() - 1]!, num: d.getDate() }
   })
 }
-const DAYS = typeof window !== 'undefined' ? buildDays() : Array.from({ length: 14 }, (_, i) => ({ long: DAY_LABELS[i % 7]!, num: i + 1 }))
+function localDayKey(d = new Date()) {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
 
 // `activeDay` is expressed as an offset in days from today (DAYS[i] is
 // always today+i), so these helpers work for any offset — including ones
@@ -360,6 +363,34 @@ export default function DashboardClient({ userName, userEmail }: Props) {
   // Resolved after mount to avoid SSR/client hydration mismatch (#418)
   const [mounted, setMounted]       = useState(false)
   const [dateLabel, setDateLabel]   = useState('')
+  // Today's local date; re-checked when the tab regains focus and every
+  // minute, so the day strip rolls over at midnight without a reload.
+  const [todayKey, setTodayKey]     = useState('')
+  useEffect(() => {
+    let last = ''
+    const sync = () => {
+      const next = localDayKey()
+      if (next === last) return
+      // A new day: offsets are relative to today, so jump back to today.
+      if (last) setActiveDay(0)
+      last = next
+      setTodayKey(next)
+    }
+    sync()
+    const id = setInterval(sync, 60_000)
+    document.addEventListener('visibilitychange', sync)
+    window.addEventListener('focus', sync)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', sync)
+      window.removeEventListener('focus', sync)
+    }
+  }, [])
+  const DAYS = useMemo(
+    // Empty until mounted, so server and client render the same markup.
+    () => todayKey ? buildDays() : Array.from({ length: 14 }, () => ({ long: '', num: '' as string | number })),
+    [todayKey],
+  )
   const [greeting, setGreeting]     = useState(t.dashboard.goodMorning)
 
   useEffect(() => {
@@ -457,7 +488,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
     setClassesLoaded(false)
     refreshTodayClasses(activeDay)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeDay, currentSchool?.schoolId])
+  }, [activeDay, currentSchool?.schoolId, todayKey])
 
   useEffect(() => {
     const sid = currentSchool?.schoolId

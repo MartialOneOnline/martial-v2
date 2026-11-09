@@ -309,6 +309,12 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 - Android: el plugin `flutter_inappwebview` ya hace `CookieManager.flush()` en cada carga de página (`InAppWebViewClient.java:235`); el riesgo que queda es menor (rotación hecha en un `fetch` justo antes de que el sistema mate la app). Opcional para una futura versión de la app: `_homeUrl` → `/my`.
 - Sin verificar: reserva real con sesión de producción; `Header.tsx` sigue llamando a `getSession()` en cliente y los enlaces públicos tienen prefetch (Audit no demostró que eso revoque por sí solo).
 
+### Sesión — 2026-11-06 (rama `claude/dashboard-day-strip`; sin migración; PR #56 mergeado 2026-11-09 sin Project Audit, aceptado por el usuario tras reproducirse en producción el 09/11)
+
+**Tira de días de "Upcoming Classes" desfasada.** Con el dashboard abierto desde otro día (pestaña o WebView de la app), la tira seguía empezando y marcando el día en que se cargó (p. ej. MIÉ 4) mientras el título y la lista ya mostraban el día real (viernes 6).
+- Causa: `DAYS` se calculaba una vez al cargar el módulo de `apps/web/app/dashboard/DashboardClient.tsx`; el título y la petición de clases usan `new Date()` en cada render.
+- Arreglo: `DAYS` pasa a `useMemo` sobre un estado `todayKey` (fecha local), que se recalcula cada minuto y al volver el foco/visibilidad; si cambia el día vuelve a "hoy" (`activeDay = 0`) y recarga las clases. Antes de montar la tira se pinta vacía para no romper la hidratación.
+
 ### Sesión — 2026-09-04 → 2026-11-04 (rama `main` de `martial-v2` y de `martial-mobile-app`; sin Project Audit)
 
 **Publicación de la app móvil en Google Play y App Store.** Detalle de estado y pendientes en la sección "App móvil (tiendas)".
