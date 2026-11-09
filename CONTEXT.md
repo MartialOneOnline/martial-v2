@@ -302,7 +302,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-09 (rama `claude/audit-lote1-tenant-isolation`; sin migración; auditoría completa de Codex `RECHAZADO` en `605e021`; lote 1 entregado a Project Audit)
+### Sesión — 2026-11-09 (rama `claude/audit-lote1-tenant-isolation`; sin migración; auditoría completa de Codex `RECHAZADO` en `605e021`; lote 1 **`APROBADO`** en `1d4fab4`)
 
 **Auditoría completa del proyecto + lote 1 (aislamiento financiero entre escuelas).** Codex hizo una primera pasada del proyecto entero sobre `main@605e021` (informe en `docs/audits/FULL-AUDIT-2026-11-08.md`, resumen en `docs/PROJECT-AUDIT.md`): `RECHAZADO` con 6 P1, 7 P2 y 1 P3, y 7 lotes de corrección propuestos.
 - Lote 1 corregido aquí: (SEC-01) `app/api/webhooks/stripe/route.ts` — `handleStripeEvent(event, verifiedSchoolId)`; una firma válida de la escuela A ya no puede cancelar, renovar ni cambiar membresías, entradas de evento o coleccionables de la escuela B; (SEC-02) `POST /api/dashboard/transactions` exige que el `userId` sea miembro de la escuela; (SEC-03) la ficha del alumno solo muestra pagos de la escuela actual.

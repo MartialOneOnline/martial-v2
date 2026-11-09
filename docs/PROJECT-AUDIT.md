@@ -287,7 +287,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote T — Auditoría, lote 1: aislamiento financiero (rama `claude/audit-lote1-tenant-isolation`)
 
-- Estado: entregado a Project Audit, pendiente de veredicto. Sin migración.
+- Estado: **`APROBADO`** en `1d4fab4` (Codex, 2026-11-09), sin hallazgos nuevos. Codex repitió la reproducción con HMAC real de A y objetos de B; 55 fallos de la suite idénticos a la base. Sin migración.
 - SEC-01: el webhook de Stripe pasa al procesador la escuela cuya clave verificó la firma. Toda lectura/escritura por `stripeSubId` exige además `schoolId` de esa escuela; `checkout.session.completed` ignora el evento si `metadata.schoolId` es otra escuela, si el plan no es de la escuela, si la entrada de evento es de otra escuela o si el coleccionable no es de la escuela. Los ignorados se registran en el log.
 - SEC-02: `POST /api/dashboard/transactions` solo enlaza un `userId` con `SchoolMember` en la escuela actual; si no, 400 genérico sin PII y sin escribir. Los movimientos anónimos siguen funcionando.
 - SEC-03: la ficha `/dashboard/users/[id]` filtra las transacciones por `schoolId`.
