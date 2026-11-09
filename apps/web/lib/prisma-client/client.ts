@@ -341,3 +341,8 @@ export type StripeWebhookEvent = Prisma.StripeWebhookEventModel
  * 
  */
 export type InviteToken = Prisma.InviteTokenModel
+/**
+ * Model EmailChangeRequest
+ * 
+ */
+export type EmailChangeRequest = Prisma.EmailChangeRequestModel

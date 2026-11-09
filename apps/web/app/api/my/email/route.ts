@@ -1,75 +1,45 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { prisma } from '@/lib/db'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { isApplePrivateRelayEmail } from '@/lib/privateRelay'
 import { isRateLimited } from '@/lib/rateLimit'
+import { reconcileEmailChange, requestEmailChange } from '@/lib/emailChange'
+import { emailChangeDeps, prismaEmailChangeStore } from '@/lib/emailChangeStore'
+import { emailChangeError, getEmailChangeUser } from '@/lib/emailChangeHttp'
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Swapping an Apple "Hide My Email" relay address for a real one, verified
+// by a 6-digit code (lib/emailChange.ts). Only for relay accounts; every
+// other email change stays admin/support-only.
 
-// POST /api/my/email — lets someone who signed in with Apple "Hide My Email"
-// swap that relay address for a real one. Deliberately NOT a general email
-// change: it only works while the current email is an Apple relay address
-// (email is the login identifier, see the account-type decision — everything
-// else stays admin/support-only). Apple identities link by Apple's own id, so
-// "Continue with Apple" keeps working after the swap.
+// GET /api/my/email — current email, whether it is a relay address, and any
+// pending change. Also repairs a change that failed midway.
+export async function GET() {
+  const user = await getEmailChangeUser()
+  if (!user) return emailChangeError('unauthorized')
+  await reconcileEmailChange(emailChangeDeps(), user)
+  const email = (await prismaEmailChangeStore.getUserEmail(user.id)) ?? user.email
+  const pending = await prismaEmailChangeStore.getRequest(user.id)
+  return NextResponse.json({
+    email,
+    isRelay: isApplePrivateRelayEmail(email),
+    pending: pending && pending.status === 'PENDING' && pending.expiresAt > new Date()
+      ? { email: pending.newEmail, expiresAt: pending.expiresAt }
+      : null,
+  })
+}
+
+// POST /api/my/email { email, lang } — sends a code to the new address.
+// The account's email does not change until POST /api/my/email/confirm.
 export async function POST(req: Request) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll() } }
-  )
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const user = await getEmailChangeUser()
+  if (!user) return emailChangeError('unauthorized')
+  if (isRateLimited(`my-email:${user.id}`, 5, 60 * 60 * 1000)) return emailChangeError('rate_limited')
 
-  const dbUser = await prisma.user.findUnique({
-    where: { supabaseAuthId: authUser.id },
-    select: { id: true, email: true, deletedAt: true },
+  let body: { email?: unknown; lang?: unknown }
+  try { body = await req.json() } catch { return emailChangeError('bad_request') }
+
+  const result = await requestEmailChange(emailChangeDeps(), user, {
+    email: body.email,
+    lang: typeof body.lang === 'string' ? body.lang : null,
   })
-  if (!dbUser || dbUser.deletedAt) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-
-  if (!isApplePrivateRelayEmail(dbUser.email)) {
-    return NextResponse.json({ error: 'Email can only be changed from an Apple private relay address' }, { status: 403 })
-  }
-  if (isRateLimited(`my-email:${dbUser.id}`, 5, 60 * 60 * 1000)) {
-    return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 })
-  }
-
-  let body: { email?: string }
-  try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid request' }, { status: 400 }) }
-  const newEmail = body.email?.trim().toLowerCase() ?? ''
-  if (!EMAIL_RE.test(newEmail) || isApplePrivateRelayEmail(newEmail)) {
-    return NextResponse.json({ error: 'Enter a valid email address.' }, { status: 400 })
-  }
-
-  const taken = await prisma.user.findFirst({
-    where: { email: { equals: newEmail, mode: 'insensitive' }, id: { not: dbUser.id } },
-    select: { id: true },
-  })
-  if (taken) {
-    return NextResponse.json({ error: 'That email is already used by another account.' }, { status: 409 })
-  }
-
-  const admin = createAdminClient()
-  const { error: authError } = await admin.auth.admin.updateUserById(authUser.id, { email: newEmail, email_confirm: true })
-  if (authError) {
-    const exists = /already|registered|exists/i.test(authError.message)
-    if (!exists) console.error('[my/email] auth update failed:', authError)
-    return NextResponse.json(
-      { error: exists ? 'That email is already used by another account.' : 'Could not update your email. Please try again.' },
-      { status: exists ? 409 : 500 },
-    )
-  }
-
-  try {
-    await prisma.user.update({ where: { id: dbUser.id }, data: { email: newEmail } })
-  } catch (err) {
-    console.error('[my/email] prisma update failed, reverting auth email:', err)
-    await admin.auth.admin.updateUserById(authUser.id, { email: dbUser.email, email_confirm: true }).catch(() => {})
-    return NextResponse.json({ error: 'Could not update your email. Please try again.' }, { status: 500 })
-  }
-
-  return NextResponse.json({ ok: true, email: newEmail })
+  if (!result.ok) return emailChangeError(result.error)
+  return NextResponse.json({ ok: true, pending: { email: result.email, expiresAt: result.expiresAt } })
 }

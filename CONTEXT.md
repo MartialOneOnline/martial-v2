@@ -299,14 +299,15 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-05 → 2026-11-09 (rama `claude/apple-relay-email`; sin migración; pendiente: Project Audit y prueba manual)
+### Sesión — 2026-11-05 → 2026-11-09 (rama `claude/apple-relay-email`, PR #59; **migración nueva sin aplicar**; Project Audit `27284ff`: RECHAZADO (1 P1, 4 P2) → corregido, pendiente re-auditoría)
 
-**Email oculto de Apple ("Hide My Email") en `/complete-profile`.** Quien entra con Apple y oculta su email queda con una dirección `@privaterelay.appleid.com`, a la que solo llega el correo de remitentes registrados en el servicio de relay de Apple, así que los emails de la escuela no le llegan. Este trabajo se hizo el 2026-11-05 sin commitear (estaba suelto en `claude/dashboard-day-strip`) y se movió a su propia rama el 2026-11-09.
-- `lib/privateRelay.ts`: `isApplePrivateRelayEmail()`.
-- `/complete-profile` no deja pasar a `/my` mientras el email sea de relay y pide uno real.
-- `POST /api/my/email`: solo funciona si el email actual es de relay (no es un cambio de email general, que sigue siendo solo para admin o soporte); rate limit 5/h; rechaza emails ya usados; actualiza Supabase Auth y Prisma, y revierte Auth si falla Prisma. "Continuar con Apple" sigue funcionando porque la identidad se vincula por el id de Apple.
-- Tests: `__tests__/privateRelay.test.ts`.
-- Abierto: el email nuevo se marca como confirmado (`email_confirm: true`) sin verificar que sea de quien lo escribe; textos solo en inglés (la página ya lo estaba).
+**Email oculto de Apple ("Hide My Email") → email real verificado.** Quien entra con Apple y oculta su email queda con una dirección `@privaterelay.appleid.com`, que solo recibe correo de remitentes registrados en el relay de Apple, así que los emails de la escuela no le llegan. Trabajo empezado el 2026-11-05 sin commitear (estaba suelto en `claude/dashboard-day-strip`) y movido a su propia rama el 2026-11-09.
+- Primera versión (`27284ff`) RECHAZADA: guardaba el email nuevo como confirmado sin verificarlo (P1), con carreras entre Auth y Prisma, un rollback que ignoraba el `{ error }` de Supabase, sin control en `/my` y sin i18n.
+- **Rediseño (decisión del usuario: código de 6 dígitos):** `lib/emailChange.ts` (lógica con dependencias inyectadas), `lib/emailChangeStore.ts` (Prisma + Supabase admin), `lib/emailChangeHttp.ts`. Rutas: `GET /api/my/email` (estado + reparación), `POST /api/my/email` (envía el código), `POST /api/my/email/confirm`. El email de la cuenta no cambia hasta confirmar el código (HMAC con `SUPABASE_SECRET_KEY`, 15 min, 5 intentos, 1 min entre envíos).
+- Concurrencia: tabla `email_change_requests` (una fila por usuario, estado `PENDING`/`APPLYING`); el paso `PENDING → APPLYING` con `updateMany` condicional hace de bloqueo por usuario (no se usan advisory locks por el pooler). Orden: Auth y luego Prisma (`users.email` y borrado de la fila en una transacción). Si falla Prisma, se revierte Auth comprobando excepción y `{ error }`; si la reversión también falla, la fila queda `APPLYING` y `reconcileEmailChange()` alinea Prisma con Auth pasados 2 min (en cada GET/POST).
+- `/my` (`app/my/layout.tsx`) redirige a `/complete-profile` si el email es de relay. UI en `app/complete-profile/RelayEmailStep.tsx`; textos y errores por código en `t.relayEmail` (4 idiomas); email del código `lib/email/templates/emailChangeCode.ts` (4 idiomas, Resend).
+- **Migración `prisma/migrations/20261109120000_email_change_requests` SIN APLICAR**: aplicarla en Supabase antes de desplegar, o las rutas fallarán. Es aditiva (enum + tabla) y se puede reejecutar. Verificada offline con `prisma migrate diff`.
+- Tests: `__tests__/emailChange.test.ts` (15: sin cambio sin código, intentos, caducidad, A→B, dos confirmaciones simultáneas, petición nueva durante `APPLYING`, rollback con `{ error }` y con excepción + reparación) y `__tests__/privateRelay.test.ts`; casos de relay en `myPortalStaffGuard.test.ts` (los 6 fallos de ese archivo ya existían en main). Sin probar en navegador ni con Apple real.
 
 ### Sesión — 2026-09-04 → 2026-11-04 (rama `main` de `martial-v2` y de `martial-mobile-app`; sin Project Audit)
 

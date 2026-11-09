@@ -4,6 +4,7 @@ import { getAuthUser } from '@/lib/auth/server'
 import { hasDashboardAccess, hasStudentAccess } from '@/lib/auth/contexts'
 import { prisma } from '@/lib/db'
 import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
+import { isApplePrivateRelayEmail } from '@/lib/privateRelay'
 import { getSchoolModules } from '@/lib/school-modules'
 import MyShell from '../../components/MyShell'
 
@@ -42,7 +43,10 @@ export default async function MyLayout({ children }: { children: React.ReactNode
   })
   const isMinor = profile?.dateOfBirth != null && calculateAge(profile.dateOfBirth) < MIN_CONSENT_AGE
   const guardianDone = !isMinor || profile?.guardianConsentAt != null
-  if (profile && (!profile.phone || !profile.dateOfBirth || !profile.avatarUrl || !guardianDone)) {
+  // Apple "Hide My Email" relay addresses don't receive school email: those
+  // students confirm a real address there first (lib/emailChange.ts).
+  const relayEmail = isApplePrivateRelayEmail(user.email)
+  if (profile && (!profile.phone || !profile.dateOfBirth || !profile.avatarUrl || !guardianDone || relayEmail)) {
     redirect('/complete-profile')
   }
 
