@@ -299,6 +299,13 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-08 (rama `claude/session-refresh-all-routes`; sin migración; pendiente: Project Audit y prueba manual)
+
+**Alumnos deslogueados de un día para otro al reservar.** El proxy solo refrescaba la sesión en `/my`, `/dashboard`, `/admin` y sus APIs. Reservar (`POST /api/bookings`), las rutas de la página pública de escuela (`/api/memberships/trial`, `/api/schools/[slug]/*`) y `/api/auth/me|contexts` leen la sesión con `getAuthUser()` fuera de esos prefijos. Con el access token caducado (1 h, p. ej. app reabierta al día siguiente sin recargar), esa llamada refrescaba en el servidor y rotaba el refresh token de un solo uso, pero las cookies nuevas no volvían al navegador. La siguiente petición usaba el token viejo, Supabase detectaba reutilización y revocaba la sesión entera.
+- Arreglo en `apps/web/proxy.ts`: cualquier petición con cookie `sb-*-auth-token` fuera de las rutas protegidas pasa por `refreshSessionOnly()` (`getSession()`, solo llama a Supabase si el token caducó; nunca bloquea). Excluidas las rutas que escriben la sesión ellas mismas (`/auth/*`, `/api/auth/login|google|signout|register`) y webhooks/cron.
+- Tests: `__tests__/proxySessionRefresh.test.ts` (6). Suite: los 55 fallos restantes ya existían antes (mocks de Prisma sin `classCancellation` etc.).
+- Sin verificar: prueba real (requiere esperar >1 h con la sesión abierta) y ajustes del proyecto Supabase (Auth → Sessions: time-box / inactivity timeout; Refresh token reuse interval).
+
 ### Sesión — 2026-09-04 → 2026-11-04 (rama `main` de `martial-v2` y de `martial-mobile-app`; sin Project Audit)
 
 **Publicación de la app móvil en Google Play y App Store.** Detalle de estado y pendientes en la sección "App móvil (tiendas)".
