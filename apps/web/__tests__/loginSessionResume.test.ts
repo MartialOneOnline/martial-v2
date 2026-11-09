@@ -39,3 +39,160 @@ describe('/login session resume', () => {
     expect(shouldResumeSession({ ...base, lastAttemptAt: base.now - LOGIN_RESUME_GUARD_MS })).toBe(true)
   })
 })
+
+// ── Guard persistence ───────────────────────────────────────────────────────
+import { readResumeGuard, writeResumeGuard, type ResumeGuardEnv } from '@/lib/auth/sessionCookie'
+import { resumeSession, runLoginRedirect } from '@/lib/auth/loginResume'
+import { vi } from 'vitest'
+
+function memoryStorage(): Pick<Storage, 'getItem' | 'setItem'> {
+  const m = new Map<string, string>()
+  return { getItem: k => m.get(k) ?? null, setItem: (k, v) => { m.set(k, v) } }
+}
+function cookieJar(opts: { blocked?: boolean } = {}) {
+  let jar: string[] = []
+  return {
+    readCookies: () => jar.join('; '),
+    writeCookie: (c: string) => {
+      if (opts.blocked) return // e.g. cookies disabled: silently dropped
+      const pair = c.split(';')[0]!
+      const name = pair.split('=')[0]
+      jar = jar.filter(p => p.split('=')[0] !== name).concat(pair)
+    },
+  }
+}
+const throwingStorage: Pick<Storage, 'getItem' | 'setItem'> = {
+  getItem: () => { throw new Error('SecurityError') },
+  setItem: () => { throw new Error('SecurityError') },
+}
+
+describe('resume loop guard', () => {
+  it('uses sessionStorage when available', () => {
+    const env: ResumeGuardEnv = { storage: memoryStorage(), ...cookieJar() }
+    expect(writeResumeGuard(env, 123)).toBe(true)
+    expect(readResumeGuard(env)).toBe(123)
+  })
+
+  it('falls back to a short-lived cookie when storage throws', () => {
+    const env: ResumeGuardEnv = { storage: throwingStorage, ...cookieJar() }
+    expect(writeResumeGuard(env, 456)).toBe(true)
+    expect(readResumeGuard(env)).toBe(456)
+  })
+
+  it('reports failure when neither store keeps the value', () => {
+    const env: ResumeGuardEnv = { storage: throwingStorage, ...cookieJar({ blocked: true }) }
+    expect(writeResumeGuard(env, 789)).toBe(false)
+    expect(readResumeGuard(env)).toBeNull()
+  })
+})
+
+// ── Resume flow ─────────────────────────────────────────────────────────────
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
+}
+function deferred<T>() {
+  let resolve!: (v: T) => void
+  const promise = new Promise<T>(r => { resolve = r })
+  return { promise, resolve }
+}
+// Like fetch: rejects with AbortError once the signal fires, even if the
+// response is released later.
+function abortableFetch(handler: (url: string) => Promise<Response>): typeof fetch {
+  return (input, init) => new Promise<Response>((resolve, reject) => {
+    const signal = init?.signal
+    if (signal?.aborted) return reject(new DOMException('aborted', 'AbortError'))
+    signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+    handler(String(input)).then(resolve, reject)
+  })
+}
+
+describe('resumeSession + runLoginRedirect', () => {
+  const student = { user: { id: 'u1', globalRole: 'STUDENT' }, contexts: { schools: [] } }
+
+  function setup(fetchImpl: typeof fetch, guardEnv: ResumeGuardEnv = { storage: memoryStorage(), ...cookieJar() }) {
+    const navigate = vi.fn()
+    const showPicker = vi.fn()
+    const controller = new AbortController()
+    const run = resumeSession({
+      oauthCallback: false,
+      oauthError: false,
+      guardEnv,
+      now: Date.now(),
+      fetchImpl,
+      redirect: (signal) => runLoginRedirect({ redirectTo: undefined, pathname: '/login', fetchImpl, navigate, showPicker, signal }),
+      signal: controller.signal,
+    })
+    return { run, navigate, showPicker, controller }
+  }
+
+  it('sends a valid student on to /my', async () => {
+    const fetchImpl = abortableFetch(async url =>
+      url === '/api/auth/contexts' ? json({ contexts: [{ mode: 'student', schoolId: 's1' }] }) : json(student))
+    const { run, navigate } = setup(fetchImpl)
+    expect(await run).toBe('redirecting')
+    expect(navigate).toHaveBeenCalledWith('/my')
+  })
+
+  it('shows the form for an invalid session', async () => {
+    const { run, navigate } = setup(abortableFetch(async () => json({ role: null }, 401)))
+    expect(await run).toBe('form')
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('asks to continue instead of redirecting when no guard can be saved', async () => {
+    const { run, navigate } = setup(
+      abortableFetch(async () => json(student)),
+      { storage: throwingStorage, ...cookieJar({ blocked: true }) },
+    )
+    expect(await run).toBe('confirm')
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('a late response after the deadline never navigates or opens the picker', async () => {
+    // First /me answers; the second one (inside the redirect) hangs.
+    const second = deferred<Response>()
+    let meCalls = 0
+    const fetchImpl = abortableFetch(url => {
+      if (url === '/api/auth/me') return ++meCalls === 1 ? Promise.resolve(json(student)) : second.promise
+      return Promise.resolve(json({ contexts: [] }))
+    })
+    const { run, navigate, showPicker, controller } = setup(fetchImpl)
+    await new Promise(r => setTimeout(r, 0))
+    expect(meCalls).toBe(2)
+
+    controller.abort() // the 8s deadline: the form is back, the user types
+    second.resolve(json({ user: { id: 'u1', globalRole: 'STUDENT' }, contexts: { schools: [{ schoolId: 'a', role: 'OWNER' }, { schoolId: 'b', role: 'OWNER' }] } }))
+
+    expect(await run).toBe('aborted')
+    await new Promise(r => setTimeout(r, 0))
+    expect(navigate).not.toHaveBeenCalled()
+    expect(showPicker).not.toHaveBeenCalled()
+  })
+
+  it('an aborted redirect does not fall back to /my either', async () => {
+    const navigate = vi.fn()
+    const controller = new AbortController()
+    controller.abort()
+    await runLoginRedirect({
+      redirectTo: undefined,
+      pathname: '/login',
+      fetchImpl: abortableFetch(async () => json(student)),
+      navigate,
+      showPicker: vi.fn(),
+      signal: controller.signal,
+    })
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('normal logins (no signal) keep the old behaviour, including the /my fallback', async () => {
+    const navigate = vi.fn()
+    await runLoginRedirect({
+      redirectTo: undefined,
+      pathname: '/login',
+      fetchImpl: async () => { throw new Error('network') },
+      navigate,
+      showPicker: vi.fn(),
+    })
+    expect(navigate).toHaveBeenCalledWith('/my')
+  })
+})

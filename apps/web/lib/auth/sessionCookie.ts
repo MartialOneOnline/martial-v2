@@ -33,3 +33,49 @@ export function shouldResumeSession(input: {
   if (input.lastAttemptAt !== null && input.now - input.lastAttemptAt < LOGIN_RESUME_GUARD_MS) return false
   return true
 }
+
+// The loop guard has to survive a full navigation (/login → /my → proxy
+// bounce → /login), so it lives in sessionStorage, or in a short-lived
+// cookie when storage is blocked. Every write is read back: a guard that
+// can't be persisted is reported as such, and the caller must then ask the
+// user to continue instead of redirecting on its own.
+export type ResumeGuardEnv = {
+  storage: Pick<Storage, 'getItem' | 'setItem'> | null
+  readCookies: () => string
+  writeCookie: (cookie: string) => void
+}
+
+function safe<T>(fn: () => T, fallback: T): T {
+  try { return fn() } catch { return fallback }
+}
+
+function cookieValue(all: string, name: string): string | null {
+  for (const part of all.split(';')) {
+    const [k, ...v] = part.trim().split('=')
+    if (k === name) return v.join('=')
+  }
+  return null
+}
+
+export function readResumeGuard(env: ResumeGuardEnv): number | null {
+  const values = [
+    safe(() => env.storage?.getItem(LOGIN_RESUME_GUARD_KEY) ?? null, null),
+    safe(() => cookieValue(env.readCookies(), LOGIN_RESUME_GUARD_KEY), null),
+  ]
+  const times = values.map(v => (v ? Number(v) : NaN)).filter(n => Number.isFinite(n) && n > 0)
+  return times.length ? Math.max(...times) : null
+}
+
+// Returns true only if the value can be read back afterwards.
+export function writeResumeGuard(env: ResumeGuardEnv, now: number): boolean {
+  const value = String(now)
+  const stored = safe(() => {
+    env.storage?.setItem(LOGIN_RESUME_GUARD_KEY, value)
+    return env.storage?.getItem(LOGIN_RESUME_GUARD_KEY) === value
+  }, false)
+  if (stored) return true
+  return safe(() => {
+    env.writeCookie(`${LOGIN_RESUME_GUARD_KEY}=${value}; Max-Age=${Math.ceil(LOGIN_RESUME_GUARD_MS / 1000)}; Path=/; SameSite=Lax`)
+    return cookieValue(env.readCookies(), LOGIN_RESUME_GUARD_KEY) === value
+  }, false)
+}
