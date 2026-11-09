@@ -299,7 +299,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-05 → 2026-11-09 (rama `claude/apple-relay-email`, PR #59; **migración nueva sin aplicar**; Project Audit `27284ff`: RECHAZADO (1 P1, 4 P2) → `3428d88`: APROBADO CON PENDIENTES (3 P2) → `ecb927e`: APROBADO CON PENDIENTES (2 P2) → corregido, pendiente re-auditoría)
+### Sesión — 2026-11-05 → 2026-11-09 (rama `claude/apple-relay-email`, PR #59; **migración nueva sin aplicar**; Project Audit `27284ff`: RECHAZADO (1 P1, 4 P2) → `3428d88`: APROBADO CON PENDIENTES (3 P2) → `ecb927e`: APROBADO CON PENDIENTES (2 P2) → **`APROBADO`** en `9af08af`; pendiente: aplicar la migración antes de desplegar y probar con Apple/Resend reales)
 
 **Email oculto de Apple ("Hide My Email") → email real verificado.** Quien entra con Apple y oculta su email queda con una dirección `@privaterelay.appleid.com`, que solo recibe correo de remitentes registrados en el relay de Apple, así que los emails de la escuela no le llegan. Trabajo empezado el 2026-11-05 sin commitear (estaba suelto en `claude/dashboard-day-strip`) y movido a su propia rama el 2026-11-09.
 - Primera versión (`27284ff`) RECHAZADA: guardaba el email nuevo como confirmado sin verificarlo (P1), con carreras entre Auth y Prisma, un rollback que ignoraba el `{ error }` de Supabase, sin control en `/my` y sin i18n.
