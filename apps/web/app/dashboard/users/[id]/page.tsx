@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { memberHasPermission } from '@/lib/auth/customRoles'
 import StudentProfileClient from './StudentProfileClient'
 import { getReadinessForSchool, ATTENDED_WHERE } from '@/lib/grading/readinessData'
 
@@ -19,13 +20,14 @@ export default async function StudentProfilePage({
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) notFound()
 
+  // Same permissions as the Users menu entry and its API: the full profile
+  // (contact, emergency contact, medical notes) needs school.members.view;
+  // the payment history also needs school.payments.view.
+  let canViewPayments = true
   if (viewer.role !== 'SUPERADMIN') {
-    try {
-      const membership = await requireSchoolAccess(viewer.id, schoolId)
-      if (!['OWNER', 'ADMIN', 'INSTRUCTOR'].includes(membership.role)) notFound()
-    } catch {
-      notFound()
-    }
+    const membership = await requireSchoolAccess(viewer.id, schoolId).catch(() => null)
+    if (!membership || !(await memberHasPermission(membership, 'school.members.view'))) notFound()
+    canViewPayments = await memberHasPermission(membership, 'school.payments.view')
   }
 
   const member = await prisma.schoolMember.findFirst({
@@ -56,12 +58,14 @@ export default async function StudentProfilePage({
       take: 50,
       include: { class: { select: { name: true } } },
     }).catch(() => []),
-    prisma.transaction.findMany({
-      // Only this school's movements: a student can belong to several schools.
-      where: { userId: member.userId, schoolId: member.schoolId, deletedAt: null },
-      orderBy: { date: 'desc' },
-      take: 50,
-    }).catch(() => []),
+    canViewPayments
+      ? prisma.transaction.findMany({
+          // Only this school's movements: a student can belong to several schools.
+          where: { userId: member.userId, schoolId: member.schoolId, deletedAt: null },
+          orderBy: { date: 'desc' },
+          take: 50,
+        }).catch(() => [])
+      : Promise.resolve([]),
     prisma.membership.findMany({
       where: { userId: member.userId, schoolId: member.schoolId },
       include: { plan: { select: { name: true, price: true, billingCycle: true, planType: true } } },
@@ -196,5 +200,5 @@ export default async function StudentProfilePage({
     })),
   }
 
-  return <StudentProfileClient profile={profile} ranks={beltRanks} attendanceStats={attendanceStats} readiness={readiness} lastGradedAt={lastGradedAt} gradingEnabled={gradingOn} />
+  return <StudentProfileClient profile={profile} ranks={beltRanks} attendanceStats={attendanceStats} readiness={readiness} lastGradedAt={lastGradedAt} gradingEnabled={gradingOn} canViewPayments={canViewPayments} />
 }

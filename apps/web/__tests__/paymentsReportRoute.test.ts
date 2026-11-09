@@ -7,7 +7,19 @@ const m = vi.hoisted(() => ({
   requireSchoolAccess: vi.fn(), staffRole: vi.fn(),
   school: vi.fn(), members: vi.fn(), memberships: vi.fn(), bookingGroupBy: vi.fn(), txGroupBy: vi.fn(), txFindMany: vi.fn(), users: vi.fn(),
 }))
-vi.mock('@/lib/auth/server', () => ({ getAuthUser: m.getAuthUser, getCurrentSchoolId: m.getCurrentSchoolId, requireDashboardAccess: m.requireDashboardAccess }))
+// requireDashboardPermission() = requireDashboardAccess() + the member's real
+// effective permission (lib/auth/customRoles.ts, CUSTOM roles included).
+vi.mock('@/lib/auth/server', async () => {
+  const { memberHasPermission } = await import('@/lib/auth/customRoles')
+  return {
+    getAuthUser: m.getAuthUser, getCurrentSchoolId: m.getCurrentSchoolId, requireDashboardAccess: m.requireDashboardAccess,
+    requireDashboardPermission: async (permission: Parameters<typeof memberHasPermission>[1], schoolId?: string) => {
+      const access = await m.requireDashboardAccess(schoolId)
+      if (access.member && !(await memberHasPermission(access.member, permission))) throw new Error('FORBIDDEN')
+      return access
+    },
+  }
+})
 vi.mock('@/lib/auth/contexts', () => ({ requireSchoolAccess: m.requireSchoolAccess }))
 vi.mock('@/lib/db', () => ({
   prisma: {
@@ -148,16 +160,14 @@ describe('re-audit fixes', () => {
   })
 
   it('P2: a CUSTOM staff role with analytics permission gets in; without it, 403', async () => {
-    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
-    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'CUSTOM', customRoleId: 'r1', status: 'ACTIVE' })
+    // CUSTOM is a dashboard role (DASHBOARD_ROLES); its StaffRole permissions decide
+    m.requireDashboardAccess.mockResolvedValueOnce({ member: { role: 'CUSTOM', customRoleId: 'r1', status: 'ACTIVE' } })
     m.staffRole.mockResolvedValueOnce({ permissions: ['school.analytics.view'] })
     expect((await call()).status).toBe(200)
-    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
-    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'CUSTOM', customRoleId: 'r2', status: 'ACTIVE' })
+    m.requireDashboardAccess.mockResolvedValueOnce({ member: { role: 'CUSTOM', customRoleId: 'r2', status: 'ACTIVE' } })
     m.staffRole.mockResolvedValueOnce({ permissions: ['school.classes.view'] })
     expect((await call()).status).toBe(403)
-    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN'))
-    m.requireSchoolAccess.mockResolvedValueOnce({ role: 'STUDENT', customRoleId: null, status: 'ACTIVE' })
+    m.requireDashboardAccess.mockRejectedValueOnce(new Error('FORBIDDEN')) // STUDENT
     expect((await call()).status).toBe(403)
   })
 })

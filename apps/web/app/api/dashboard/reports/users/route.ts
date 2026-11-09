@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
+import { getAuthUser, getCurrentSchoolId, requireDashboardPermission } from '@/lib/auth/server'
 import {
   addMonths, monthRange, schoolTimeZone, reportMonths, zonedRangeBounds,
   computeMonthlyActivity, summarisePeriod, activityByUser, segmentUsers, atRiskUsers,
@@ -10,15 +10,14 @@ import { cleanPhone, whatsappNumber } from '@/lib/phone'
 import { isGradingEnabled } from '@/lib/school-modules'
 import { buildBeltIndex, beltKey, beltOptions, beltColor, resolveBeltRank, matchesBeltFilter, parseBeltFilter } from '@/lib/beltGroups'
 
-// requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
-// requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
-// not read the full member roster (names/emails/belts/plans) for the school.
+// Staff with the Reports permission only (school.analytics.view, same as the
+// menu entry) — not every staff role may read the member roster.
 async function authorise() {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return { error: 'No school context', status: 400 }
-  try { await requireDashboardAccess(schoolId) }
+  try { await requireDashboardPermission('school.analytics.view', schoolId) }
   catch { return { error: 'Forbidden', status: 403 } }
   return { schoolId }
 }

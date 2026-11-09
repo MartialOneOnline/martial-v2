@@ -302,6 +302,14 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-09 (b) (rama `claude/audit-lote2-permissions`, sobre el Lote 1; sin migración; entregado a Project Audit)
+
+**Auditoría, lote 2: permisos efectivos (SEC-04, SEC-05, ROLE-01).** Nuevo `requireDashboardPermission()` en `lib/auth/server.ts`.
+- La ficha del alumno exige `school.members.view` (el INSTRUCTOR ya no la abre por URL directa). El historial de pagos solo se carga con `school.payments.view` (prop `canViewPayments` en `StudentProfileClient`).
+- Los informes exigen `school.analytics.view` también en la API. El gráfico de reservas de la home sigue abierto a todo el personal.
+- CUSTOM es rol de dashboard (`DASHBOARD_ROLES`). Users (lista y vista dividida) y el marketplace usan los permisos reales del StaffRole.
+- Pendiente (decisión de producto): unas 20 rutas aún autorizan por nombre de rol (no-show, asistencia, check-in, eventos, cancelar clase, editar transacción, Revolut, billing). Detalle en `docs/PROJECT-AUDIT.md` → Lote U.
+
 ### Sesión — 2026-11-09 (rama `claude/audit-lote1-tenant-isolation`; sin migración; auditoría completa de Codex `RECHAZADO` en `605e021`; lote 1 **`APROBADO`** en `1d4fab4`)
 
 **Auditoría completa del proyecto + lote 1 (aislamiento financiero entre escuelas).** Codex hizo una primera pasada del proyecto entero sobre `main@605e021` (informe en `docs/audits/FULL-AUDIT-2026-11-08.md`, resumen en `docs/PROJECT-AUDIT.md`): `RECHAZADO` con 6 P1, 7 P2 y 1 P3, y 7 lotes de corrección propuestos.

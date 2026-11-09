@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { prisma } from '@/lib/db'
 import { requireSchoolAccess, DASHBOARD_ROLES } from './contexts'
+import { memberHasPermission } from './customRoles'
+import type { Permission } from './permissions'
 
 type SupabaseAuthUser = {
   id: string
@@ -160,6 +162,16 @@ export async function requireDashboardAccess(schoolId?: string) {
   const member = await requireSchoolAccess(user.id, sid)
   if (!DASHBOARD_ROLES.includes(member.role)) throw new Error('FORBIDDEN')
   return { user, member }
+}
+
+// Same as requireDashboardAccess(), plus the member's effective permission
+// (base-role matrix or their CUSTOM StaffRole). Use it for any dashboard data
+// whose menu entry is gated on a permission, so hiding the entry is never the
+// only protection. Throws 'UNAUTHORIZED' or 'FORBIDDEN'.
+export async function requireDashboardPermission(permission: Permission, schoolId?: string) {
+  const access = await requireDashboardAccess(schoolId)
+  if (access.member && !(await memberHasPermission(access.member, permission))) throw new Error('FORBIDDEN')
+  return access
 }
 
 // Guard for superadmin-only API routes.

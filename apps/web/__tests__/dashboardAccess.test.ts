@@ -32,7 +32,7 @@ describe('hasDashboardAccess()', () => {
       where: {
         userId: 'user-1',
         status: 'ACTIVE',
-        role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] },
+        role: { in: ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST', 'CUSTOM'] },
       },
     })
   })

@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server'
-import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
+import { getAuthUser, getCurrentSchoolId, requireDashboardPermission } from '@/lib/auth/server'
 import { getReadinessForSchool } from '@/lib/grading/readinessData'
 import { OVERDUE_DAYS, compareGradingQueue, isOverdue } from '@/lib/grading/overdue'
 
 // GET /api/dashboard/reports/grading-readiness
 // Active/frozen students of the current school with their grading readiness.
-// Staff-only: requireDashboardAccess() rejects STUDENT members.
+// Reports permission only (school.analytics.view, same as the menu entry).
 export async function GET() {
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
-  try { await requireDashboardAccess(schoolId) }
+  try { await requireDashboardPermission('school.analytics.view', schoolId) }
   catch { return NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
 
   const rows = await getReadinessForSchool(schoolId)

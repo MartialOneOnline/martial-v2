@@ -6,7 +6,19 @@ const m = vi.hoisted(() => ({
   getAuthUser: vi.fn(), getCurrentSchoolId: vi.fn(), requireDashboardAccess: vi.fn(),
   schoolFindUnique: vi.fn(), memberFindMany: vi.fn(), bookingFindMany: vi.fn(), bookingGroupBy: vi.fn(), membershipFindMany: vi.fn(),
 }))
-vi.mock('@/lib/auth/server', () => ({ getAuthUser: m.getAuthUser, getCurrentSchoolId: m.getCurrentSchoolId, requireDashboardAccess: m.requireDashboardAccess }))
+// requireDashboardPermission() = requireDashboardAccess() + the member's real
+// effective permission (lib/auth/customRoles.ts, CUSTOM roles included).
+vi.mock('@/lib/auth/server', async () => {
+  const { memberHasPermission } = await import('@/lib/auth/customRoles')
+  return {
+    getAuthUser: m.getAuthUser, getCurrentSchoolId: m.getCurrentSchoolId, requireDashboardAccess: m.requireDashboardAccess,
+    requireDashboardPermission: async (permission: Parameters<typeof memberHasPermission>[1], schoolId?: string) => {
+      const access = await m.requireDashboardAccess(schoolId)
+      if (access.member && !(await memberHasPermission(access.member, permission))) throw new Error('FORBIDDEN')
+      return access
+    },
+  }
+})
 vi.mock('@/lib/db', () => ({
   prisma: {
     school: { findUnique: m.schoolFindUnique },

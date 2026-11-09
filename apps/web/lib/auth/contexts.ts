@@ -83,8 +83,11 @@ export async function requireSchoolAccess(userId: string, schoolId: string) {
 // Exported so individual /api/dashboard/** routes can reuse the same "is this
 // a staff role" check (e.g. app/api/dashboard/upload/route.ts) instead of
 // hand-rolling their own role list that could drift from this one.
+// CUSTOM is a school-defined staff role: it gets into the dashboard like any
+// other staff role, and what it can see is decided by its own permissions
+// (lib/auth/customRoles.ts), never by being on this list.
 export const DASHBOARD_ROLES: SchoolMemberRole[] = [
-  'OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST',
+  'OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST', 'CUSTOM',
 ]
 
 // Gate for entering /dashboard at all. Checked against SchoolMember, not the

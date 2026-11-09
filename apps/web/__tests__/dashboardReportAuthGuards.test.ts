@@ -26,11 +26,22 @@ const mockGetAuthUser = vi.fn()
 const mockGetCurrentSchoolId = vi.fn()
 const mockRequireDashboardAccess = vi.fn()
 
-vi.mock('@/lib/auth/server', () => ({
-  getAuthUser: mockGetAuthUser,
-  getCurrentSchoolId: mockGetCurrentSchoolId,
-  requireDashboardAccess: mockRequireDashboardAccess,
-}))
+// requireDashboardPermission() = requireDashboardAccess() + the member's
+// permission (base-role matrix here; CUSTOM roles are covered in
+// auditPermissions.test.ts against the real implementation).
+vi.mock('@/lib/auth/server', async () => {
+  const { hasPermission } = await import('@/lib/auth/permissions')
+  return {
+    getAuthUser: mockGetAuthUser,
+    getCurrentSchoolId: mockGetCurrentSchoolId,
+    requireDashboardAccess: mockRequireDashboardAccess,
+    requireDashboardPermission: async (permission: Parameters<typeof hasPermission>[1], schoolId?: string) => {
+      const access = await mockRequireDashboardAccess(schoolId)
+      if (access.member && !hasPermission(access.member.role, permission)) throw new Error('FORBIDDEN')
+      return access
+    },
+  }
+})
 
 // ── prisma mock — generic per-model defaults, enough for each route's
 // handler body to run to completion without touching a real DB ──────────────
@@ -226,5 +237,49 @@ describe('regression — routes explicitly out of scope for this PR', () => {
     expect(res.status).toBe(200)
     // Confirms this route was NOT migrated to requireDashboardAccess().
     expect(mockRequireDashboardAccess).not.toHaveBeenCalled()
+  })
+})
+
+// Audit SEC-05 (2026-11-09): hiding the Reports menu entry was the only
+// protection — every report endpoint now needs school.analytics.view too.
+describe('audit SEC-05 — report endpoints need the Reports permission, not just a staff role', () => {
+  const ANALYTICS_ROUTES = ROUTES.filter(r => r.name.includes('/reports/') && !r.name.endsWith('/chart'))
+
+  it('covers every report screen endpoint', () => {
+    expect(ANALYTICS_ROUTES.map(r => r.name)).toEqual([
+      'GET /api/dashboard/reports/payments',
+      'GET /api/dashboard/reports/users',
+      'GET /api/dashboard/reports/absents',
+      'GET /api/dashboard/reports/bookings',
+      'GET /api/dashboard/reports/bookings/list',
+    ])
+  })
+
+  it.each(['INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST'] as SchoolMemberRole[])('%s gets 403 on every report endpoint', async (role) => {
+    for (const route of ANALYTICS_ROUTES) {
+      asStaff(role)
+      const res = await route.call()
+      expect(res.status, route.name).toBe(403)
+    }
+  })
+
+  it.each(['ADMIN', 'MANAGER'] as SchoolMemberRole[])('%s still reads every report', async (role) => {
+    for (const route of ANALYTICS_ROUTES) {
+      asStaff(role)
+      const res = await route.call()
+      expect(res.status, route.name).toBe(200)
+    }
+  })
+
+  it('the dashboard home bookings chart stays open to every staff role (aggregate counts only)', async () => {
+    asStaff('INSTRUCTOR')
+    const res = await bookingsChartRoute.GET(getRequest('/api/dashboard/reports/bookings/chart'))
+    expect(res.status).toBe(200)
+  })
+
+  it('grading readiness report: 403 for an INSTRUCTOR', async () => {
+    const readiness = await import('@/app/api/dashboard/reports/grading-readiness/route')
+    asStaff('INSTRUCTOR')
+    expect((await readiness.GET()).status).toBe(403)
   })
 })

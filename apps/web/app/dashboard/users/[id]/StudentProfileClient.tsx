@@ -1646,7 +1646,7 @@ function MembershipSection({
 // ── Main component ─────────────────────────────────────────────────────────────
 interface AttendanceStats { totalClasses: number; last30Days: number; lastClassDate: string | null }
 
-export default function StudentProfileClient({ profile: initialProfile, ranks, attendanceStats, readiness, lastGradedAt, gradingEnabled }: {
+export default function StudentProfileClient({ profile: initialProfile, ranks, attendanceStats, readiness, lastGradedAt, gradingEnabled, canViewPayments = true }: {
   profile: Profile
   ranks: BeltRankInfo[]
   attendanceStats: AttendanceStats
@@ -1654,6 +1654,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
   lastGradedAt: string | null
   /** Belts & gradings module (Settings → Modules): off hides every belt surface */
   gradingEnabled: boolean
+  /** school.payments.view — without it the payment history is not sent or shown */
+  canViewPayments?: boolean
 }) {
   const tt = useT()
   const statusMap = getStatusMap(tt)
@@ -2287,8 +2289,8 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
                 )}
               </Card>
 
-              {/* Transactions */}
-              <Card>
+              {/* Transactions — only for staff allowed to see payments */}
+              {canViewPayments && <Card>
                 <CardHeader title={tt.studentProfile.paymentHistory} />
                 {transactions.length === 0 ? (
                   <EmptyState icon={CreditCard} text={tt.studentProfile.noTransactionsFound} />
@@ -2367,7 +2369,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
                     )}
                   </div>
                 )}
-              </Card>
+              </Card>}
             </div>
 
             {/* Admin notes */}

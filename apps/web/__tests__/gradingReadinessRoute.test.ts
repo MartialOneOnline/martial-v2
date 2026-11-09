@@ -3,7 +3,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const { getAuthUser, getCurrentSchoolId, requireDashboardAccess, getReadinessForSchool } = vi.hoisted(() => ({
   getAuthUser: vi.fn(), getCurrentSchoolId: vi.fn(), requireDashboardAccess: vi.fn(), getReadinessForSchool: vi.fn(),
 }))
-vi.mock('@/lib/auth/server', () => ({ getAuthUser, getCurrentSchoolId, requireDashboardAccess }))
+// requireDashboardPermission() = requireDashboardAccess() + the member's real
+// effective permission (lib/auth/customRoles.ts, CUSTOM roles included).
+vi.mock('@/lib/auth/server', async () => {
+  const { memberHasPermission } = await import('@/lib/auth/customRoles')
+  return {
+    getAuthUser: getAuthUser, getCurrentSchoolId: getCurrentSchoolId, requireDashboardAccess: requireDashboardAccess,
+    requireDashboardPermission: async (permission: Parameters<typeof memberHasPermission>[1], schoolId?: string) => {
+      const access = await requireDashboardAccess(schoolId)
+      if (access.member && !(await memberHasPermission(access.member, permission))) throw new Error('FORBIDDEN')
+      return access
+    },
+  }
+})
 vi.mock('@/lib/grading/readinessData', () => ({ getReadinessForSchool }))
 
 import { GET } from '../app/api/dashboard/reports/grading-readiness/route'
@@ -16,7 +28,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   getAuthUser.mockResolvedValue({ id: 'u1' })
   getCurrentSchoolId.mockResolvedValue('school1')
-  requireDashboardAccess.mockResolvedValue(undefined)
+  requireDashboardAccess.mockResolvedValue({ member: { role: 'OWNER', customRoleId: null } })
 })
 
 describe('GET /api/dashboard/reports/grading-readiness', () => {

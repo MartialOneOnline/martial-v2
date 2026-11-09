@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
-import { memberHasPermission, type RoleBearer } from '@/lib/auth/customRoles'
-import { requireSchoolAccess } from '@/lib/auth/contexts'
+import { getAuthUser, getCurrentSchoolId, requireDashboardPermission } from '@/lib/auth/server'
 import { schoolTimeZone } from '@/lib/memberActivity'
 import { cleanPhone, whatsappNumber } from '@/lib/phone'
 import { isTrialMembership, NON_TRIAL_MEMBERSHIP_WHERE } from '@/lib/services/trial'
@@ -21,19 +19,8 @@ async function authorise() {
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return { error: 'No school context', status: 400 }
-  let member: { role: string; customRoleId: string | null } | null
-  try {
-    ({ member } = await requireDashboardAccess(schoolId))
-  } catch {
-    // requireDashboardAccess only knows the base staff roles; a school-defined
-    // (CUSTOM) staff role is staff too, and is judged by its own permissions below
-    try {
-      const m = await requireSchoolAccess(user.id, schoolId)
-      if (m.role !== 'CUSTOM') return { error: 'Forbidden', status: 403 }
-      member = m
-    } catch { return { error: 'Forbidden', status: 403 } }
-  }
-  if (member && !await memberHasPermission(member as RoleBearer, 'school.analytics.view')) return { error: 'Forbidden', status: 403 }
+  try { await requireDashboardPermission('school.analytics.view', schoolId) }
+  catch { return { error: 'Forbidden', status: 403 } }
   return { schoolId }
 }
 

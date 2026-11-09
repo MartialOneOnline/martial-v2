@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
+import { getAuthUser, getCurrentSchoolId, requireDashboardPermission } from '@/lib/auth/server'
 import { schoolTimeZone } from '@/lib/memberActivity'
 import {
   buildOccupancy, evidenceFrom, isOccPeriod, occupancyWindows, parseSchedule, wallClock,
 } from '@/lib/bookings/occupancy'
 
-// requireDashboardAccess() bypasses this for SUPERADMIN and otherwise
-// requires an ACTIVE SchoolMember with a staff-facing role — a STUDENT must
-// not read the school's attendance.
+// Staff with the Reports permission only (school.analytics.view, same as the
+// menu entry) — not every staff role may read the school's attendance.
 async function authorise() {
   const user = await getAuthUser()
   if (!user) return { error: 'Unauthorized', status: 401 }
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return { error: 'No school context', status: 400 }
-  try { await requireDashboardAccess(schoolId) }
+  try { await requireDashboardPermission('school.analytics.view', schoolId) }
   catch { return { error: 'Forbidden', status: 403 } }
   return { schoolId }
 }

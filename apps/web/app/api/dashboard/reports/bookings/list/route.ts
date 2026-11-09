@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Prisma } from '@/lib/prisma-client/client'
 import { prisma } from '@/lib/db'
-import { getAuthUser, getCurrentSchoolId, requireDashboardAccess } from '@/lib/auth/server'
+import { getAuthUser, getCurrentSchoolId, requireDashboardPermission } from '@/lib/auth/server'
 import { schoolTimeZone } from '@/lib/memberActivity'
 import { isOccPeriod, occupancyWindows, wallClock } from '@/lib/bookings/occupancy'
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const schoolId = await getCurrentSchoolId()
   if (!schoolId) return NextResponse.json({ error: 'No school context' }, { status: 400 })
-  try { await requireDashboardAccess(schoolId) }
+  try { await requireDashboardPermission('school.analytics.view', schoolId) }
   catch { return NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
 
   const sp = new URL(req.url).searchParams
