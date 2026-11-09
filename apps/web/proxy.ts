@@ -115,10 +115,13 @@ const SESSION_WRITING_PREFIXES = [
   '/api/cron/',
 ]
 
-// Supabase stores the session as sb-<project>-auth-token (split into .0/.1
-// chunks when large).
+// Supabase stores the session as sb-<project>-auth-token, split into
+// numbered chunks (.0, .1…) when large. Anything else that shares the prefix,
+// such as the PKCE sb-<project>-auth-token-code-verifier, is not a session.
+const SESSION_COOKIE_NAME = /^sb-.+-auth-token(?:\.\d+)?$/
+
 function hasSupabaseSessionCookie(request: NextRequest) {
-  return request.cookies.getAll().some(({ name }) => name.startsWith('sb-') && name.includes('-auth-token'))
+  return request.cookies.getAll().some(({ name }) => SESSION_COOKIE_NAME.test(name))
 }
 
 export function shouldRefreshSession(request: NextRequest) {
@@ -127,26 +130,44 @@ export function shouldRefreshSession(request: NextRequest) {
   return hasSupabaseSessionCookie(request)
 }
 
+// Longest a public page waits for Supabase Auth before being served anyway.
+export const PUBLIC_REFRESH_TIMEOUT_MS = 3000
+
 // Public pages and the API routes outside the protected prefixes
 // (/api/bookings, /api/memberships/trial, /api/schools/[slug]/*, /api/auth/me…)
 // still read the session through getAuthUser(). If the access token has
 // expired (1h), that call refreshes it on the server, which rotates the
-// single-use refresh token, but the route can't send the new cookies back.
-// The browser keeps the old refresh token, and the next request that uses it
-// trips Supabase's reuse detection, which revokes the whole session: the
-// student is logged out the next time they open the app to book. Refreshing
-// here sends the rotated cookies back on every such request. It never blocks:
-// public routes stay public whatever the outcome.
+// single-use refresh token, but the route can't send the new cookies back, so
+// the browser keeps an outdated refresh token. Depending on Supabase's reuse
+// rules (reuse interval, parent-token exception) a later request with that
+// token may be refused and the session revoked. Refreshing here sends the
+// rotated cookies back on every such request.
+//
+// It never blocks: public routes stay public whatever the outcome, and a slow
+// or hung Auth call is cut off after PUBLIC_REFRESH_TIMEOUT_MS. The abort
+// makes every pending and retried token request fail as a network error,
+// which the SDK treats as transient: it keeps the existing cookies instead of
+// clearing them. Writes that arrive after the deadline are ignored.
 async function refreshSessionOnly(request: NextRequest) {
   let response = NextResponse.next({ request })
+  let settled = false
+  const controller = new AbortController()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      global: {
+        fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+          fetch(input, {
+            ...init,
+            signal: init?.signal ? AbortSignal.any([init.signal, controller.signal]) : controller.signal,
+          }),
+      },
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookies) => {
+          if (settled) return
           cookies.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({ request })
           cookies.forEach(({ name, value, options }) =>
@@ -157,13 +178,25 @@ async function refreshSessionOnly(request: NextRequest) {
     },
   )
 
-  // getSession() only calls Supabase when the access token has expired, so a
-  // logged-in visitor browsing public pages pays no extra round trip. This is
-  // not used for authorization: route handlers still check getUser().
+  // getSession() only calls Supabase when the access token is expired or
+  // about to expire, so a logged-in visitor browsing public pages pays no
+  // extra round trip. This is not used for authorization: route handlers
+  // still check getUser().
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<void>(resolve => {
+    timer = setTimeout(() => {
+      controller.abort()
+      resolve()
+    }, PUBLIC_REFRESH_TIMEOUT_MS)
+  })
+
   try {
-    await supabase.auth.getSession()
+    await Promise.race([supabase.auth.getSession(), deadline])
   } catch {
     // Public route: never fail the request over a refresh problem.
+  } finally {
+    settled = true
+    clearTimeout(timer)
   }
 
   return response

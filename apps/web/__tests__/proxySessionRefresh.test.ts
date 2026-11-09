@@ -98,6 +98,18 @@ describe('proxy — session refresh outside protected routes', () => {
     }
   })
 
+  it('only recognises the session cookie and its numbered chunks', () => {
+    const accepts = (name: string) => shouldRefreshSession(req('/explore', { [name]: 'x' }))
+    expect(accepts(SESSION_COOKIE)).toBe(true)
+    expect(accepts(`${SESSION_COOKIE}.0`)).toBe(true)
+    expect(accepts(`${SESSION_COOKIE}.12`)).toBe(true)
+    expect(accepts(`${SESSION_COOKIE}-code-verifier`)).toBe(false)
+    expect(accepts(`${SESSION_COOKIE}.x`)).toBe(false)
+    expect(accepts(`${SESSION_COOKIE}-other`)).toBe(false)
+    expect(accepts('sb--auth-token')).toBe(false)
+    expect(accepts('my-sb-x-auth-token')).toBe(false)
+  })
+
   it('protected routes keep using getUser() as before', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } })
 
