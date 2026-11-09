@@ -25,6 +25,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { hasSessionCookie } from '@/lib/auth/sessionCookie'
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -115,13 +116,8 @@ const SESSION_WRITING_PREFIXES = [
   '/api/cron/',
 ]
 
-// Supabase stores the session as sb-<project>-auth-token, split into
-// numbered chunks (.0, .1…) when large. Anything else that shares the prefix,
-// such as the PKCE sb-<project>-auth-token-code-verifier, is not a session.
-const SESSION_COOKIE_NAME = /^sb-.+-auth-token(?:\.\d+)?$/
-
 function hasSupabaseSessionCookie(request: NextRequest) {
-  return request.cookies.getAll().some(({ name }) => SESSION_COOKIE_NAME.test(name))
+  return hasSessionCookie(request.cookies.getAll().map(({ name }) => name))
 }
 
 export function shouldRefreshSession(request: NextRequest) {

@@ -13,6 +13,8 @@ import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
+import { LOGIN_RESUME_GUARD_KEY, shouldResumeSession } from '@/lib/auth/sessionCookie'
+import { useSessionHint } from './SessionHint'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -139,6 +141,17 @@ function LoginPageInner() {
   // network hiccup) so the user isn't stuck looking at a spinner forever.
   const [showOauthSpinner, setShowOauthSpinner] = useState(oauthCallback.active && !oauthCallback.error)
 
+  // Already signed in: send them on instead of showing the form. The mobile
+  // app always opens on /login, so without this every cold start (the OS
+  // kills the app overnight) looked like a logout even though the session
+  // cookie was still valid. Starts true on the server too when the request
+  // carried a session cookie (useSessionHint), so the form never flashes.
+  // Uses searchParams, not window, so server and client agree.
+  const sessionHint = useSessionHint()
+  const [resumingSession, setResumingSession] = useState(() =>
+    sessionHint && searchParams.get('oauth') !== '1' && !searchParams.get('error') && !searchParams.get('error_description'),
+  )
+
   const resolveRedirect = async () => {
     // Hard navigation (not router.push) for every destination here: proxy.ts
     // reads the Supabase session cookie fresh on each request, and Google's
@@ -221,6 +234,52 @@ function LoginPageInner() {
       }
     })
     return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!resumingSession) return
+    let lastAttemptAt: number | null = null
+    try {
+      const raw = window.sessionStorage.getItem(LOGIN_RESUME_GUARD_KEY)
+      lastAttemptAt = raw ? Number(raw) || null : null
+    } catch { /* storage unavailable: no loop guard, the timeout still applies */ }
+    const now = Date.now()
+    if (!shouldResumeSession({
+      hasSessionCookie: true,
+      oauthCallback: oauthCallback.active,
+      oauthError: !!oauthCallback.error,
+      lastAttemptAt,
+      now,
+    })) {
+      setResumingSession(false)
+      return
+    }
+
+    let cancelled = false
+    // Never leave a spinner up if the check hangs.
+    const timer = setTimeout(() => { if (!cancelled) setResumingSession(false) }, 8000)
+    ;(async () => {
+      try {
+        // Validated on the server (getUser), unlike the cookie's mere presence.
+        const res = await fetch('/api/auth/me', { cache: 'no-store' })
+        const json = res.ok ? await res.json() : null
+        if (cancelled) return
+        if (!json?.user) {
+          setResumingSession(false)
+          return
+        }
+        try { window.sessionStorage.setItem(LOGIN_RESUME_GUARD_KEY, String(now)) } catch { /* no loop guard */ }
+        // Navigates away (keep the spinner up meanwhile) or, for staff with
+        // several schools, sets pickerSchools, which renders before the
+        // spinner. The timer above still drops back to the form if neither
+        // happens.
+        await resolveRedirect()
+      } catch {
+        if (!cancelled) setResumingSession(false)
+      }
+    })()
+    return () => { cancelled = true; clearTimeout(timer) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -382,7 +441,7 @@ function LoginPageInner() {
     )
   }
 
-  if (showOauthSpinner) {
+  if (showOauthSpinner || resumingSession) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' }}>
         <div style={{ width: 32, height: 32, border: `3px solid ${BLUE}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
