@@ -110,7 +110,8 @@ export const ModelName = {
   ClaimRequest: 'ClaimRequest',
   SchoolSubscription: 'SchoolSubscription',
   StripeWebhookEvent: 'StripeWebhookEvent',
-  InviteToken: 'InviteToken'
+  InviteToken: 'InviteToken',
+  EmailChangeRequest: 'EmailChangeRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1285,6 +1286,21 @@ export const InviteTokenScalarFieldEnum = {
 } as const
 
 export type InviteTokenScalarFieldEnum = (typeof InviteTokenScalarFieldEnum)[keyof typeof InviteTokenScalarFieldEnum]
+
+
+export const EmailChangeRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  newEmail: 'newEmail',
+  codeHash: 'codeHash',
+  attempts: 'attempts',
+  status: 'status',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmailChangeRequestScalarFieldEnum = (typeof EmailChangeRequestScalarFieldEnum)[keyof typeof EmailChangeRequestScalarFieldEnum]
 
 
 export const SortOrder = {

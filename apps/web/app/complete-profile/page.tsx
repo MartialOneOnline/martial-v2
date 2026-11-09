@@ -8,6 +8,8 @@ import { isValidPhoneNumber } from 'libphonenumber-js'
 import { myFetch } from '@/lib/api/myFetch'
 import { PhoneField } from '@/components/PhoneField'
 import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
+import { isApplePrivateRelayEmail } from '@/lib/privateRelay'
+import { RelayEmailStep } from './RelayEmailStep'
 
 const BLUE = '#0870E2'
 const BORDER = '#E5E7EB'
@@ -25,6 +27,7 @@ export default function CompleteProfilePage() {
   const [checking, setChecking] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [emailRequired, setEmailRequired] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState('')
   const [phone, setPhone] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
@@ -44,7 +47,7 @@ export default function CompleteProfilePage() {
         const u = d.user
         const isMinor = u.dateOfBirth && calculateAge(u.dateOfBirth) < MIN_CONSENT_AGE
         const guardianDone = !isMinor || (u.guardianName && u.guardianContact && u.guardianConsentAt)
-        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone) { router.replace('/my'); return }
+        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone && !isApplePrivateRelayEmail(u.email)) { router.replace('/my'); return }
         setName(u.name ?? '')
         setEmail(u.email ?? '')
         setAvatarUrl(u.avatarUrl ?? '')
@@ -88,11 +91,14 @@ export default function CompleteProfilePage() {
 
   const age = dateOfBirth ? calculateAge(dateOfBirth) : null
   const isMinor = age !== null && age < MIN_CONSENT_AGE
+  const needsRealEmail = isApplePrivateRelayEmail(email)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setApiError('')
     const e2: Record<string, string> = {}
+    // The relay address is replaced only through the code step above.
+    setEmailRequired(needsRealEmail)
     if (!avatarUrl) e2.avatarUrl = 'Add a profile photo to continue.'
     if (!phone.trim()) e2.phone = 'Phone number is required.'
     else if (!isValidPhoneNumber(phone)) e2.phone = 'Enter a valid phone number.'
@@ -108,7 +114,7 @@ export default function CompleteProfilePage() {
       if (!guardianConsent) e2.guardianConsent = 'A parent or guardian must confirm this before continuing.'
     }
     setErrors(e2)
-    if (Object.keys(e2).length > 0) return
+    if (Object.keys(e2).length > 0 || needsRealEmail) return
 
     setSaving(true)
     try {
@@ -180,6 +186,13 @@ export default function CompleteProfilePage() {
               {errors.avatarUrl || 'Add a profile photo'}
             </p>
           </div>
+
+          {needsRealEmail && (
+            <RelayEmailStep
+              showRequired={emailRequired}
+              onVerified={verified => { setEmail(verified); setEmailRequired(false) }}
+            />
+          )}
 
           <PhoneField label="Phone" value={phone}
             onChange={v => { setPhone(v); clearError('phone') }} error={errors.phone} placeholder="600 000 000" />

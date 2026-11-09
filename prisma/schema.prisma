@@ -512,6 +512,7 @@ model User {
   collectibleOwnerships  CollectibleOwnership[]
   curriculumLessonsMade  CurriculumLesson[]
   curriculumLessonViews  CurriculumLessonView[]
+  emailChangeRequest     EmailChangeRequest?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2352,4 +2353,30 @@ model InviteToken {
 
   @@index([email])
   @@map("invite_tokens")
+}
+
+enum EmailChangeStatus {
+  PENDING
+  APPLYING
+}
+
+// Pending swap of an Apple "Hide My Email" relay address for a real one
+// (lib/emailChange.ts). One row per user: a new request replaces the
+// previous code. PENDING = waiting for the 6-digit code; APPLYING = code
+// accepted, Auth/Prisma being updated. The PENDING -> APPLYING update is the
+// per-user lock, and an APPLYING row left behind by a failed rollback is
+// what reconcileEmailChange() repairs.
+model EmailChangeRequest {
+  id        String            @id @default(cuid())
+  userId    String            @unique
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newEmail  String
+  codeHash  String
+  attempts  Int               @default(0)
+  status    EmailChangeStatus @default(PENDING)
+  expiresAt DateTime
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@map("email_change_requests")
 }

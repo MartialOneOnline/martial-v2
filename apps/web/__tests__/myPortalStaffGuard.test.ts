@@ -164,6 +164,30 @@ describe('MyLayout (app/my/layout.tsx)', () => {
     expect(result).toBeTruthy()
   })
 
+  // ── Apple "Hide My Email" gate ──────────────────────────────────────────
+  it('sends a complete profile with an Apple relay email to /complete-profile', async () => {
+    mockGetAuthUser.mockResolvedValue({ id: 'relay-1', role: 'STUDENT', email: 'abc@privaterelay.appleid.com' })
+    mockHasDashboardAccess.mockResolvedValue(false)
+    mockHasStudentAccess.mockResolvedValue(true)
+
+    await expect(callLayout()).rejects.toThrow('NEXT_REDIRECT:/complete-profile')
+  })
+
+  it('lets a complete profile with a normal email (or a relay lookalike) through', async () => {
+    for (const email of ['hugo@gmail.com', 'x@privaterelay.appleid.com.evil.io']) {
+      vi.resetModules()
+      mockRedirect.mockClear()
+      mockGetAuthUser.mockResolvedValue({ id: 'student-4', role: 'STUDENT', email })
+      mockHasDashboardAccess.mockResolvedValue(false)
+      mockHasStudentAccess.mockResolvedValue(true)
+
+      // The pass-through render needs more Prisma than this harness mocks
+      // (see the pre-existing failures above): only the gate matters here.
+      await callLayout().catch(() => {})
+      expect(mockRedirect, email).not.toHaveBeenCalledWith('/complete-profile')
+    }
+  })
+
   // ── minor guardian-consent gate ─────────────────────────────────────────
   it('redirects a student under 16 with no guardian consent to /complete-profile', async () => {
     mockGetAuthUser.mockResolvedValue({ id: 'minor-1', role: 'STUDENT' })

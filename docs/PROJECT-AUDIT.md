@@ -265,6 +265,21 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — regresión de rendimiento: formateador por zona y caché por sesión; 50.000 reservas en ~173 ms.
 - No verificado tras la aprobación: sesión autenticada y datos reales (Codex recorrió la UI con API simulada en escritorio, móvil y 4 idiomas).
 
+### Lote R — Sesión del alumno: no pedir login cada día (rama `claude/session-refresh-all-routes`, PR #58)
+
+- Estado: `APROBADO CON PENDIENTES` en `0b2d3fa` (1 P2, 2 P3) → `APROBADO CON PENDIENTES` en `fc34e5b` (2 P2) → `APROBADO CON PENDIENTES` en `6d7cf91` (1 P2) → **`APROBADO`** en `68a06ed`. Sin migración. **Mergeado (`b52d4a0`) y en producción el 2026-11-09.**
+- Pedido del usuario: los alumnos tenían que volver a entrar cada vez que reservaban de un día para otro, sobre todo en la app.
+- Causas: (1) la app Flutter abre siempre `/login` y `/login` no reanudaba una sesión válida (causa principal en la app); (2) el proxy solo refrescaba la sesión en `/my`, `/dashboard`, `/admin`, así que `POST /api/bookings` y las rutas públicas rotaban el refresh token sin devolver la cookie (mecanismo parcial: la revocación depende de las reglas de reutilización de Supabase).
+- Hallazgos de Codex corregidos: refresh público sin plazo (3 s + abort); detección de cookie demasiado amplia (regex exacta); diagnóstico documentado como parcial; plazo de 8 s que no cancelaba la cadena de redirección; bucle sin `sessionStorage` (respaldo en cookie y, si no, «Continuar / Usar otra cuenta»); «Continuar» sin plazo.
+- No verificado: reapertura real de la app al día siguiente; ajustes de Supabase → Sessions (time-box / inactivity timeout).
+
+### Lote S — Email oculto de Apple → email real verificado (rama `claude/apple-relay-email`, PR #59)
+
+- Estado: **`RECHAZADO`** en `27284ff` (1 P1, 4 P2) → `APROBADO CON PENDIENTES` en `3428d88` (3 P2) → `APROBADO CON PENDIENTES` en `ecb927e` (2 P2) → **`APROBADO`** en `9af08af`. Migración `20261109120000_email_change_requests` **aplicada en Supabase el 2026-11-09**. Pendiente de merge.
+- Pedido del usuario: los alumnos que entran con Apple ocultando el email no reciben los correos de la escuela. Decisión del usuario tras el rechazo: verificar con un código de 6 dígitos.
+- Hallazgos de Codex corregidos: email adjudicado sin verificar (P1); Auth y Prisma desalineados con cambios simultáneos; rollback que ignoraba el `{ error }` devuelto; `/my` sin el control; textos sin i18n; borrado del bloqueo por un 5.º intento fallido; respuesta perdida de Auth liberada como si nada; cooldown no atómico; `AuthRetryableFetchError` devuelto (no lanzado) por el SDK; una confirmación antigua que borraba el código nuevo.
+- No verificado: navegador, Resend real y cuenta real de Apple.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

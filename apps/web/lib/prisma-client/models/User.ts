@@ -302,6 +302,7 @@ export type UserWhereInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipListRelationFilter
   curriculumLessonsMade?: Prisma.CurriculumLessonListRelationFilter
   curriculumLessonViews?: Prisma.CurriculumLessonViewListRelationFilter
+  emailChangeRequest?: Prisma.XOR<Prisma.EmailChangeRequestNullableScalarRelationFilter, Prisma.EmailChangeRequestWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -353,6 +354,7 @@ export type UserOrderByWithRelationInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipOrderByRelationAggregateInput
   curriculumLessonsMade?: Prisma.CurriculumLessonOrderByRelationAggregateInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewOrderByRelationAggregateInput
+  emailChangeRequest?: Prisma.EmailChangeRequestOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -407,6 +409,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   collectibleOwnerships?: Prisma.CollectibleOwnershipListRelationFilter
   curriculumLessonsMade?: Prisma.CurriculumLessonListRelationFilter
   curriculumLessonViews?: Prisma.CurriculumLessonViewListRelationFilter
+  emailChangeRequest?: Prisma.XOR<Prisma.EmailChangeRequestNullableScalarRelationFilter, Prisma.EmailChangeRequestWhereInput> | null
 }, "id" | "email" | "supabaseAuthId">
 
 export type UserOrderByWithAggregationInput = {
@@ -501,6 +504,7 @@ export type UserCreateInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -551,6 +555,7 @@ export type UserUncheckedCreateInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -601,6 +606,7 @@ export type UserUpdateInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -651,6 +657,7 @@ export type UserUncheckedUpdateInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -1302,6 +1309,20 @@ export type UserUpdateOneWithoutTargetedNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTargetedNotificationsInput, Prisma.UserUpdateWithoutTargetedNotificationsInput>, Prisma.UserUncheckedUpdateWithoutTargetedNotificationsInput>
 }
 
+export type UserCreateNestedOneWithoutEmailChangeRequestInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmailChangeRequestInput, Prisma.UserUncheckedCreateWithoutEmailChangeRequestInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmailChangeRequestInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutEmailChangeRequestNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmailChangeRequestInput, Prisma.UserUncheckedCreateWithoutEmailChangeRequestInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmailChangeRequestInput
+  upsert?: Prisma.UserUpsertWithoutEmailChangeRequestInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmailChangeRequestInput, Prisma.UserUpdateWithoutEmailChangeRequestInput>, Prisma.UserUncheckedUpdateWithoutEmailChangeRequestInput>
+}
+
 export type UserCreateWithoutContentAccessesInput = {
   id?: string
   email: string
@@ -1349,6 +1370,7 @@ export type UserCreateWithoutContentAccessesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContentAccessesInput = {
@@ -1398,6 +1420,7 @@ export type UserUncheckedCreateWithoutContentAccessesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContentAccessesInput = {
@@ -1463,6 +1486,7 @@ export type UserUpdateWithoutContentAccessesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContentAccessesInput = {
@@ -1512,6 +1536,7 @@ export type UserUncheckedUpdateWithoutContentAccessesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCurriculumLessonsMadeInput = {
@@ -1561,6 +1586,7 @@ export type UserCreateWithoutCurriculumLessonsMadeInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCurriculumLessonsMadeInput = {
@@ -1610,6 +1636,7 @@ export type UserUncheckedCreateWithoutCurriculumLessonsMadeInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCurriculumLessonsMadeInput = {
@@ -1675,6 +1702,7 @@ export type UserUpdateWithoutCurriculumLessonsMadeInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCurriculumLessonsMadeInput = {
@@ -1724,6 +1752,7 @@ export type UserUncheckedUpdateWithoutCurriculumLessonsMadeInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCurriculumLessonViewsInput = {
@@ -1773,6 +1802,7 @@ export type UserCreateWithoutCurriculumLessonViewsInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCurriculumLessonViewsInput = {
@@ -1822,6 +1852,7 @@ export type UserUncheckedCreateWithoutCurriculumLessonViewsInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCurriculumLessonViewsInput = {
@@ -1887,6 +1918,7 @@ export type UserUpdateWithoutCurriculumLessonViewsInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCurriculumLessonViewsInput = {
@@ -1936,6 +1968,7 @@ export type UserUncheckedUpdateWithoutCurriculumLessonViewsInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutClaimedSchoolsInput = {
@@ -1985,6 +2018,7 @@ export type UserCreateWithoutClaimedSchoolsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
@@ -2034,6 +2068,7 @@ export type UserUncheckedCreateWithoutClaimedSchoolsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClaimedSchoolsInput = {
@@ -2088,6 +2123,7 @@ export type UserCreateWithoutSchoolInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolInput = {
@@ -2137,6 +2173,7 @@ export type UserUncheckedCreateWithoutSchoolInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolInput = {
@@ -2207,6 +2244,7 @@ export type UserUpdateWithoutClaimedSchoolsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
@@ -2256,6 +2294,7 @@ export type UserUncheckedUpdateWithoutClaimedSchoolsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithWhereUniqueWithoutSchoolInput = {
@@ -2343,6 +2382,7 @@ export type UserCreateWithoutReviewsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -2392,6 +2432,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -2457,6 +2498,7 @@ export type UserUpdateWithoutReviewsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -2506,6 +2548,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEventBookingsInput = {
@@ -2555,6 +2598,7 @@ export type UserCreateWithoutEventBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEventBookingsInput = {
@@ -2604,6 +2648,7 @@ export type UserUncheckedCreateWithoutEventBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEventBookingsInput = {
@@ -2669,6 +2714,7 @@ export type UserUpdateWithoutEventBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventBookingsInput = {
@@ -2718,6 +2764,7 @@ export type UserUncheckedUpdateWithoutEventBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBookingsInput = {
@@ -2767,6 +2814,7 @@ export type UserCreateWithoutBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBookingsInput = {
@@ -2816,6 +2864,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBookingsInput = {
@@ -2870,6 +2919,7 @@ export type UserCreateWithoutStaffBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutStaffBookingsInput = {
@@ -2919,6 +2969,7 @@ export type UserUncheckedCreateWithoutStaffBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutStaffBookingsInput = {
@@ -2984,6 +3035,7 @@ export type UserUpdateWithoutBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBookingsInput = {
@@ -3033,6 +3085,7 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutStaffBookingsInput = {
@@ -3093,6 +3146,7 @@ export type UserUpdateWithoutStaffBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStaffBookingsInput = {
@@ -3142,6 +3196,7 @@ export type UserUncheckedUpdateWithoutStaffBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMembershipsInput = {
@@ -3191,6 +3246,7 @@ export type UserCreateWithoutMembershipsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -3240,6 +3296,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -3305,6 +3362,7 @@ export type UserUpdateWithoutMembershipsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -3354,6 +3412,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCampBookingsInput = {
@@ -3403,6 +3462,7 @@ export type UserCreateWithoutCampBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCampBookingsInput = {
@@ -3452,6 +3512,7 @@ export type UserUncheckedCreateWithoutCampBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCampBookingsInput = {
@@ -3517,6 +3578,7 @@ export type UserUpdateWithoutCampBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampBookingsInput = {
@@ -3566,6 +3628,7 @@ export type UserUncheckedUpdateWithoutCampBookingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSchoolMembersInput = {
@@ -3615,6 +3678,7 @@ export type UserCreateWithoutSchoolMembersInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolMembersInput = {
@@ -3664,6 +3728,7 @@ export type UserUncheckedCreateWithoutSchoolMembersInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolMembersInput = {
@@ -3729,6 +3794,7 @@ export type UserUpdateWithoutSchoolMembersInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolMembersInput = {
@@ -3778,6 +3844,7 @@ export type UserUncheckedUpdateWithoutSchoolMembersInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCreatedCampaignsInput = {
@@ -3827,6 +3894,7 @@ export type UserCreateWithoutCreatedCampaignsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
@@ -3876,6 +3944,7 @@ export type UserUncheckedCreateWithoutCreatedCampaignsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCreatedCampaignsInput = {
@@ -3941,6 +4010,7 @@ export type UserUpdateWithoutCreatedCampaignsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
@@ -3990,6 +4060,7 @@ export type UserUncheckedUpdateWithoutCreatedCampaignsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSchoolClaimsInput = {
@@ -4039,6 +4110,7 @@ export type UserCreateWithoutSchoolClaimsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSchoolClaimsInput = {
@@ -4088,6 +4160,7 @@ export type UserUncheckedCreateWithoutSchoolClaimsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSchoolClaimsInput = {
@@ -4153,6 +4226,7 @@ export type UserUpdateWithoutSchoolClaimsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
@@ -4202,6 +4276,7 @@ export type UserUncheckedUpdateWithoutSchoolClaimsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutGradingTemplatesInput = {
@@ -4251,6 +4326,7 @@ export type UserCreateWithoutGradingTemplatesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGradingTemplatesInput = {
@@ -4300,6 +4376,7 @@ export type UserUncheckedCreateWithoutGradingTemplatesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGradingTemplatesInput = {
@@ -4365,6 +4442,7 @@ export type UserUpdateWithoutGradingTemplatesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingTemplatesInput = {
@@ -4414,6 +4492,7 @@ export type UserUncheckedUpdateWithoutGradingTemplatesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutGradingsInput = {
@@ -4463,6 +4542,7 @@ export type UserCreateWithoutGradingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGradingsInput = {
@@ -4512,6 +4592,7 @@ export type UserUncheckedCreateWithoutGradingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGradingsInput = {
@@ -4566,6 +4647,7 @@ export type UserCreateWithoutGradingsGivenInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGradingsGivenInput = {
@@ -4615,6 +4697,7 @@ export type UserUncheckedCreateWithoutGradingsGivenInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGradingsGivenInput = {
@@ -4680,6 +4763,7 @@ export type UserUpdateWithoutGradingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsInput = {
@@ -4729,6 +4813,7 @@ export type UserUncheckedUpdateWithoutGradingsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutGradingsGivenInput = {
@@ -4789,6 +4874,7 @@ export type UserUpdateWithoutGradingsGivenInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGradingsGivenInput = {
@@ -4838,6 +4924,7 @@ export type UserUncheckedUpdateWithoutGradingsGivenInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLeadsInput = {
@@ -4887,6 +4974,7 @@ export type UserCreateWithoutLeadsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLeadsInput = {
@@ -4936,6 +5024,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLeadsInput = {
@@ -5001,6 +5090,7 @@ export type UserUpdateWithoutLeadsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadsInput = {
@@ -5050,6 +5140,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLeadNotesInput = {
@@ -5099,6 +5190,7 @@ export type UserCreateWithoutLeadNotesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLeadNotesInput = {
@@ -5148,6 +5240,7 @@ export type UserUncheckedCreateWithoutLeadNotesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLeadNotesInput = {
@@ -5213,6 +5306,7 @@ export type UserUpdateWithoutLeadNotesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadNotesInput = {
@@ -5262,6 +5356,7 @@ export type UserUncheckedUpdateWithoutLeadNotesInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSentInvitationsInput = {
@@ -5311,6 +5406,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSentInvitationsInput = {
@@ -5360,6 +5456,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSentInvitationsInput = {
@@ -5425,6 +5522,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentInvitationsInput = {
@@ -5474,6 +5572,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutUserWaiversInput = {
@@ -5523,6 +5622,7 @@ export type UserCreateWithoutUserWaiversInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutUserWaiversInput = {
@@ -5572,6 +5672,7 @@ export type UserUncheckedCreateWithoutUserWaiversInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutUserWaiversInput = {
@@ -5637,6 +5738,7 @@ export type UserUpdateWithoutUserWaiversInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUserWaiversInput = {
@@ -5686,6 +5788,7 @@ export type UserUncheckedUpdateWithoutUserWaiversInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLoginHistoryInput = {
@@ -5735,6 +5838,7 @@ export type UserCreateWithoutLoginHistoryInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLoginHistoryInput = {
@@ -5784,6 +5888,7 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLoginHistoryInput = {
@@ -5849,6 +5954,7 @@ export type UserUpdateWithoutLoginHistoryInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLoginHistoryInput = {
@@ -5898,6 +6004,7 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutImpersonationsAsActorInput = {
@@ -5947,6 +6054,7 @@ export type UserCreateWithoutImpersonationsAsActorInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
@@ -5996,6 +6104,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsActorInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutImpersonationsAsActorInput = {
@@ -6050,6 +6159,7 @@ export type UserCreateWithoutImpersonationsAsTargetInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
@@ -6099,6 +6209,7 @@ export type UserUncheckedCreateWithoutImpersonationsAsTargetInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutImpersonationsAsTargetInput = {
@@ -6164,6 +6275,7 @@ export type UserUpdateWithoutImpersonationsAsActorInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
@@ -6213,6 +6325,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsActorInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutImpersonationsAsTargetInput = {
@@ -6273,6 +6386,7 @@ export type UserUpdateWithoutImpersonationsAsTargetInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
@@ -6322,6 +6436,7 @@ export type UserUncheckedUpdateWithoutImpersonationsAsTargetInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -6371,6 +6486,7 @@ export type UserCreateWithoutTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -6420,6 +6536,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -6474,6 +6591,7 @@ export type UserCreateWithoutResolvedTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
@@ -6523,6 +6641,7 @@ export type UserUncheckedCreateWithoutResolvedTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutResolvedTransactionsInput = {
@@ -6577,6 +6696,7 @@ export type UserCreateWithoutDeletedTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutDeletedTransactionsInput = {
@@ -6626,6 +6746,7 @@ export type UserUncheckedCreateWithoutDeletedTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutDeletedTransactionsInput = {
@@ -6691,6 +6812,7 @@ export type UserUpdateWithoutTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -6740,6 +6862,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutResolvedTransactionsInput = {
@@ -6800,6 +6923,7 @@ export type UserUpdateWithoutResolvedTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
@@ -6849,6 +6973,7 @@ export type UserUncheckedUpdateWithoutResolvedTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutDeletedTransactionsInput = {
@@ -6909,6 +7034,7 @@ export type UserUpdateWithoutDeletedTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDeletedTransactionsInput = {
@@ -6958,6 +7084,7 @@ export type UserUncheckedUpdateWithoutDeletedTransactionsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPreferenceInput = {
@@ -7007,6 +7134,7 @@ export type UserCreateWithoutPreferenceInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPreferenceInput = {
@@ -7056,6 +7184,7 @@ export type UserUncheckedCreateWithoutPreferenceInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPreferenceInput = {
@@ -7121,6 +7250,7 @@ export type UserUpdateWithoutPreferenceInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPreferenceInput = {
@@ -7170,6 +7300,7 @@ export type UserUncheckedUpdateWithoutPreferenceInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrdersInput = {
@@ -7219,6 +7350,7 @@ export type UserCreateWithoutOrdersInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrdersInput = {
@@ -7268,6 +7400,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrdersInput = {
@@ -7333,6 +7466,7 @@ export type UserUpdateWithoutOrdersInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -7382,6 +7516,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCollectibleUnitsOwnedInput = {
@@ -7431,6 +7566,7 @@ export type UserCreateWithoutCollectibleUnitsOwnedInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCollectibleUnitsOwnedInput = {
@@ -7480,6 +7616,7 @@ export type UserUncheckedCreateWithoutCollectibleUnitsOwnedInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCollectibleUnitsOwnedInput = {
@@ -7545,6 +7682,7 @@ export type UserUpdateWithoutCollectibleUnitsOwnedInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput = {
@@ -7594,6 +7732,7 @@ export type UserUncheckedUpdateWithoutCollectibleUnitsOwnedInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCollectibleOwnershipsInput = {
@@ -7643,6 +7782,7 @@ export type UserCreateWithoutCollectibleOwnershipsInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCollectibleOwnershipsInput = {
@@ -7692,6 +7832,7 @@ export type UserUncheckedCreateWithoutCollectibleOwnershipsInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCollectibleOwnershipsInput = {
@@ -7757,6 +7898,7 @@ export type UserUpdateWithoutCollectibleOwnershipsInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCollectibleOwnershipsInput = {
@@ -7806,6 +7948,7 @@ export type UserUncheckedUpdateWithoutCollectibleOwnershipsInput = {
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTargetedNotificationsInput = {
@@ -7855,6 +7998,7 @@ export type UserCreateWithoutTargetedNotificationsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
@@ -7904,6 +8048,7 @@ export type UserUncheckedCreateWithoutTargetedNotificationsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTargetedNotificationsInput = {
@@ -7969,6 +8114,7 @@ export type UserUpdateWithoutTargetedNotificationsInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
@@ -8012,6 +8158,223 @@ export type UserUncheckedUpdateWithoutTargetedNotificationsInput = {
   loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
   impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
   impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutEmailChangeRequestInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  gender?: $Enums.Gender | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school?: Prisma.SchoolCreateNestedOneWithoutStaffInput
+  claimedSchools?: Prisma.SchoolCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateCreateNestedManyWithoutCreatedByInput
+  leads?: Prisma.LeadCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipCreateNestedManyWithoutOwnerInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutEmailChangeRequestInput = {
+  id?: string
+  email: string
+  name?: string | null
+  phone?: string | null
+  gender?: $Enums.Gender | null
+  dateOfBirth?: Date | string | null
+  avatarUrl?: string | null
+  guardianName?: string | null
+  guardianContact?: string | null
+  guardianConsentAt?: Date | string | null
+  supabaseAuthId?: string | null
+  role?: $Enums.Role
+  deletedAt?: Date | string | null
+  schoolId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  claimedSchools?: Prisma.SchoolUncheckedCreateNestedManyWithoutClaimedByInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutUserInput
+  staffBookings?: Prisma.BookingUncheckedCreateNestedManyWithoutBookedByUserInput
+  eventBookings?: Prisma.EventBookingUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  contentAccesses?: Prisma.ContentAccessUncheckedCreateNestedManyWithoutUserInput
+  campBookings?: Prisma.CampBookingUncheckedCreateNestedManyWithoutUserInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutUserInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutUserInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutUserInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutUserInput
+  gradingsGiven?: Prisma.GradingUncheckedCreateNestedManyWithoutPromotedByInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutConvertedUserInput
+  leadNotes?: Prisma.LeadNoteUncheckedCreateNestedManyWithoutAuthorInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  resolvedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutResolvedByUserInput
+  deletedTransactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutDeletedByUserInput
+  userWaivers?: Prisma.UserWaiverUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  preference?: Prisma.UserPreferenceUncheckedCreateNestedOneWithoutUserInput
+  loginHistory?: Prisma.LoginHistoryUncheckedCreateNestedManyWithoutUserInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutActorInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutTargetInput
+  targetedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientUserInput
+  createdCampaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutCreatedByInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedCreateNestedManyWithoutOwnerInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedCreateNestedManyWithoutOwnerInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutCreatedByInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutEmailChangeRequestInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmailChangeRequestInput, Prisma.UserUncheckedCreateWithoutEmailChangeRequestInput>
+}
+
+export type UserUpsertWithoutEmailChangeRequestInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEmailChangeRequestInput, Prisma.UserUncheckedUpdateWithoutEmailChangeRequestInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmailChangeRequestInput, Prisma.UserUncheckedCreateWithoutEmailChangeRequestInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEmailChangeRequestInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEmailChangeRequestInput, Prisma.UserUncheckedUpdateWithoutEmailChangeRequestInput>
+}
+
+export type UserUpdateWithoutEmailChangeRequestInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneWithoutStaffNestedInput
+  claimedSchools?: Prisma.SchoolUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUpdateManyWithoutCreatedByNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUpdateManyWithoutRecipientUserNestedInput
+  createdCampaigns?: Prisma.CampaignUpdateManyWithoutCreatedByNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  collectibleUnitsOwned?: Prisma.CollectibleUnitUpdateManyWithoutOwnerNestedInput
+  collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
+  curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
+  curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEmailChangeRequestInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianContact?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  guardianConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  supabaseAuthId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimedSchools?: Prisma.SchoolUncheckedUpdateManyWithoutClaimedByNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutUserNestedInput
+  staffBookings?: Prisma.BookingUncheckedUpdateManyWithoutBookedByUserNestedInput
+  eventBookings?: Prisma.EventBookingUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  contentAccesses?: Prisma.ContentAccessUncheckedUpdateManyWithoutUserNestedInput
+  campBookings?: Prisma.CampBookingUncheckedUpdateManyWithoutUserNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutUserNestedInput
+  schoolMembers?: Prisma.SchoolMemberUncheckedUpdateManyWithoutUserNestedInput
+  schoolClaims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutUserNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutUserNestedInput
+  gradingsGiven?: Prisma.GradingUncheckedUpdateManyWithoutPromotedByNestedInput
+  gradingTemplates?: Prisma.GradingTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutConvertedUserNestedInput
+  leadNotes?: Prisma.LeadNoteUncheckedUpdateManyWithoutAuthorNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  resolvedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutResolvedByUserNestedInput
+  deletedTransactions?: Prisma.TransactionUncheckedUpdateManyWithoutDeletedByUserNestedInput
+  userWaivers?: Prisma.UserWaiverUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  preference?: Prisma.UserPreferenceUncheckedUpdateOneWithoutUserNestedInput
+  loginHistory?: Prisma.LoginHistoryUncheckedUpdateManyWithoutUserNestedInput
+  impersonationsAsActor?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutActorNestedInput
+  impersonationsAsTarget?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutTargetNestedInput
+  targetedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientUserNestedInput
   createdCampaigns?: Prisma.CampaignUncheckedUpdateManyWithoutCreatedByNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   collectibleUnitsOwned?: Prisma.CollectibleUnitUncheckedUpdateManyWithoutOwnerNestedInput
@@ -8085,6 +8448,7 @@ export type UserUpdateWithoutSchoolInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSchoolInput = {
@@ -8134,6 +8498,7 @@ export type UserUncheckedUpdateWithoutSchoolInput = {
   collectibleOwnerships?: Prisma.CollectibleOwnershipUncheckedUpdateManyWithoutOwnerNestedInput
   curriculumLessonsMade?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutCreatedByNestedInput
   curriculumLessonViews?: Prisma.CurriculumLessonViewUncheckedUpdateManyWithoutUserNestedInput
+  emailChangeRequest?: Prisma.EmailChangeRequestUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutSchoolInput = {
@@ -8495,6 +8860,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   collectibleOwnerships?: boolean | Prisma.User$collectibleOwnershipsArgs<ExtArgs>
   curriculumLessonsMade?: boolean | Prisma.User$curriculumLessonsMadeArgs<ExtArgs>
   curriculumLessonViews?: boolean | Prisma.User$curriculumLessonViewsArgs<ExtArgs>
+  emailChangeRequest?: boolean | Prisma.User$emailChangeRequestArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -8591,6 +8957,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   collectibleOwnerships?: boolean | Prisma.User$collectibleOwnershipsArgs<ExtArgs>
   curriculumLessonsMade?: boolean | Prisma.User$curriculumLessonsMadeArgs<ExtArgs>
   curriculumLessonViews?: boolean | Prisma.User$curriculumLessonViewsArgs<ExtArgs>
+  emailChangeRequest?: boolean | Prisma.User$emailChangeRequestArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -8635,6 +9002,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     collectibleOwnerships: Prisma.$CollectibleOwnershipPayload<ExtArgs>[]
     curriculumLessonsMade: Prisma.$CurriculumLessonPayload<ExtArgs>[]
     curriculumLessonViews: Prisma.$CurriculumLessonViewPayload<ExtArgs>[]
+    emailChangeRequest: Prisma.$EmailChangeRequestPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -9079,6 +9447,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   collectibleOwnerships<T extends Prisma.User$collectibleOwnershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$collectibleOwnershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CollectibleOwnershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   curriculumLessonsMade<T extends Prisma.User$curriculumLessonsMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$curriculumLessonsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CurriculumLessonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   curriculumLessonViews<T extends Prisma.User$curriculumLessonViewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$curriculumLessonViewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CurriculumLessonViewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  emailChangeRequest<T extends Prisma.User$emailChangeRequestArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$emailChangeRequestArgs<ExtArgs>>): Prisma.Prisma__EmailChangeRequestClient<runtime.Types.Result.GetResult<Prisma.$EmailChangeRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -10280,6 +10649,25 @@ export type User$curriculumLessonViewsArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.CurriculumLessonViewScalarFieldEnum | Prisma.CurriculumLessonViewScalarFieldEnum[]
+}
+
+/**
+ * User.emailChangeRequest
+ */
+export type User$emailChangeRequestArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmailChangeRequest
+   */
+  select?: Prisma.EmailChangeRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmailChangeRequest
+   */
+  omit?: Prisma.EmailChangeRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmailChangeRequestInclude<ExtArgs> | null
+  where?: Prisma.EmailChangeRequestWhereInput
 }
 
 /**
