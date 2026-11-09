@@ -57,7 +57,8 @@ export default async function StudentProfilePage({
       include: { class: { select: { name: true } } },
     }).catch(() => []),
     prisma.transaction.findMany({
-      where: { userId: member.userId, deletedAt: null },
+      // Only this school's movements: a student can belong to several schools.
+      where: { userId: member.userId, schoolId: member.schoolId, deletedAt: null },
       orderBy: { date: 'desc' },
       take: 50,
     }).catch(() => []),

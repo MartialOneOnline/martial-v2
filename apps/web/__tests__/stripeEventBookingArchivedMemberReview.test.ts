@@ -80,7 +80,7 @@ function seedSchoolMember(schoolId: string, userId: string, status: string) {
   schoolMembers[smKey(schoolId, userId)] = { userId, schoolId, status }
 }
 
-const mockSchoolFindUnique = vi.fn().mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+const mockSchoolFindUnique = vi.fn().mockResolvedValue({ id: 'school-1', stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
 
 const mockStripeWebhookEventCreate = vi.fn((args: { data: { eventId: string; type: string; status: string } }) => {
   const { eventId, type, status } = args.data
@@ -179,7 +179,7 @@ function eventBookingCheckoutEvent(eventId: string, bookingId: string, paymentIn
 beforeEach(() => {
   vi.clearAllMocks()
   resetState()
-  mockSchoolFindUnique.mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+  mockSchoolFindUnique.mockResolvedValue({ id: 'school-1', stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
 })
 
 describe('POST /api/webhooks/stripe — event booking payment for an ARCHIVED member', () => {

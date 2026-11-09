@@ -179,10 +179,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'amount, date and type are required' }, { status: 400 })
   }
 
+  // A movement can only be linked to someone who belongs to this school.
+  // Same generic 400 whether the id is malformed, unknown or another
+  // school's member, so the response never confirms who exists elsewhere.
+  if (userId != null && userId !== '') {
+    const isMember = typeof userId === 'string' && await prisma.schoolMember.findFirst({
+      where: { schoolId: auth.schoolId, userId },
+      select: { id: true },
+    })
+    if (!isMember) {
+      return NextResponse.json({ error: 'Member not found in this school' }, { status: 400 })
+    }
+  }
+
   const tx = await prisma.transaction.create({
     data: {
       schoolId:      auth.schoolId,
-      userId:        userId ?? null,
+      userId:        userId || null,
       description:   description?.trim() || null,
       amount:        parseFloat(amount),
       currency:      currency ?? 'EUR',
