@@ -8,6 +8,7 @@ import { isValidPhoneNumber } from 'libphonenumber-js'
 import { myFetch } from '@/lib/api/myFetch'
 import { PhoneField } from '@/components/PhoneField'
 import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
+import { isApplePrivateRelayEmail } from '@/lib/privateRelay'
 
 const BLUE = '#0870E2'
 const BORDER = '#E5E7EB'
@@ -25,6 +26,7 @@ export default function CompleteProfilePage() {
   const [checking, setChecking] = useState(true)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [realEmail, setRealEmail] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [phone, setPhone] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
@@ -44,7 +46,7 @@ export default function CompleteProfilePage() {
         const u = d.user
         const isMinor = u.dateOfBirth && calculateAge(u.dateOfBirth) < MIN_CONSENT_AGE
         const guardianDone = !isMinor || (u.guardianName && u.guardianContact && u.guardianConsentAt)
-        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone) { router.replace('/my'); return }
+        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone && !isApplePrivateRelayEmail(u.email)) { router.replace('/my'); return }
         setName(u.name ?? '')
         setEmail(u.email ?? '')
         setAvatarUrl(u.avatarUrl ?? '')
@@ -88,11 +90,17 @@ export default function CompleteProfilePage() {
 
   const age = dateOfBirth ? calculateAge(dateOfBirth) : null
   const isMinor = age !== null && age < MIN_CONSENT_AGE
+  const needsRealEmail = isApplePrivateRelayEmail(email)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setApiError('')
     const e2: Record<string, string> = {}
+    if (needsRealEmail) {
+      const candidate = realEmail.trim()
+      if (!candidate) e2.realEmail = 'Enter your real email so your school can reach you.'
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidate) || isApplePrivateRelayEmail(candidate)) e2.realEmail = 'Enter a valid email address.'
+    }
     if (!avatarUrl) e2.avatarUrl = 'Add a profile photo to continue.'
     if (!phone.trim()) e2.phone = 'Phone number is required.'
     else if (!isValidPhoneNumber(phone)) e2.phone = 'Enter a valid phone number.'
@@ -112,6 +120,19 @@ export default function CompleteProfilePage() {
 
     setSaving(true)
     try {
+      if (needsRealEmail) {
+        const emailRes = await myFetch('/api/my/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: realEmail }),
+        })
+        if (!emailRes.ok) {
+          const data = await emailRes.json().catch(() => ({}))
+          setErrors({ realEmail: data.error ?? 'Could not save your email. Please try again.' })
+          return
+        }
+        setEmail(realEmail.trim().toLowerCase())
+      }
       const res = await myFetch('/api/my', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -180,6 +201,23 @@ export default function CompleteProfilePage() {
               {errors.avatarUrl || 'Add a profile photo'}
             </p>
           </div>
+
+          {needsRealEmail && (
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Your email</label>
+              <input
+                type="email"
+                value={realEmail}
+                onChange={e => { setRealEmail(e.target.value); clearError('realEmail') }}
+                placeholder="you@email.com"
+                autoComplete="email"
+                style={{ width: '100%', padding: '11px 14px', fontSize: 15, border: `1px solid ${errors.realEmail ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
+              />
+              {errors.realEmail
+                ? <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{errors.realEmail}</p>
+                : <p style={{ margin: '6px 0 0', fontSize: 12, color: MUTED }}>You signed in with Apple&apos;s hidden email. We need a real one so your school&apos;s messages reach you. &ldquo;Continue with Apple&rdquo; keeps working.</p>}
+            </div>
+          )}
 
           <PhoneField label="Phone" value={phone}
             onChange={v => { setPhone(v); clearError('phone') }} error={errors.phone} placeholder="600 000 000" />

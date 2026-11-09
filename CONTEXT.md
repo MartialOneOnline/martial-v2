@@ -299,6 +299,15 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-05 → 2026-11-09 (rama `claude/apple-relay-email`; sin migración; pendiente: Project Audit y prueba manual)
+
+**Email oculto de Apple ("Hide My Email") en `/complete-profile`.** Quien entra con Apple y oculta su email queda con una dirección `@privaterelay.appleid.com`, a la que solo llega el correo de remitentes registrados en el servicio de relay de Apple, así que los emails de la escuela no le llegan. Este trabajo se hizo el 2026-11-05 sin commitear (estaba suelto en `claude/dashboard-day-strip`) y se movió a su propia rama el 2026-11-09.
+- `lib/privateRelay.ts`: `isApplePrivateRelayEmail()`.
+- `/complete-profile` no deja pasar a `/my` mientras el email sea de relay y pide uno real.
+- `POST /api/my/email`: solo funciona si el email actual es de relay (no es un cambio de email general, que sigue siendo solo para admin o soporte); rate limit 5/h; rechaza emails ya usados; actualiza Supabase Auth y Prisma, y revierte Auth si falla Prisma. "Continuar con Apple" sigue funcionando porque la identidad se vincula por el id de Apple.
+- Tests: `__tests__/privateRelay.test.ts`.
+- Abierto: el email nuevo se marca como confirmado (`email_confirm: true`) sin verificar que sea de quien lo escribe; textos solo en inglés (la página ya lo estaba).
+
 ### Sesión — 2026-09-04 → 2026-11-04 (rama `main` de `martial-v2` y de `martial-mobile-app`; sin Project Audit)
 
 **Publicación de la app móvil en Google Play y App Store.** Detalle de estado y pendientes en la sección "App móvil (tiendas)".
