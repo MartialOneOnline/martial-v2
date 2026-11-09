@@ -7,7 +7,8 @@
  * - /admin/**          → requires session (role check in layout server component)
  * - /my/**             → requires session (any role)
  * - /api/admin/**, /api/dashboard/**, /api/my/** → requires session (role check in each route handler)
- * - All other routes   → pass through
+ * - All other routes   → pass through, but a session cookie is still refreshed
+ *                        (see refreshSessionOnly)
  *
  * Middleware checks session cookie + email confirmation. Role/school authorisation
  * is enforced again inside page components and API routes — never rely solely on middleware.
@@ -24,6 +25,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { hasSessionCookie } from '@/lib/auth/sessionCookie'
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -45,7 +47,10 @@ export async function proxy(request: NextRequest) {
     || pathname.startsWith('/api/my')
 
   if (!isProtected) {
-    return NextResponse.next({ request })
+    if (!shouldRefreshSession(request)) {
+      return NextResponse.next({ request })
+    }
+    return refreshSessionOnly(request)
   }
 
   let supabaseResponse = NextResponse.next({ request })
@@ -95,6 +100,102 @@ export async function proxy(request: NextRequest) {
   }
 
   return supabaseResponse
+}
+
+// Routes that write or clear the session cookies themselves (sign-in,
+// sign-out, OAuth/OTP exchange, impersonation). Refreshing an old session
+// here as well would put two competing Set-Cookie headers on one response.
+const SESSION_WRITING_PREFIXES = [
+  '/auth/',
+  '/api/auth/login',
+  '/api/auth/google/',
+  '/api/auth/signout',
+  '/api/auth/register',
+  // Server-to-server traffic never carries a user session worth refreshing.
+  '/api/webhooks/',
+  '/api/cron/',
+]
+
+function hasSupabaseSessionCookie(request: NextRequest) {
+  return hasSessionCookie(request.cookies.getAll().map(({ name }) => name))
+}
+
+export function shouldRefreshSession(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  if (SESSION_WRITING_PREFIXES.some(prefix => pathname.startsWith(prefix))) return false
+  return hasSupabaseSessionCookie(request)
+}
+
+// Longest a public page waits for Supabase Auth before being served anyway.
+export const PUBLIC_REFRESH_TIMEOUT_MS = 3000
+
+// Public pages and the API routes outside the protected prefixes
+// (/api/bookings, /api/memberships/trial, /api/schools/[slug]/*, /api/auth/me…)
+// still read the session through getAuthUser(). If the access token has
+// expired (1h), that call refreshes it on the server, which rotates the
+// single-use refresh token, but the route can't send the new cookies back, so
+// the browser keeps an outdated refresh token. Depending on Supabase's reuse
+// rules (reuse interval, parent-token exception) a later request with that
+// token may be refused and the session revoked. Refreshing here sends the
+// rotated cookies back on every such request.
+//
+// It never blocks: public routes stay public whatever the outcome, and a slow
+// or hung Auth call is cut off after PUBLIC_REFRESH_TIMEOUT_MS. The abort
+// makes every pending and retried token request fail as a network error,
+// which the SDK treats as transient: it keeps the existing cookies instead of
+// clearing them. Writes that arrive after the deadline are ignored.
+async function refreshSessionOnly(request: NextRequest) {
+  let response = NextResponse.next({ request })
+  let settled = false
+  const controller = new AbortController()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      global: {
+        fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+          fetch(input, {
+            ...init,
+            signal: init?.signal ? AbortSignal.any([init.signal, controller.signal]) : controller.signal,
+          }),
+      },
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookies) => {
+          if (settled) return
+          cookies.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookies.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    },
+  )
+
+  // getSession() only calls Supabase when the access token is expired or
+  // about to expire, so a logged-in visitor browsing public pages pays no
+  // extra round trip. This is not used for authorization: route handlers
+  // still check getUser().
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<void>(resolve => {
+    timer = setTimeout(() => {
+      controller.abort()
+      resolve()
+    }, PUBLIC_REFRESH_TIMEOUT_MS)
+  })
+
+  try {
+    await Promise.race([supabase.auth.getSession(), deadline])
+  } catch {
+    // Public route: never fail the request over a refresh problem.
+  } finally {
+    settled = true
+    clearTimeout(timer)
+  }
+
+  return response
 }
 
 export const config = {

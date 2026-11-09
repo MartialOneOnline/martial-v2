@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
@@ -8,11 +8,12 @@ import SchoolPicker from '../../components/SchoolPicker'
 import type { SchoolContext } from '@/lib/auth/contexts'
 import { safeRedirect } from '@/lib/safeRedirect'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
-import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
-import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
+import type { ResumeGuardEnv } from '@/lib/auth/sessionCookie'
+import { resumeSession, runLoginRedirect, startResumeAttempt } from '@/lib/auth/loginResume'
+import { useSessionHint } from './SessionHint'
 
 const BLUE = '#0870E2'
 const NAVY = '#0E3A7A'
@@ -139,66 +140,37 @@ function LoginPageInner() {
   // network hiccup) so the user isn't stuck looking at a spinner forever.
   const [showOauthSpinner, setShowOauthSpinner] = useState(oauthCallback.active && !oauthCallback.error)
 
-  const resolveRedirect = async () => {
-    // Hard navigation (not router.push) for every destination here: proxy.ts
-    // reads the Supabase session cookie fresh on each request, and Google's
-    // sign-in (see handleGoogleCredential) reaches this function in the same
-    // render as the cookie write, with no intervening page load — unlike the
-    // Apple/Microsoft flow (full redirect round trip via Supabase) or the
-    // modal's Google path (client nav to /login first). Without a real
-    // navigation here, that first /dashboard request can beat the cookie to
-    // the browser's jar and bounce back to /login, forcing a second attempt.
-    try {
-      if (redirectTo) {
-        window.location.href = redirectTo
-        return
-      }
+  // Already signed in: send them on instead of showing the form. The mobile
+  // app always opens on /login, so without this every cold start (the OS
+  // kills the app overnight) looked like a logout even though the session
+  // cookie was still valid. Starts true on the server too when the request
+  // carried a session cookie (useSessionHint), so the form never flashes.
+  // Uses searchParams, not window, so server and client agree.
+  const sessionHint = useSessionHint()
+  const [resumingSession, setResumingSession] = useState(() =>
+    sessionHint && searchParams.get('oauth') !== '1' && !searchParams.get('error') && !searchParams.get('error_description'),
+  )
 
-      const res = await fetch('/api/auth/me')
-      const json = await res.json()
+  // Signed in, but the loop guard couldn't be saved: ask before redirecting.
+  const [confirmResume, setConfirmResume] = useState(false)
+  // The in-flight resume attempt (automatic or "Continue"), cancelled on unmount.
+  const resumeAttempt = useRef<{ cancel: () => void } | null>(null)
 
-      if (json.user?.globalRole === 'SUPERADMIN') {
-        window.location.href = '/admin'
-        return
-      }
-
-      const legacySchools: SchoolContext[] = json.contexts?.schools ?? []
-
-      // Decision extracted to lib/auth/loginRedirect.ts — see that file for
-      // the full priority order (explicit redirect / SUPERADMIN already
-      // handled above, so this only ever resolves the "how many real
-      // contexts does this user have" branch, with a safe fallback to the
-      // pre-existing staffSchools logic if GET /api/auth/contexts fails).
-      const action = await resolveLoginRedirectAction({
-        explicitPath: undefined,
-        isSuperAdmin: false,
-        legacySchools,
-        isOnChooseProfile: pathname === '/choose-profile',
-        fetchContexts: () => fetchAvailableContexts(),
-      })
-
-      switch (action.kind) {
-        case 'dashboard-auto':
-          await fetch('/api/auth/context', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ schoolId: action.schoolId }),
-          })
-          window.location.href = '/dashboard'
-          return
-        case 'legacy-picker':
-          setPickerSchools(action.schools)
-          return
-        case 'noop':
-          return
-        case 'push':
-          window.location.href = action.path
-          return
-      }
-    } catch {
-      window.location.href = '/my'
-    }
-  }
+  // Hard navigation (not router.push) for every destination: proxy.ts
+  // reads the Supabase session cookie fresh on each request, and Google's
+  // sign-in (see handleGoogleCredential) reaches this function in the same
+  // render as the cookie write, with no intervening page load. Without a real
+  // navigation, that first /dashboard request can beat the cookie to the
+  // browser's jar and bounce back to /login. Logic in lib/auth/loginResume.ts.
+  // `signal` (session resume only): once aborted, nothing may navigate.
+  const resolveRedirect = (signal?: AbortSignal) => runLoginRedirect({
+    redirectTo,
+    pathname,
+    fetchImpl: (input, init) => fetch(input, init),
+    navigate: (path) => { window.location.href = path },
+    showPicker: setPickerSchools,
+    signal,
+  })
 
   // Gated on oauthCallback.active (captured above) so this never double-fires
   // alongside handleLogin's own resolveRedirect() call for password logins.
@@ -221,6 +193,38 @@ function LoginPageInner() {
       }
     })
     return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!resumingSession) return
+    const guardEnv: ResumeGuardEnv = {
+      storage: (() => { try { return window.sessionStorage } catch { return null } })(),
+      readCookies: () => document.cookie,
+      writeCookie: (c) => { document.cookie = c },
+    }
+    // One signal for the whole chain (/api/auth/me, then everything
+    // resolveRedirect() does). The deadline aborts it, so a late response
+    // can't navigate away from a form the user has started filling in.
+    const attempt = startResumeAttempt(signal => resumeSession({
+      oauthCallback: oauthCallback.active,
+      oauthError: !!oauthCallback.error,
+      guardEnv,
+      now: Date.now(),
+      fetchImpl: (input, init) => fetch(input, init),
+      redirect: (sig) => resolveRedirect(sig),
+      signal,
+    }), { onTimeout: () => setResumingSession(false) })
+    resumeAttempt.current = attempt
+    attempt.promise.then(outcome => {
+      // 'redirecting': keep the spinner while the page navigates (or the
+      // school picker, which renders first, is shown).
+      if (outcome === 'redirecting' || outcome === 'aborted') return
+      attempt.settle()
+      setResumingSession(false)
+      if (outcome === 'confirm') setConfirmResume(true)
+    })
+    return () => { resumeAttempt.current?.cancel() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -382,7 +386,43 @@ function LoginPageInner() {
     )
   }
 
-  if (showOauthSpinner) {
+  // "Continue" on the already-signed-in card: same deadline and abort as the
+  // automatic attempt; on timeout the card (with "Use another account")
+  // comes back instead of an endless spinner.
+  const continueResume = () => {
+    resumeAttempt.current?.cancel()
+    setConfirmResume(false)
+    setResumingSession(true)
+    const attempt = startResumeAttempt(signal => resolveRedirect(signal), {
+      onTimeout: () => {
+        setResumingSession(false)
+        setConfirmResume(true)
+      },
+    })
+    resumeAttempt.current = attempt
+  }
+
+  if (confirmResume) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB', padding: 16, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+        <div style={{ width: '100%', maxWidth: 360, background: '#fff', borderRadius: 16, padding: 24, textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <p style={{ fontSize: 18, fontWeight: 700, color: NAVY, margin: '0 0 20px' }}>{t.authVerify.resumeTitle}</p>
+          <button
+            type="button"
+            onClick={continueResume}
+            style={{ width: '100%', padding: '12px 16px', borderRadius: 999, border: 'none', background: BLUE, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+          >
+            {t.authVerify.resumeContinue}
+          </button>
+          <a href="/auth/logout" style={{ display: 'block', marginTop: 14, fontSize: 14, color: MUTED, textDecoration: 'underline' }}>
+            {t.authVerify.resumeOtherAccount}
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  if (showOauthSpinner || resumingSession) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' }}>
         <div style={{ width: 32, height: 32, border: `3px solid ${BLUE}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
