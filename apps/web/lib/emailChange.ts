@@ -73,16 +73,20 @@ export interface EmailChangeStore {
     data: { newEmail: string; codeHash: string; expiresAt: Date },
     cooldownBefore: Date,
   ): Promise<'stored' | 'too_soon' | 'busy'>
+  // Every operation on an existing row also names the code generation it
+  // read (codeHash): a request replaces the row in place, keeping its id, so
+  // id + status alone can't tell an old confirm from the new code.
+  //
   // Adds one failed attempt to this PENDING row; returns the new count, or
   // null if the row changed meanwhile.
-  recordFailedAttempt(requestId: string): Promise<number | null>
+  recordFailedAttempt(requestId: string, codeHash: string): Promise<number | null>
   // PENDING -> APPLYING only if the row is still this one, with this code and
   // fewer than maxAttempts failed attempts.
   claimForApplying(requestId: string, codeHash: string, maxAttempts: number): Promise<boolean>
   // APPLYING -> PENDING after a failure that changed nothing.
-  releaseClaim(requestId: string): Promise<void>
-  // Deletes the row only if it is still in `status`. Returns whether it did.
-  deleteRequest(requestId: string, status: 'PENDING' | 'APPLYING'): Promise<boolean>
+  releaseClaim(requestId: string, codeHash: string): Promise<void>
+  // Deletes the row only if it is still in `status`, with this code.
+  deleteRequest(requestId: string, status: 'PENDING' | 'APPLYING', codeHash: string): Promise<boolean>
   // One transaction: delete the APPLYING row and set users.email. Writes
   // nothing and returns false if the row is no longer APPLYING.
   commitEmail(userId: string, requestId: string, newEmail: string): Promise<boolean>
@@ -90,7 +94,10 @@ export interface EmailChangeStore {
 
 export interface AuthEmailApi {
   getEmail(authId: string): Promise<string | null>
-  // Must surface both thrown errors and Supabase's returned { error }.
+  // { ok: false } only when Auth answered and refused (nothing changed).
+  // Anything that leaves the outcome unknown — network failure, lost
+  // response, timeout, 5xx, including the SDK's returned
+  // AuthRetryableFetchError — must throw, so the caller reads Auth back.
   setEmail(authId: string, email: string): Promise<{ ok: true } | { ok: false; taken: boolean }>
 }
 
@@ -152,9 +159,9 @@ async function reconcile(
   const dbEmail = normalizeEmail(await deps.store.getUserEmail(user.id))
   if (authEmail && authEmail === row.newEmail) {
     if (dbEmail !== row.newEmail) await deps.store.commitEmail(user.id, row.id, row.newEmail)
-    else await deps.store.deleteRequest(row.id, 'APPLYING')
+    else await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
   } else if (authEmail && authEmail === dbEmail) {
-    await deps.store.deleteRequest(row.id, 'APPLYING')
+    await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
   } else {
     deps.log?.('[emailChange] cannot reconcile: Auth and DB disagree with the request', { userId: user.id })
   }
@@ -202,20 +209,20 @@ export async function confirmEmailChange(
   if (!row) return { ok: false, error: 'no_pending' }
   if (row.status === 'APPLYING') return { ok: false, error: 'busy' }
   if (row.expiresAt.getTime() <= now.getTime()) {
-    await deps.store.deleteRequest(row.id, 'PENDING')
+    await deps.store.deleteRequest(row.id, 'PENDING', row.codeHash)
     return { ok: false, error: 'code_expired' }
   }
   if (row.attempts >= MAX_CODE_ATTEMPTS) {
-    await deps.store.deleteRequest(row.id, 'PENDING')
+    await deps.store.deleteRequest(row.id, 'PENDING', row.codeHash)
     return { ok: false, error: 'too_many_attempts' }
   }
 
   const expected = hashCode(deps.secret, user.id, row.newEmail, code)
   if (!/^\d{6}$/.test(code) || !sameHash(expected, row.codeHash)) {
-    const attempts = await deps.store.recordFailedAttempt(row.id)
+    const attempts = await deps.store.recordFailedAttempt(row.id, row.codeHash)
     if (attempts !== null && attempts >= MAX_CODE_ATTEMPTS) {
       // Only a PENDING row: never the one another confirm is applying.
-      await deps.store.deleteRequest(row.id, 'PENDING')
+      await deps.store.deleteRequest(row.id, 'PENDING', row.codeHash)
       return { ok: false, error: 'too_many_attempts' }
     }
     return { ok: false, error: 'invalid_code' }
@@ -232,11 +239,11 @@ export async function confirmEmailChange(
   // Re-check under the lock.
   const oldEmail = await deps.store.getUserEmail(user.id)
   if (!oldEmail || !isApplePrivateRelayEmail(oldEmail)) {
-    await deps.store.deleteRequest(row.id, 'APPLYING')
+    await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
     return { ok: false, error: 'not_relay' }
   }
   if (await deps.store.isEmailTaken(row.newEmail, user.id)) {
-    await deps.store.deleteRequest(row.id, 'APPLYING')
+    await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
     return { ok: false, error: 'email_taken' }
   }
 
@@ -247,7 +254,7 @@ export async function confirmEmailChange(
   }
   if (authOutcome !== 'applied') {
     // Supabase answered and nothing changed: let them try again.
-    await deps.store.releaseClaim(row.id)
+    await deps.store.releaseClaim(row.id, row.codeHash)
     return { ok: false, error: authOutcome === 'taken' ? 'email_taken' : 'update_failed' }
   }
 
@@ -262,7 +269,7 @@ export async function confirmEmailChange(
 
   const revert = await setAuthEmail(deps, user.authId, oldEmail)
   if (revert === 'applied') {
-    await deps.store.releaseClaim(row.id).catch(err => deps.log?.('[emailChange] release failed', err))
+    await deps.store.releaseClaim(row.id, row.codeHash).catch(err => deps.log?.('[emailChange] release failed', err))
   } else {
     // Row stays APPLYING (if it still exists): reconcileEmailChange() will
     // align the DB with Auth.

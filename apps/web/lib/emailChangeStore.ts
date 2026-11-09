@@ -43,9 +43,9 @@ export const prismaEmailChangeStore: EmailChangeStore = {
       throw err
     }
   },
-  async recordFailedAttempt(requestId) {
+  async recordFailedAttempt(requestId, codeHash) {
     const r = await prisma.emailChangeRequest.updateMany({
-      where: { id: requestId, status: 'PENDING' },
+      where: { id: requestId, status: 'PENDING', codeHash },
       data: { attempts: { increment: 1 } },
     })
     if (r.count !== 1) return null
@@ -59,14 +59,14 @@ export const prismaEmailChangeStore: EmailChangeStore = {
     })
     return r.count === 1
   },
-  async releaseClaim(requestId) {
+  async releaseClaim(requestId, codeHash) {
     await prisma.emailChangeRequest.updateMany({
-      where: { id: requestId, status: 'APPLYING' },
+      where: { id: requestId, status: 'APPLYING', codeHash },
       data: { status: 'PENDING' },
     })
   },
-  async deleteRequest(requestId, status) {
-    const r = await prisma.emailChangeRequest.deleteMany({ where: { id: requestId, status } })
+  async deleteRequest(requestId, status, codeHash) {
+    const r = await prisma.emailChangeRequest.deleteMany({ where: { id: requestId, status, codeHash } })
     return r.count === 1
   },
   async commitEmail(userId, requestId, newEmail) {
@@ -106,11 +106,21 @@ export function supabaseAuthEmailApi(): AuthEmailApi {
     async setEmail(authId, email) {
       const { error } = await admin.auth.admin.updateUserById(authId, { email, email_confirm: true })
       if (!error) return { ok: true }
+      // The SDK reports a network failure / lost response / timeout as a
+      // returned AuthRetryableFetchError (status 0 or 5xx), not a throw. The
+      // write may have landed: throw so the caller reads Auth back.
+      if (isOutcomeUnknown(error)) throw error
       const taken = /already|registered|exists/i.test(error.message)
       if (!taken) console.error('[emailChange] auth update failed:', error)
       return { ok: false, taken }
     },
   }
+}
+
+// Auth answered with a definite refusal (4xx) vs. we can't know what happened.
+export function isOutcomeUnknown(error: { name?: string; status?: number }): boolean {
+  if (error.name === 'AuthRetryableFetchError') return true
+  return !error.status || error.status >= 500
 }
 
 export function emailChangeDeps(): EmailChangeDeps {

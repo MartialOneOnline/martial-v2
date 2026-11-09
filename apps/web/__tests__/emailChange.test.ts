@@ -44,8 +44,8 @@ function world(opts: { dbEmail?: string; otherEmails?: string[] } = {}) {
       row = { id: row?.id ?? `r${++seq}`, userId, ...data, attempts: 0, status: 'PENDING', updatedAt: now() }
       return 'stored'
     },
-    async recordFailedAttempt(id) {
-      if (!row || row.id !== id || row.status !== 'PENDING') return null
+    async recordFailedAttempt(id, codeHash) {
+      if (!row || row.id !== id || row.status !== 'PENDING' || row.codeHash !== codeHash) return null
       row.attempts += 1
       row.updatedAt = now()
       return row.attempts
@@ -56,11 +56,11 @@ function world(opts: { dbEmail?: string; otherEmails?: string[] } = {}) {
       row.updatedAt = now()
       return true
     },
-    async releaseClaim(id) {
-      if (row && row.id === id && row.status === 'APPLYING') { row.status = 'PENDING'; row.updatedAt = now() }
+    async releaseClaim(id, codeHash) {
+      if (row && row.id === id && row.status === 'APPLYING' && row.codeHash === codeHash) { row.status = 'PENDING'; row.updatedAt = now() }
     },
-    async deleteRequest(id, status) {
-      if (row?.id !== id || row.status !== status) return false
+    async deleteRequest(id, status, codeHash) {
+      if (row?.id !== id || row.status !== status || row.codeHash !== codeHash) return false
       row = null
       return true
     },
@@ -325,7 +325,7 @@ describe('confirmEmailChange', () => {
     let calls = 0
     w.deps.store.getRequest = async (uid) => {
       const r = await realGet(uid)
-      if (++calls === 2 && r) await w.deps.store.recordFailedAttempt(r.id)
+      if (++calls === 2 && r) await w.deps.store.recordFailedAttempt(r.id, r.codeHash)
       return r
     }
     expect(await confirmEmailChange(w.deps, USER, { code: w.sent[0]!.code })).toEqual({ ok: false, error: 'too_many_attempts' })
@@ -399,5 +399,127 @@ describe('resend cooldown under concurrency', () => {
     expect(results).toContainEqual({ ok: false, error: 'too_soon' })
     expect(w.sent).toHaveLength(2) // the first request + one resend
     expect(await confirmEmailChange(w.deps, USER, { code: w.sent[1]!.code })).toMatchObject({ ok: true })
+  })
+})
+
+// ── Project Audit on ecb927e ────────────────────────────────────────────────
+describe('code generations', () => {
+  it('an old (expired) confirm cannot delete the code that replaced it', async () => {
+    const w = world()
+    await requestEmailChange(w.deps, USER, { email: 'a@x.com' })
+    w.advance(CODE_TTL_MS) // first code expired
+
+    // Hold the old confirm's delete; meanwhile a new code replaces the row.
+    const realDelete = w.deps.store.deleteRequest
+    let release!: () => void
+    const gate = new Promise<void>(r => { release = r })
+    w.deps.store.deleteRequest = async (...args) => { await gate; return realDelete(...args) }
+    const old = confirmEmailChange(w.deps, USER, { code: w.sent[0]!.code })
+    await new Promise(r => setTimeout(r, 0))
+    w.deps.store.deleteRequest = realDelete
+
+    expect(await requestEmailChange(w.deps, USER, { email: 'b@x.com' })).toMatchObject({ ok: true })
+    release()
+    expect(await old).toEqual({ ok: false, error: 'code_expired' })
+
+    expect(w.row()?.newEmail).toBe('b@x.com')
+    expect(await confirmEmailChange(w.deps, USER, { code: w.sent[1]!.code })).toEqual({ ok: true, email: 'b@x.com' })
+  })
+
+  it("an old confirm's wrong code does not count against the new code", async () => {
+    const w = world()
+    await requestEmailChange(w.deps, USER, { email: 'a@x.com' })
+    const row = w.row()!
+    w.advance(RESEND_COOLDOWN_MS)
+    await requestEmailChange(w.deps, USER, { email: 'b@x.com' })
+    expect(await w.deps.store.recordFailedAttempt(row.id, row.codeHash)).toBeNull()
+    expect(w.row()?.attempts).toBe(0)
+  })
+})
+
+// ── Real Supabase SDK, simulated network ────────────────────────────────────
+vi.mock('@/lib/db', () => ({ prisma: {} }))
+
+describe('supabaseAuthEmailApi (real @supabase/supabase-js)', () => {
+  const URL_ = 'https://audit.supabase.co'
+  const AUTH_ID = '11111111-1111-4111-8111-111111111111'
+  const SDK_USER = { id: 'u1', authId: AUTH_ID }
+  function user(email: string) {
+    return { id: AUTH_ID, aud: 'authenticated', email, app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' }
+  }
+  async function adapter() {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = URL_
+    process.env.SUPABASE_SECRET_KEY = 'sb_secret_test'
+    const { supabaseAuthEmailApi } = await import('@/lib/emailChangeStore')
+    return supabaseAuthEmailApi()
+  }
+
+  it('a lost response (SDK returns AuthRetryableFetchError) throws instead of reporting a refusal', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('fetch failed') }))
+    try {
+      const auth = await adapter()
+      await expect(auth.setEmail(AUTH_ID, 'a@x.com')).rejects.toBeTruthy()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('a 5xx is unknown too; a 422 "already registered" is a definite refusal', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ msg: 'upstream' }), { status: 502 })))
+      await expect((await adapter()).setEmail(AUTH_ID, 'a@x.com')).rejects.toBeTruthy()
+
+      vi.stubGlobal('fetch', vi.fn(async () => new Response(
+        JSON.stringify({ code: 422, error_code: 'email_exists', msg: 'A user with this email address has already been registered' }),
+        { status: 422, headers: { 'content-type': 'application/json' } },
+      )))
+      expect(await (await adapter()).setEmail(AUTH_ID, 'a@x.com')).toEqual({ ok: false, taken: true })
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('end to end: Auth applies the email, the response is lost, the change is committed (no split)', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    let authEmail = RELAY
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const method = (init?.method ?? 'GET').toUpperCase()
+      if (method === 'PUT') {
+        authEmail = JSON.parse(String(init?.body)).email
+        throw new TypeError('socket hang up') // applied, but the answer never arrives
+      }
+      return new Response(JSON.stringify(user(authEmail)), { status: 200, headers: { 'content-type': 'application/json' } })
+    }))
+    try {
+      const w = world()
+      w.deps.auth = await adapter()
+      await requestEmailChange(w.deps, SDK_USER, { email: 'a@x.com' })
+      expect(await confirmEmailChange(w.deps, SDK_USER, { code: w.sent[0]!.code })).toEqual({ ok: true, email: 'a@x.com' })
+      expect(authEmail).toBe('a@x.com')
+      expect(w.db.email).toBe('a@x.com')
+      expect(w.row()).toBeNull()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('end to end: lost response and Auth still old -> lock kept for reconcile, never released to PENDING', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      if ((init?.method ?? 'GET').toUpperCase() === 'PUT') throw new TypeError('fetch failed')
+      return new Response(JSON.stringify(user(RELAY)), { status: 200, headers: { 'content-type': 'application/json' } })
+    }))
+    try {
+      const w = world()
+      w.deps.auth = await adapter()
+      await requestEmailChange(w.deps, SDK_USER, { email: 'a@x.com' })
+      expect(await confirmEmailChange(w.deps, SDK_USER, { code: w.sent[0]!.code })).toEqual({ ok: false, error: 'update_failed' })
+      expect(w.row()?.status).toBe('APPLYING')
+      expect(w.db.email).toBe(RELAY)
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })
