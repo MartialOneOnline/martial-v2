@@ -13,6 +13,8 @@ import {
   MAX_CODE_ATTEMPTS,
   RESEND_COOLDOWN_MS,
   STALE_APPLYING_MS,
+  AUTH_TIMEOUT_MS,
+  ROUTE_MAX_DURATION_S,
   type AuthEmailApi,
   type ChangeRow,
   type EmailChangeDeps,
@@ -36,10 +38,11 @@ function world(opts: { dbEmail?: string; otherEmails?: string[] } = {}) {
     async getUserEmail() { return db.email },
     async isEmailTaken(email) { return others.has(email) },
     async getRequest() { return row ? { ...row } : null },
-    async putPendingRequest(userId, data) {
-      if (row && row.status === 'APPLYING') return false
+    async putPendingRequest(userId, data, cooldownBefore) {
+      if (row && row.status === 'APPLYING') return 'busy'
+      if (row && row.updatedAt.getTime() > cooldownBefore.getTime()) return 'too_soon'
       row = { id: row?.id ?? `r${++seq}`, userId, ...data, attempts: 0, status: 'PENDING', updatedAt: now() }
-      return true
+      return 'stored'
     },
     async recordFailedAttempt(id) {
       if (!row || row.id !== id || row.status !== 'PENDING') return null
@@ -47,8 +50,8 @@ function world(opts: { dbEmail?: string; otherEmails?: string[] } = {}) {
       row.updatedAt = now()
       return row.attempts
     },
-    async claimForApplying(id, codeHash) {
-      if (!row || row.id !== id || row.status !== 'PENDING' || row.codeHash !== codeHash) return false
+    async claimForApplying(id, codeHash, maxAttempts) {
+      if (!row || row.id !== id || row.status !== 'PENDING' || row.codeHash !== codeHash || row.attempts >= maxAttempts) return false
       row.status = 'APPLYING'
       row.updatedAt = now()
       return true
@@ -56,11 +59,17 @@ function world(opts: { dbEmail?: string; otherEmails?: string[] } = {}) {
     async releaseClaim(id) {
       if (row && row.id === id && row.status === 'APPLYING') { row.status = 'PENDING'; row.updatedAt = now() }
     },
-    async deleteRequest(id) { if (row?.id === id) row = null },
+    async deleteRequest(id, status) {
+      if (row?.id !== id || row.status !== status) return false
+      row = null
+      return true
+    },
     async commitEmail(_userId, id, newEmail) {
       if (failCommit.on) throw new Error('db down')
+      if (row?.id !== id || row.status !== 'APPLYING') return false
+      row = null
       db.email = newEmail
-      if (row?.id === id) row = null
+      return true
     },
   }
 
@@ -276,5 +285,119 @@ describe('confirmEmailChange', () => {
     w.db.email = 'changed-by-support@x.com'
     expect(await confirmEmailChange(w.deps, USER, { code: w.sent[0]!.code })).toEqual({ ok: false, error: 'not_relay' })
     expect(w.auth.setEmail).not.toHaveBeenCalled()
+  })
+
+  // ── Project Audit on 3428d88 ────────────────────────────────────────────
+  it('a wrong code reaching the 5th attempt cannot delete a row another confirm is applying', async () => {
+    const w = world()
+    await requestEmailChange(w.deps, USER, { email: 'a@x.com' })
+    const good = w.sent[0]!.code
+    for (let i = 1; i < MAX_CODE_ATTEMPTS - 1; i++) await confirmEmailChange(w.deps, USER, { code: '999999' })
+    // 3 failures so far. Hold the good confirm inside Auth, after its claim.
+    let release!: () => void
+    const gate = new Promise<void>(r => { release = r })
+    w.auth.setEmail.mockImplementationOnce(async (_id, email) => { await gate; w.authState.email = email; return { ok: true } })
+    const applying = confirmEmailChange(w.deps, USER, { code: good })
+    await new Promise(r => setTimeout(r, 0))
+    expect(w.row()?.status).toBe('APPLYING')
+
+    // A 4th and 5th wrong code meanwhile: the row is APPLYING, not theirs.
+    await confirmEmailChange(w.deps, USER, { code: '999999' })
+    await confirmEmailChange(w.deps, USER, { code: '999999' })
+    expect(w.row()?.status).toBe('APPLYING')
+    w.advance(RESEND_COOLDOWN_MS)
+    expect(await requestEmailChange(w.deps, USER, { email: 'b@x.com' })).toEqual({ ok: false, error: 'busy' })
+
+    release()
+    expect(await applying).toEqual({ ok: true, email: 'a@x.com' })
+    expect(w.db.email).toBe('a@x.com')
+    expect(w.authState.email).toBe('a@x.com')
+  })
+
+  it('the claim fails once the attempts ran out between reading and claiming', async () => {
+    const w = world()
+    await requestEmailChange(w.deps, USER, { email: 'a@x.com' })
+    for (let i = 1; i < MAX_CODE_ATTEMPTS; i++) await confirmEmailChange(w.deps, USER, { code: '999999' })
+    // 4 failures. The good confirm reads the row, then a 5th failure lands
+    // before its claim.
+    // getRequest call 1 is reconcile's, call 2 is the confirm's own read.
+    const realGet = w.deps.store.getRequest
+    let calls = 0
+    w.deps.store.getRequest = async (uid) => {
+      const r = await realGet(uid)
+      if (++calls === 2 && r) await w.deps.store.recordFailedAttempt(r.id)
+      return r
+    }
+    expect(await confirmEmailChange(w.deps, USER, { code: w.sent[0]!.code })).toEqual({ ok: false, error: 'too_many_attempts' })
+    expect(w.auth.setEmail).not.toHaveBeenCalled()
+    expect(w.db.email).toBe(RELAY)
+  })
+
+  it('a lost Auth response that did apply is detected and committed (no split)', async () => {
+    const w = world()
+    await requestEmailChange(w.deps, USER, { email: 'a@x.com' })
+    w.auth.setEmail.mockImplementationOnce(async (_id, email) => { w.authState.email = email; throw new Error('socket hang up') })
+    expect(await confirmEmailChange(w.deps, USER, { code: w.sent[0]!.code })).toEqual({ ok: true, email: 'a@x.com' })
+    expect(w.db.email).toBe('a@x.com')
+    expect(w.authState.email).toBe('a@x.com')
+    expect(w.row()).toBeNull()
+  })
+
+  it('a thrown Auth call that may still land keeps the lock until reconcile settles it', async () => {
+    const w = world()
+    await requestEmailChange(w.deps, USER, { email: 'a@x.com' })
+    w.auth.setEmail.mockImplementationOnce(async () => { throw new Error('timeout') })
+    expect(await confirmEmailChange(w.deps, USER, { code: w.sent[0]!.code })).toEqual({ ok: false, error: 'update_failed' })
+    expect(w.row()?.status).toBe('APPLYING') // not released
+
+    // The write lands late on Supabase's side.
+    w.authState.email = 'a@x.com'
+    w.advance(STALE_APPLYING_MS)
+    await reconcileEmailChange(w.deps, USER)
+    expect(w.db.email).toBe('a@x.com')
+    expect(w.row()).toBeNull()
+  })
+
+  it('a late attempt cannot write the DB after reconcile settled its row, and reverts Auth', async () => {
+    const w = world()
+    await requestEmailChange(w.deps, USER, { email: 'a@x.com' })
+    let release!: () => void
+    const gate = new Promise<void>(r => { release = r })
+    w.auth.setEmail.mockImplementationOnce(async (_id, email) => { await gate; w.authState.email = email; return { ok: true } })
+    const late = confirmEmailChange(w.deps, USER, { code: w.sent[0]!.code })
+    await new Promise(r => setTimeout(r, 0))
+
+    w.advance(STALE_APPLYING_MS)
+    await reconcileEmailChange(w.deps, USER) // Auth still old: drops the row
+    expect(w.row()).toBeNull()
+
+    release()
+    expect(await late).toEqual({ ok: false, error: 'update_failed' })
+    expect(w.db.email).toBe(RELAY)
+    expect(w.authState.email).toBe(RELAY)
+  })
+
+  it('an attempt cannot outlive STALE_APPLYING_MS (route maxDuration + Auth timeout)', async () => {
+    expect(ROUTE_MAX_DURATION_S * 1000 + AUTH_TIMEOUT_MS).toBeLessThan(STALE_APPLYING_MS)
+    const { readFileSync } = await import('node:fs')
+    for (const f of ['app/api/my/email/route.ts', 'app/api/my/email/confirm/route.ts']) {
+      expect(readFileSync(f, 'utf8'), f).toContain(`export const maxDuration = ${ROUTE_MAX_DURATION_S}`)
+    }
+  })
+})
+
+describe('resend cooldown under concurrency', () => {
+  it('two simultaneous resends: only one stores and sends a code', async () => {
+    const w = world()
+    await requestEmailChange(w.deps, USER, { email: 'a@x.com' })
+    w.advance(RESEND_COOLDOWN_MS)
+    const results = await Promise.all([
+      requestEmailChange(w.deps, USER, { email: 'b@x.com' }),
+      requestEmailChange(w.deps, USER, { email: 'c@x.com' }),
+    ])
+    expect(results.filter(r => r.ok)).toHaveLength(1)
+    expect(results).toContainEqual({ ok: false, error: 'too_soon' })
+    expect(w.sent).toHaveLength(2) // the first request + one resend
+    expect(await confirmEmailChange(w.deps, USER, { code: w.sent[1]!.code })).toMatchObject({ ok: true })
   })
 })

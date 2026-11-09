@@ -5,13 +5,23 @@ import { isApplePrivateRelayEmail } from './privateRelay'
 // with a 6-digit code sent to the new address. Only for relay accounts:
 // every other email change stays admin/support-only.
 //
-// Consistency rules (Project Audit on 27284ff):
+// Consistency rules (Project Audit on 27284ff and 3428d88):
 // - One EmailChangeRequest row per user. Moving it PENDING -> APPLYING with
 //   a conditional update is the per-user lock: of two concurrent confirms,
 //   only one gets it, and a new request can't replace an APPLYING row.
-// - Auth is updated first, then Prisma. If Prisma fails, Auth is reverted;
-//   if that revert fails too (thrown or returned { error }), the row stays
-//   APPLYING and reconcileEmailChange() aligns Prisma with Auth later.
+// - Every write is conditional on the state it expects: a confirm with a
+//   wrong code can only delete a PENDING row, never the APPLYING one another
+//   confirm owns; the claim also requires attempts < MAX_CODE_ATTEMPTS; the
+//   resend cooldown is part of the replacing update itself.
+// - Auth is updated first, then Prisma. A Supabase error response means
+//   nothing changed; a thrown error (lost response) means "unknown", so Auth
+//   is read back before releasing the lock. If Prisma fails, Auth is
+//   reverted; if the outcome can't be established, the row stays APPLYING
+//   and reconcileEmailChange() aligns Prisma with Auth later.
+// - Reconcile only touches rows older than STALE_APPLYING_MS, which is far
+//   longer than an attempt can live (route maxDuration + AUTH_TIMEOUT_MS), and
+//   commitEmail() only writes users.email while the APPLYING row still
+//   exists, so a late attempt can't overwrite a repaired state.
 // - Nothing becomes the account's email until the code is confirmed.
 
 export const CODE_TTL_MS = 15 * 60 * 1000
@@ -19,6 +29,10 @@ export const RESEND_COOLDOWN_MS = 60 * 1000
 export const MAX_CODE_ATTEMPTS = 5
 // An APPLYING row older than this belongs to a request that died midway.
 export const STALE_APPLYING_MS = 2 * 60 * 1000
+// Every Supabase Auth admin call is cut off after this (lib/emailChangeStore.ts),
+// and the routes set maxDuration = 30 s: both well under STALE_APPLYING_MS.
+export const AUTH_TIMEOUT_MS = 10 * 1000
+export const ROUTE_MAX_DURATION_S = 30
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -46,23 +60,32 @@ export type ChangeRow = {
 }
 
 // Storage operations, implemented over Prisma in lib/emailChangeStore.ts and
-// in memory by the tests. Each one is a single atomic statement.
+// in memory by the tests. Each one is a single atomic statement (or one
+// transaction), conditional on the state it expects.
 export interface EmailChangeStore {
   getUserEmail(userId: string): Promise<string | null>
   isEmailTaken(email: string, exceptUserId: string): Promise<boolean>
   getRequest(userId: string): Promise<ChangeRow | null>
-  // Create, or replace a PENDING row. Returns false if an APPLYING row exists.
-  putPendingRequest(userId: string, data: { newEmail: string; codeHash: string; expiresAt: Date }): Promise<boolean>
+  // Create a row, or replace a PENDING one last written at or before
+  // `cooldownBefore`. 'too_soon': a newer PENDING row exists; 'busy': APPLYING.
+  putPendingRequest(
+    userId: string,
+    data: { newEmail: string; codeHash: string; expiresAt: Date },
+    cooldownBefore: Date,
+  ): Promise<'stored' | 'too_soon' | 'busy'>
   // Adds one failed attempt to this PENDING row; returns the new count, or
   // null if the row changed meanwhile.
   recordFailedAttempt(requestId: string): Promise<number | null>
-  // PENDING -> APPLYING only if the row is still this one with this code.
-  claimForApplying(requestId: string, codeHash: string): Promise<boolean>
-  // Back to PENDING after a failure that changed nothing.
+  // PENDING -> APPLYING only if the row is still this one, with this code and
+  // fewer than maxAttempts failed attempts.
+  claimForApplying(requestId: string, codeHash: string, maxAttempts: number): Promise<boolean>
+  // APPLYING -> PENDING after a failure that changed nothing.
   releaseClaim(requestId: string): Promise<void>
-  deleteRequest(requestId: string): Promise<void>
-  // In one transaction: users.email = newEmail and delete the request.
-  commitEmail(userId: string, requestId: string, newEmail: string): Promise<void>
+  // Deletes the row only if it is still in `status`. Returns whether it did.
+  deleteRequest(requestId: string, status: 'PENDING' | 'APPLYING'): Promise<boolean>
+  // One transaction: delete the APPLYING row and set users.email. Writes
+  // nothing and returns false if the row is no longer APPLYING.
+  commitEmail(userId: string, requestId: string, newEmail: string): Promise<boolean>
 }
 
 export interface AuthEmailApi {
@@ -122,15 +145,16 @@ async function reconcile(
   const now = (deps.now ?? (() => new Date()))()
   const row = await deps.store.getRequest(user.id)
   if (!row || row.status !== 'APPLYING') return
+  // Younger rows may still belong to a live attempt.
   if (!opts.force && now.getTime() - row.updatedAt.getTime() < STALE_APPLYING_MS) return
 
   const authEmail = normalizeEmail(await deps.auth.getEmail(user.authId))
   const dbEmail = normalizeEmail(await deps.store.getUserEmail(user.id))
   if (authEmail && authEmail === row.newEmail) {
     if (dbEmail !== row.newEmail) await deps.store.commitEmail(user.id, row.id, row.newEmail)
-    else await deps.store.deleteRequest(row.id)
+    else await deps.store.deleteRequest(row.id, 'APPLYING')
   } else if (authEmail && authEmail === dbEmail) {
-    await deps.store.deleteRequest(row.id)
+    await deps.store.deleteRequest(row.id, 'APPLYING')
   } else {
     deps.log?.('[emailChange] cannot reconcile: Auth and DB disagree with the request', { userId: user.id })
   }
@@ -150,20 +174,16 @@ export async function requestEmailChange(
   if (!isApplePrivateRelayEmail(current)) return { ok: false, error: 'not_relay' }
   if (await deps.store.isEmailTaken(newEmail, user.id)) return { ok: false, error: 'email_taken' }
 
-  const existing = await deps.store.getRequest(user.id)
-  if (existing?.status === 'APPLYING') return { ok: false, error: 'busy' }
-  if (existing && now.getTime() - existing.updatedAt.getTime() < RESEND_COOLDOWN_MS) {
-    return { ok: false, error: 'too_soon' }
-  }
-
+  // The cooldown is checked by the replacing update itself, so of two
+  // concurrent resends only one stores (and sends) a code.
   const code = (deps.generateCode ?? defaultCode)()
   const expiresAt = new Date(now.getTime() + CODE_TTL_MS)
-  const stored = await deps.store.putPendingRequest(user.id, {
-    newEmail,
-    codeHash: hashCode(deps.secret, user.id, newEmail, code),
-    expiresAt,
-  })
-  if (!stored) return { ok: false, error: 'busy' }
+  const stored = await deps.store.putPendingRequest(
+    user.id,
+    { newEmail, codeHash: hashCode(deps.secret, user.id, newEmail, code), expiresAt },
+    new Date(now.getTime() - RESEND_COOLDOWN_MS),
+  )
+  if (stored !== 'stored') return { ok: false, error: stored }
 
   if (!(await deps.sendCode(newEmail, code, input.lang ?? null))) return { ok: false, error: 'send_failed' }
   return { ok: true, email: newEmail, expiresAt }
@@ -182,11 +202,11 @@ export async function confirmEmailChange(
   if (!row) return { ok: false, error: 'no_pending' }
   if (row.status === 'APPLYING') return { ok: false, error: 'busy' }
   if (row.expiresAt.getTime() <= now.getTime()) {
-    await deps.store.deleteRequest(row.id)
+    await deps.store.deleteRequest(row.id, 'PENDING')
     return { ok: false, error: 'code_expired' }
   }
   if (row.attempts >= MAX_CODE_ATTEMPTS) {
-    await deps.store.deleteRequest(row.id)
+    await deps.store.deleteRequest(row.id, 'PENDING')
     return { ok: false, error: 'too_many_attempts' }
   }
 
@@ -194,58 +214,86 @@ export async function confirmEmailChange(
   if (!/^\d{6}$/.test(code) || !sameHash(expected, row.codeHash)) {
     const attempts = await deps.store.recordFailedAttempt(row.id)
     if (attempts !== null && attempts >= MAX_CODE_ATTEMPTS) {
-      await deps.store.deleteRequest(row.id)
+      // Only a PENDING row: never the one another confirm is applying.
+      await deps.store.deleteRequest(row.id, 'PENDING')
       return { ok: false, error: 'too_many_attempts' }
     }
     return { ok: false, error: 'invalid_code' }
   }
 
-  // The lock: only one caller moves this exact row to APPLYING.
-  if (!(await deps.store.claimForApplying(row.id, row.codeHash))) return { ok: false, error: 'busy' }
+  // The lock: only one caller moves this exact row to APPLYING, and not once
+  // the attempts ran out meanwhile.
+  if (!(await deps.store.claimForApplying(row.id, row.codeHash, MAX_CODE_ATTEMPTS))) {
+    const current = await deps.store.getRequest(user.id)
+    const exhausted = !current || current.id !== row.id || current.attempts >= MAX_CODE_ATTEMPTS
+    return { ok: false, error: exhausted ? 'too_many_attempts' : 'busy' }
+  }
 
   // Re-check under the lock.
   const oldEmail = await deps.store.getUserEmail(user.id)
   if (!oldEmail || !isApplePrivateRelayEmail(oldEmail)) {
-    await deps.store.deleteRequest(row.id)
+    await deps.store.deleteRequest(row.id, 'APPLYING')
     return { ok: false, error: 'not_relay' }
   }
   if (await deps.store.isEmailTaken(row.newEmail, user.id)) {
-    await deps.store.deleteRequest(row.id)
+    await deps.store.deleteRequest(row.id, 'APPLYING')
     return { ok: false, error: 'email_taken' }
   }
 
-  let authResult: Awaited<ReturnType<AuthEmailApi['setEmail']>>
-  try {
-    authResult = await deps.auth.setEmail(user.authId, row.newEmail)
-  } catch (err) {
-    deps.log?.('[emailChange] auth update threw', err)
-    authResult = { ok: false, taken: false }
+  const authOutcome = await setAuthEmail(deps, user.authId, row.newEmail)
+  if (authOutcome === 'unknown') {
+    // Can't tell whether Auth changed: keep the lock; reconcile settles it.
+    return { ok: false, error: 'update_failed' }
   }
-  if (!authResult.ok) {
-    // Nothing changed: let them try again (or request another code).
+  if (authOutcome !== 'applied') {
+    // Supabase answered and nothing changed: let them try again.
     await deps.store.releaseClaim(row.id)
-    return { ok: false, error: authResult.taken ? 'email_taken' : 'update_failed' }
+    return { ok: false, error: authOutcome === 'taken' ? 'email_taken' : 'update_failed' }
   }
 
+  let committed = false
   try {
-    await deps.store.commitEmail(user.id, row.id, row.newEmail)
-    return { ok: true, email: row.newEmail }
+    committed = await deps.store.commitEmail(user.id, row.id, row.newEmail)
+    if (committed) return { ok: true, email: row.newEmail }
+    deps.log?.('[emailChange] lock lost before commit (reconciled meanwhile), reverting auth email', { userId: user.id })
   } catch (err) {
     deps.log?.('[emailChange] db update failed, reverting auth email', err)
   }
 
-  let reverted = false
-  try {
-    const revert = await deps.auth.setEmail(user.authId, oldEmail)
-    reverted = revert.ok
-  } catch (err) {
-    deps.log?.('[emailChange] auth revert threw', err)
-  }
-  if (reverted) {
+  const revert = await setAuthEmail(deps, user.authId, oldEmail)
+  if (revert === 'applied') {
     await deps.store.releaseClaim(row.id).catch(err => deps.log?.('[emailChange] release failed', err))
   } else {
-    // Row stays APPLYING: reconcileEmailChange() will align the DB with Auth.
+    // Row stays APPLYING (if it still exists): reconcileEmailChange() will
+    // align the DB with Auth.
     deps.log?.('[emailChange] auth revert failed; left for reconciliation', { userId: user.id })
   }
   return { ok: false, error: 'update_failed' }
+}
+
+// 'applied' / 'taken' / 'failed' when Supabase answered; when the call threw
+// (timeout, lost response), 'applied' if Auth already has the new email and
+// 'unknown' otherwise.
+async function setAuthEmail(
+  deps: EmailChangeDeps,
+  authId: string,
+  email: string,
+): Promise<'applied' | 'taken' | 'failed' | 'unknown'> {
+  try {
+    const r = await deps.auth.setEmail(authId, email)
+    return r.ok ? 'applied' : r.taken ? 'taken' : 'failed'
+  } catch (err) {
+    deps.log?.('[emailChange] auth update threw; reading it back', err)
+  }
+  try {
+    const current = normalizeEmail(await deps.auth.getEmail(authId))
+    if (current === normalizeEmail(email)) return 'applied'
+    // Still the other value, but the cut-off request could yet land on
+    // Supabase's side: don't release. Reconcile settles it once the row is
+    // older than STALE_APPLYING_MS.
+    return 'unknown'
+  } catch (err) {
+    deps.log?.('[emailChange] auth read-back failed', err)
+    return 'unknown'
+  }
 }
