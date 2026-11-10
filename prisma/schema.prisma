@@ -2380,3 +2380,28 @@ model EmailChangeRequest {
 
   @@map("email_change_requests")
 }
+
+// Audit record of an admin "Merge accounts" action (lib/accountMerge.ts):
+// one person ended up with two User rows (typically an Apple "Hide My Email"
+// sign-in next to their real account) and everything was moved onto
+// keptUserId. The merged row stays in `users` soft-deleted with a placeholder
+// email; mergedEmail keeps the address it had. User ids are plain strings,
+// not FKs, so this history can never block deleting either row later.
+model AccountMerge {
+  id           String   @id @default(cuid())
+  keptUserId   String
+  mergedUserId String
+  mergedEmail  String
+  mergedName   String?
+  actorId      String?
+  keptAuthId   String?  @db.Uuid
+  // [{ id, email }] Supabase Auth users banned + renamed by the merge
+  disabledAuth Json
+  // Rows moved per table, e.g. { bookings: 17, memberships: 1 }
+  moved        Json
+  createdAt    DateTime @default(now())
+
+  @@index([keptUserId])
+  @@index([mergedUserId])
+  @@map("account_merges")
+}

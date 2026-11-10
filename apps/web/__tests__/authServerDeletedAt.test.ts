@@ -35,3 +35,17 @@ describe('resolveDbUser deletedAt gate', () => {
     expect(mockUpdate).toHaveBeenCalledWith({ where: { id: 'user-1' }, data: { supabaseAuthId: 'auth-1' } })
   })
 })
+
+describe('resolveDbUser — logins retired by a merge or self-delete', () => {
+  it('never relinks or provisions a row for a placeholder address', async () => {
+    mockFindUnique.mockResolvedValue(null)
+    const result = await resolveDbUser({
+      id: 'auth-old',
+      email: 'merged+user-1@merged.martialapp.invalid',
+      app_metadata: { provider: 'apple' },
+    } as never)
+    expect(result).toBeNull()
+    expect(mockFindUnique).toHaveBeenCalledTimes(1) // only the supabaseAuthId lookup
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+})

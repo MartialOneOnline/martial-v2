@@ -322,3 +322,8 @@ export type InviteToken = Prisma.InviteTokenModel
  * 
  */
 export type EmailChangeRequest = Prisma.EmailChangeRequestModel
+/**
+ * Model AccountMerge
+ * 
+ */
+export type AccountMerge = Prisma.AccountMergeModel

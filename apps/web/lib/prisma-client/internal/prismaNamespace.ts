@@ -444,7 +444,8 @@ export const ModelName = {
   SchoolSubscription: 'SchoolSubscription',
   StripeWebhookEvent: 'StripeWebhookEvent',
   InviteToken: 'InviteToken',
-  EmailChangeRequest: 'EmailChangeRequest'
+  EmailChangeRequest: 'EmailChangeRequest',
+  AccountMerge: 'AccountMerge'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -460,7 +461,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest" | "accountMerge"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4978,6 +4979,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AccountMerge: {
+      payload: Prisma.$AccountMergePayload<ExtArgs>
+      fields: Prisma.AccountMergeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccountMergeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccountMergeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        findFirst: {
+          args: Prisma.AccountMergeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccountMergeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        findMany: {
+          args: Prisma.AccountMergeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>[]
+        }
+        create: {
+          args: Prisma.AccountMergeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        createMany: {
+          args: Prisma.AccountMergeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AccountMergeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>[]
+        }
+        delete: {
+          args: Prisma.AccountMergeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        update: {
+          args: Prisma.AccountMergeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        deleteMany: {
+          args: Prisma.AccountMergeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccountMergeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AccountMergeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>[]
+        }
+        upsert: {
+          args: Prisma.AccountMergeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        aggregate: {
+          args: Prisma.AccountMergeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccountMerge>
+        }
+        groupBy: {
+          args: Prisma.AccountMergeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccountMergeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -6190,6 +6265,22 @@ export const EmailChangeRequestScalarFieldEnum = {
 export type EmailChangeRequestScalarFieldEnum = (typeof EmailChangeRequestScalarFieldEnum)[keyof typeof EmailChangeRequestScalarFieldEnum]
 
 
+export const AccountMergeScalarFieldEnum = {
+  id: 'id',
+  keptUserId: 'keptUserId',
+  mergedUserId: 'mergedUserId',
+  mergedEmail: 'mergedEmail',
+  mergedName: 'mergedName',
+  actorId: 'actorId',
+  keptAuthId: 'keptAuthId',
+  disabledAuth: 'disabledAuth',
+  moved: 'moved',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeScalarFieldEnum = (typeof AccountMergeScalarFieldEnum)[keyof typeof AccountMergeScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -7009,6 +7100,7 @@ export type GlobalOmitConfig = {
   stripeWebhookEvent?: Prisma.StripeWebhookEventOmit
   inviteToken?: Prisma.InviteTokenOmit
   emailChangeRequest?: Prisma.EmailChangeRequestOmit
+  accountMerge?: Prisma.AccountMergeOmit
 }
 
 /* Types for Logging */
