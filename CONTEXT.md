@@ -302,7 +302,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-09 (rama `claude/currency-by-country`; sin migración; pendiente: Project Audit y prueba manual del usuario)
+### Sesión — 2026-11-09/10 (rama `claude/currency-by-country`; sin migración; Project Audit `RECHAZADO` en `942b643` (1 P1, 3 P2) → **`APROBADO`** en `dad5acf`; pendiente: merge, prueba manual del usuario y pasar el plan de ACT Pinoy a AUD)
 
 **Moneda según el país de la escuela.** Detonante: ACT Pinoy Taekwondo (Holt, AU — primera escuela australiana, autoregistrada el 23/10, dueño Jojo Lopez) tenía su plan en "65 €" y no había forma de poner AUD: la moneda vive en cada plan/clase/entrada/transacción (no hay `School.currency`), el selector solo ofrecía EUR/USD/GBP y todo nacía en EUR.
 - `lib/currency.ts` (cliente+servidor): `CURRENCIES` (EUR, GBP, USD, AUD, NZD, CAD, CHF, SEK, NOK, DKK, PLN, TRY, AED, BRL, MXN, SGD, HKD, ZAR — **solo monedas con 2 decimales**, porque el checkout de Stripe envía `precio × 100`; JPY/KRW romperían el cobro), `currencyForCountry()` (zona euro → EUR, AU → AUD…; desconocido/null → EUR, como antes), `currencyOptions()` (conserva una moneda antigua que ya no esté en la lista). `lib/schoolCurrency.ts`: `schoolDefaultCurrency(schoolId)` en servidor.
@@ -311,7 +311,8 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 - Formularios: Planes (selector ampliado, nuevo plan nace en la moneda del país), Clases (**nuevo** selector junto al precio; antes siempre EUR), Eventos (un selector de moneda para todas las entradas, el símbolo ya no es "€" fijo, resumen de precio con `fmtPrice`), Añadir pago manual (selector ampliado). Ficha de alumno: el estado local tras asignar/cancelar ya no fuerza 'EUR'; símbolos duplicados de `UsersClient`/`StudentProfileClient` sustituidos por `currencySymbol`.
 - APIs de creación (planes, clases, eventos POST/PUT, transacciones POST): si no llega moneda → la del país de la escuela en vez de 'EUR'.
 - **No cambiado** (siguen en EUR fijo, revisar si una escuela no-EUR los usa): transacciones automáticas de `api/bookings`, `api/memberships/trial`, `api/dashboard/checkin`; informe de pagos de super admin (`/api/admin/reports/payments`, solo suma EUR); MRR de `PaymentSubscriptionsClient`. Los planes ya existentes no se migran: ACT Pinoy debe editar su plan a AUD (super admin → Log in as owner → Memberships), confirmando antes el precio real con Jojo.
-- Tests: `__tests__/currency.test.ts` (9). Suite: 12 ficheros / 55 tests fallan **igual en `origin/main`** (mocks de Prisma), ninguno nuevo. `tsc` limpio; sin avisos de lint nuevos.
+- Correcciones tras Audit: PUT de evento conserva la moneda de cada entrada (`resolveTicketCurrency`); `useFollowSchoolCurrency()` actualiza los formularios de alta si el contexto llega tarde sin pisar una elección; `AssignPlanModal` propaga la moneda; previews y opciones de plan (pago manual, Suscripciones) con `fmtPrice`.
+- Tests: `__tests__/currency.test.ts` (13). Suite: 12 ficheros / 55 tests fallan **igual en `origin/main`** (mocks de Prisma), ninguno nuevo. `tsc` limpio; sin avisos de lint nuevos.
 
 ### Sesión — 2026-11-05 → 2026-11-09 (rama `claude/apple-relay-email`, PR #59; migración aplicada en Supabase el 2026-11-09; Project Audit `27284ff`: RECHAZADO (1 P1, 4 P2) → `3428d88`: APROBADO CON PENDIENTES (3 P2) → `ecb927e`: APROBADO CON PENDIENTES (2 P2) → **`APROBADO`** en `9af08af`; pendiente: merge y prueba con Apple/Resend reales)
 

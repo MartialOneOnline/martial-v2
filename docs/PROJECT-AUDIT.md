@@ -282,7 +282,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote T — Moneda según el país de la escuela (rama `claude/currency-by-country`)
 
-- Estado: **`RECHAZADO`** en `942b643` (1 P1, 3 P2) → correcciones entregadas para re-auditoría (ver abajo). Sin migración.
+- Estado: **`RECHAZADO`** en `942b643` (1 P1, 3 P2) → **`APROBADO`** en `dad5acf`, sin hallazgos nuevos (Codex: 13/13, suite 1229 / los mismos 55 de `main`, hook probado en Chromium a 375 y 1280 px). Sin migración. Pendiente: checkout real en AUD y recorrido con sesión real.
 - Pedido del usuario: ACT Pinoy Taekwondo (Holt, AU) tenía su plan en "65 €" y no se podía poner AUD. Debe haber un selector de monedas según el país (EUR, USD, GBP y otras como AUD).
 - Criterios: (1) planes, clases, entradas de evento y pago manual nuevos nacen en la moneda del país de la escuela (`School.country`, ISO-2) — AU→AUD, GB→GBP, US→USD, zona euro→EUR, desconocido→EUR; (2) los selectores ofrecen 18 monedas, todas de 2 decimales (el checkout de Stripe envía `precio × 100`); (3) editar un registro con una moneda fuera de la lista no la cambia en silencio; (4) EUR/GBP/USD se muestran igual que antes, las demás con su símbolo (A$65); (5) las APIs de creación sin `currency` usan la del país, no 'EUR'; (6) sin cambios de esquema.
 - Fuera de alcance (documentado): transacciones automáticas en `api/bookings`, `api/memberships/trial`, `api/dashboard/checkin` siguen en 'EUR'; informe de pagos del super admin solo suma EUR; MRR de suscripciones en EUR.
