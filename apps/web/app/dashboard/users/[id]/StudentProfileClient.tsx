@@ -9,7 +9,7 @@ import {
   User, Heart, FileText, Dumbbell, X, Plus, Check, CheckCircle,
   Archive, Trash2, Bell, FileSignature,
 } from 'lucide-react'
-import { fmtPrice } from '../../../../lib/format'
+import { fmtPrice, currencySymbol } from '../../../../lib/format'
 import NotificationBell from '../../../../components/NotificationBell'
 import DashboardLanguageSelector from '../../../../components/DashboardLanguageSelector'
 import RowMenu from '../../../../components/RowMenu'
@@ -885,7 +885,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
   const [endDateTouched, setEndDateTouched] = useState(false)
 
   const selected = plans.find(p => p.id === planId)
-  const sym = (c: string) => c === 'EUR' ? '€' : c === 'USD' ? '$' : c === 'GBP' ? '£' : c
+  const sym = currencySymbol
 
   // Compute preview end date based on selected plan
   const previewEndDate = (() => {
@@ -940,6 +940,7 @@ function AssignPlanModal({ memberId, plans, onClose, onAssigned }: {
         startDate: data.startDate,
         expiresAt: data.endDate ?? null,
         price: Number(data.price),
+        currency: data.currency ?? data.plan?.currency ?? selected?.currency ?? 'EUR',
         interval: data.plan?.billingCycle ?? null,
         consumed: 0,
       })
@@ -1365,7 +1366,7 @@ function MembershipSection({
           planType: 'SUBSCRIPTION',
           billingCycle: activeMembership.interval,
           price: activeMembership.price,
-          currency: 'EUR',
+          currency: activeMembership.currency ?? 'EUR',
           status: 'CANCELLED',
           startDate: activeMembership.startDate,
           endDate: activeMembership.expiresAt,
@@ -1630,7 +1631,7 @@ function MembershipSection({
             setActiveMembership(m)
             setMemberships(prev => [
               { id: m.id, planName: m.planName, planType: 'SUBSCRIPTION', billingCycle: m.interval,
-                price: m.price, currency: 'EUR', status: 'ACTIVE',
+                price: m.price, currency: m.currency ?? 'EUR', status: 'ACTIVE',
                 startDate: m.startDate, endDate: m.expiresAt, consumed: 0 },
               ...prev.map(p => p.status === 'ACTIVE' ? { ...p, status: 'CANCELLED' } : p),
             ])
@@ -2205,7 +2206,7 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
                 setActiveMembership(m)
                 setMemberships(prev => [{
                   id: m.id, planName: m.planName, planType: 'SUBSCRIPTION',
-                  billingCycle: m.interval, price: m.price, currency: 'EUR',
+                  billingCycle: m.interval, price: m.price, currency: m.currency ?? 'EUR',
                   status: m.status, startDate: m.startDate, endDate: m.expiresAt, consumed: 0,
                 } satisfies MembershipRecord, ...prev])
                 // A new plan assignment supersedes any pending renewal on the old membership.

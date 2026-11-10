@@ -57,6 +57,8 @@ function schoolContext(overrides: Partial<SchoolContext> = {}): SchoolContext {
     role: 'OWNER',
     permissions: [],
     gradingEnabled: true,
+    country: 'ES',
+    defaultCurrency: 'EUR',
     ...overrides,
   }
 }

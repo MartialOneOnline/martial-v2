@@ -3,6 +3,7 @@ import type { Permission } from './permissions'
 import { getMemberPermissions } from './customRoles'
 import { isGradingEnabled } from '../school-modules'
 import type { SchoolMemberRole } from '../prisma-client/enums'
+import { currencyForCountry } from '../currency'
 
 export type SchoolContext = {
   schoolId: string
@@ -12,6 +13,10 @@ export type SchoolContext = {
   permissions: Permission[]
   /** Belts & gradings module (see lib/school-modules.ts) — hides every belt/grading surface when off */
   gradingEnabled: boolean
+  /** ISO country code of the school, e.g. "AU" (null if never set) */
+  country: string | null
+  /** Default currency for new plans/classes/tickets/transactions, from the country */
+  defaultCurrency: string
 }
 
 export type UserContexts = {
@@ -30,7 +35,7 @@ export async function getUserContexts(userId: string, lastSchoolId?: string | nu
       include: {
         school: {
           select: {
-            id: true, name: true, slug: true, modules: true,
+            id: true, name: true, slug: true, modules: true, country: true,
             _count: { select: { gradingSystems: { where: { isActive: true } } } },
           },
         },
@@ -48,6 +53,8 @@ export async function getUserContexts(userId: string, lastSchoolId?: string | nu
         role: m.role,
         permissions: await getMemberPermissions(m),
         gradingEnabled: isGradingEnabled(m.school.modules, m.school._count?.gradingSystems ?? 0),
+        country: m.school.country ?? null,
+        defaultCurrency: currencyForCountry(m.school.country),
       }))
   )
 
