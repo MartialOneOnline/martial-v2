@@ -1,16 +1,42 @@
+import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeForSearch } from '@/lib/search'
 import {
-  type AuthAdmin, type LoginInfo, type MergeChoice, type MergeDeps, type Side,
+  type AuthAdmin, type ClaimStore, type LoginInfo, type MergeChoice, type MergeDeps, type Side,
   defaultSides, loadSideDetail, loadSummary, mergeBlockers, mergeUsersInTx, mergeWarnings, signedWaiverConflicts, suggestDefaults,
 } from '@/lib/accountMerge'
 
 // Production wiring for lib/accountMerge.ts (Supabase service-role + Prisma).
 
-const AUTH_TIMEOUT_MS = 10_000
+export const AUTH_TIMEOUT_MS = 10_000
 
-// Never hangs and never throws: a slow or lost answer becomes an error.
+// Every request is aborted after AUTH_TIMEOUT_MS at the fetch level — not
+// just abandoned — so it can't still be sent much later. (Supabase may have
+// received it just before the abort; runAccountMerge holds the claims for a
+// couple of minutes after such an uncertain write.)
+export const abortingFetch: typeof fetch = (input, init) => {
+  const timeout = AbortSignal.timeout(AUTH_TIMEOUT_MS)
+  const signal = init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout
+  return fetch(input, { ...init, signal })
+}
+
+function mergeAdminClient() {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { fetch: abortingFetch },
+  })
+}
+
+// A definite refusal (4xx other than 408/429) can't be applied later; a
+// timeout, network error, lost response or 5xx might be.
+export function isUncertainWriteError(error: { status?: number; name?: string } | null | undefined): boolean {
+  if (!error) return false
+  const status = error.status ?? 0
+  if (error.name === 'AuthRetryableFetchError') return true
+  return !(status >= 400 && status < 500 && status !== 408 && status !== 429)
+}
+
+// Backstop on top of the fetch abort: never hangs and never throws.
 async function withTimeout<T>(p: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined
   try {
@@ -30,7 +56,7 @@ export function isUserNotFound(error: { status?: number; code?: string } | null 
 }
 
 export function supabaseAuthAdmin(): AuthAdmin {
-  const admin = createAdminClient()
+  const admin = mergeAdminClient()
   return {
     async getUser(id) {
       try {
@@ -55,30 +81,60 @@ export function supabaseAuthAdmin(): AuthAdmin {
     async updateUser(id, attrs) {
       try {
         const { error } = await withTimeout(admin.auth.admin.updateUserById(id, attrs))
-        return { error: error ? error.message : null }
+        return error ? { error: error.message, uncertain: isUncertainWriteError(error) } : { error: null, uncertain: false }
       } catch (err) {
-        return { error: err instanceof Error ? err.message : String(err) }
+        // Thrown = timed out or the connection broke: outcome unknown.
+        return { error: err instanceof Error ? err.message : String(err), uncertain: true }
       }
     },
   }
 }
 
-// Auth calls run inside the transaction (up to ~4 × 10 s), so it gets a
-// generous budget; the route's maxDuration matches.
-export const MERGE_TX_TIMEOUT_MS = 55_000
+// account_merge_claims: one row per user. acquire() takes every row or none
+// (one transaction; ids in a fixed order so two acquirers can't deadlock).
+// An expired claim is taken over in place.
+export const prismaClaimStore: ClaimStore = {
+  async acquire(userIds, attemptId, holdUntil) {
+    class Busy extends Error { constructor(public holdUntil: Date) { super('busy') } }
+    try {
+      await prisma.$transaction(async tx => {
+        for (const userId of [...userIds].sort()) {
+          const taken = await tx.$queryRaw<{ userId: string }[]>`
+            INSERT INTO account_merge_claims ("userId", "attemptId", "holdUntil")
+            VALUES (${userId}, ${attemptId}, ${holdUntil})
+            ON CONFLICT ("userId") DO UPDATE
+              SET "attemptId" = EXCLUDED."attemptId", "holdUntil" = EXCLUDED."holdUntil", "createdAt" = now()
+              WHERE account_merge_claims."holdUntil" <= now()
+            RETURNING "userId"`
+          if (taken.length === 0) {
+            const row = await tx.accountMergeClaim.findUnique({ where: { userId }, select: { holdUntil: true } })
+            throw new Busy(row?.holdUntil ?? holdUntil)
+          }
+        }
+      })
+      return { ok: true }
+    } catch (err) {
+      if (err instanceof Busy) return { ok: false, holdUntil: err.holdUntil }
+      throw err
+    }
+  },
+  async hold(userIds, attemptId, holdUntil) {
+    await prisma.accountMergeClaim.updateMany({ where: { userId: { in: userIds }, attemptId }, data: { holdUntil } })
+  },
+  async release(userIds, attemptId) {
+    await prisma.accountMergeClaim.deleteMany({ where: { userId: { in: userIds }, attemptId } })
+  },
+}
 
 export function prismaMergeDeps(auth: AuthAdmin): MergeDeps {
   return {
     auth,
-    withLockedPair: (keepId, mergeId, fn) =>
-      prisma.$transaction(async tx => {
-        await tx.$queryRaw`SELECT id FROM users WHERE id IN (${keepId}, ${mergeId}) FOR UPDATE`
-        return fn({
-          load: id => loadSummary(tx, id),
-          signedWaiverConflicts: () => signedWaiverConflicts(tx, keepId, mergeId),
-          applyDb: input => mergeUsersInTx(tx, input),
-        })
-      }, { timeout: MERGE_TX_TIMEOUT_MS, maxWait: 10_000 }),
+    claims: prismaClaimStore,
+    load: id => loadSummary(prisma, id),
+    signedWaiverConflicts: (keepId, mergeId) => signedWaiverConflicts(prisma, keepId, mergeId),
+    // Short: no network calls inside. mergeUsersInTx locks both user rows
+    // and re-checks them before moving anything.
+    commit: input => prisma.$transaction(tx => mergeUsersInTx(tx, input), { timeout: 30_000, maxWait: 10_000 }),
   }
 }
 

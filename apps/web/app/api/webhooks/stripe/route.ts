@@ -13,7 +13,7 @@ import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, Membershi
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
-import { resolveSurvivingUserId } from '@/lib/mergedUsers'
+import { lockSurvivingUser, resolveSurvivingUserId } from '@/lib/mergedUsers'
 import { alertWebhookFailure } from '@/lib/alerts/webhookFailure'
 
 // A row still PROCESSING past this long was orphaned by a request that
@@ -274,7 +274,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       // Non-null: these always accompany planId, set together by /api/my/checkout.
       const schoolId = meta.schoolId!
       // The checkout may have been created by an account merged away since.
-      const userId = meta.userId ? await resolveSurvivingUserId(meta.userId) : meta.userId!
+      let userId = meta.userId ? await resolveSurvivingUserId(meta.userId) : meta.userId!
       const planName = meta.planName!
       const price = meta.price!
       const currency = meta.currency!
@@ -296,6 +296,8 @@ async function handleStripeEvent(event: Stripe.Event) {
       if (eventBookingId) {
         let blockedByArchivedMember = false
         const outcome = await prisma.$transaction(async (tx) => {
+          // Lock + re-resolve: a merge may have moved this account meanwhile.
+          userId = await lockSurvivingUser(tx, userId)
           const booking = await tx.eventBooking.findUnique({
             where: { id: eventBookingId },
             select: {
@@ -444,6 +446,8 @@ async function handleStripeEvent(event: Stripe.Event) {
       let activatedMembershipId: string | null = null
       let blockedByArchivedMember = false
       await prisma.$transaction(async (tx) => {
+        // Lock + re-resolve: a merge may have moved this account meanwhile.
+        userId = await lockSurvivingUser(tx, userId)
         // Retry/duplicate-delivery protection for *this* event now lives in
         // claimStripeEvent (only one delivery of a given event.id ever
         // reaches here) — this check is a separate business guard against
@@ -617,7 +621,10 @@ async function handleStripeEvent(event: Stripe.Event) {
       // stripeInvoiceId to this invoice's id gets to record the transaction and
       // fire the notification, so a retry (or two concurrent deliveries of the
       // same event) can't double-count revenue or double-notify.
+      let lockedUserId = membership.userId
       const claimed = await prisma.$transaction(async (tx) => {
+        // Lock + re-resolve: a merge may have moved this account meanwhile.
+        lockedUserId = await lockSurvivingUser(tx, membership.userId)
         const result = await tx.membership.updateMany({
           where: {
             id: membership.id,
@@ -642,7 +649,7 @@ async function handleStripeEvent(event: Stripe.Event) {
 
         await recordOnlinePayment(tx, {
           schoolId:      membership.schoolId,
-          userId:        membership.userId,
+          userId:        lockedUserId,
           amount:        renewalAmount,
           currency:      membership.currency,
           paymentMethod: PaymentMethod.STRIPE,
@@ -656,7 +663,7 @@ async function handleStripeEvent(event: Stripe.Event) {
         // recovering from a previous failed payment that had frozen the
         // member) — project that onto SchoolMember too, unless ARCHIVED.
         await syncSchoolMemberStatusForMembership(tx, {
-          userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.ACTIVE,
+          userId: lockedUserId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.ACTIVE,
         })
         return true
       })
@@ -664,7 +671,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       if (claimed) {
         notifyPaymentReceived(membership.schoolId, membership.user?.name ?? 'Alumno', fmtPrice(renewalAmount, membership.currency), `${membership.planName} — renovación`)
         // A paid renewal is a paying student too — only the delivery that claimed it, never a €0 invoice
-        await convertLeadAfterPaidActivation(membership.schoolId, membership.userId, 'stripe webhook renewal', { price: renewalAmount })
+        await convertLeadAfterPaidActivation(membership.schoolId, lockedUserId, 'stripe webhook renewal', { price: renewalAmount })
       }
       break
     }
@@ -703,7 +710,10 @@ async function handleStripeEvent(event: Stripe.Event) {
       })
       if (!membership) break
 
+      let lockedUserId = membership.userId
       await prisma.$transaction(async (tx) => {
+        // Lock + re-resolve: a merge may have moved this account meanwhile.
+        lockedUserId = await lockSurvivingUser(tx, membership.userId)
         await tx.membership.updateMany({
           where: { stripeSubId: sub.id },
           data:  {
@@ -712,7 +722,7 @@ async function handleStripeEvent(event: Stripe.Event) {
           },
         })
         await syncSchoolMemberStatusForMembership(tx, {
-          userId: membership.userId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membership.id,
+          userId: lockedUserId, schoolId: membership.schoolId, membershipStatus: MembershipStatus.CANCELLED, excludeMembershipId: membership.id,
         })
       })
       break
@@ -769,7 +779,10 @@ async function handleStripeEvent(event: Stripe.Event) {
 
       if (!newStatus && !paymentStatus && cancelledAt === undefined && !periodEndDate) break // nothing to sync
 
+      let lockedUserId = membership.userId
       await prisma.$transaction(async (tx) => {
+        // Lock + re-resolve: a merge may have moved this account meanwhile.
+        lockedUserId = await lockSurvivingUser(tx, membership.userId)
         const paymentStatusApplied = paymentStatus
           ? await applyPaymentStatus(tx, { stripeSubId: sub.id }, paymentStatus, eventAt)
           : false
@@ -794,7 +807,7 @@ async function handleStripeEvent(event: Stripe.Event) {
         }
         if (newStatus) {
           await syncSchoolMemberStatusForMembership(tx, {
-            userId: membership.userId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
+            userId: lockedUserId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
           })
         }
       })

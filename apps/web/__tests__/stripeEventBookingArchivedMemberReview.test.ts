@@ -14,6 +14,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+// No account merges in these tests: user ids resolve to themselves.
+vi.mock('@/lib/mergedUsers', () => ({
+  resolveSurvivingUserId: async (id: string) => id,
+  lockSurvivingUser: async (_tx: unknown, id: string) => id,
+}))
 vi.mock('@/lib/stripe', () => ({
   getStripe: () => ({
     webhooks: { constructEvent: (rawBody: string) => JSON.parse(rawBody) },
@@ -148,8 +153,6 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
 
 vi.mock('@/lib/db', () => ({
   prisma: {
-    // No account merges: checkout metadata user ids resolve to themselves.
-    accountMerge: { findFirst: vi.fn().mockResolvedValue(null) },
     school: { findUnique: mockSchoolFindUnique },
     stripeWebhookEvent: { create: mockStripeWebhookEventCreate, updateMany: mockStripeWebhookEventUpdateMany, update: mockStripeWebhookEventUpdate },
     $transaction: mockTransaction,

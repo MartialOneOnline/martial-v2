@@ -186,16 +186,18 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
   const [done, setDone] = useState<{ moved: Record<string, number>; keptEmail: string } | null>(null)
   const [uncertain, setUncertain] = useState(false)
 
-  const load = useCallback((params: Record<string, string>) => {
+  // Resolves true only when a fresh preview arrived.
+  const load = useCallback((params: Record<string, string>): Promise<boolean> => {
     setLoading(true)
     setError('')
-    adminFetch(`/api/admin/users/merge?${new URLSearchParams(params)}`)
+    return adminFetch(`/api/admin/users/merge?${new URLSearchParams(params)}`)
       .then(async r => {
         const d = await r.json().catch(() => ({}))
         if (!r.ok) throw new Error(d.error || 'Could not load accounts')
         setPreview(d)
+        return true
       })
-      .catch(e => setError(e.message))
+      .catch(e => { setError(e instanceof Error ? e.message : 'Could not load accounts'); return false })
       .finally(() => setLoading(false))
   }, [])
 
@@ -207,7 +209,7 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
     const p: Record<string, string> = { keepId: next.keepId, mergeId: next.mergeId }
     if (next.loginFrom) p.loginFrom = next.loginFrom
     if (next.emailFrom) p.emailFrom = next.emailFrom
-    load(p)
+    return load(p)
   }
 
   async function handleMerge() {
@@ -240,10 +242,12 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
 
   // Reload the preview: if the merge went through, it now shows the merged
   // account as a blocker instead of letting the admin run it twice.
-  function checkResult() {
+  // Merge stays disabled until this succeeds; a failed check keeps the
+  // warning up so it can be repeated.
+  async function checkResult() {
     if (!preview) return
-    setUncertain(false)
-    update(preview.choice)
+    if (await update(preview.choice)) setUncertain(false)
+    else setError('Couldn’t check the result — try “Check result” again.')
   }
 
   const c = preview?.choice
@@ -339,8 +343,8 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   No answer from the server, so the merge may or may not have happened. Check the result before trying again.
                 </p>
-                <button type="button" onClick={checkResult}
-                  className="h-8 px-3 rounded-lg border border-amber-300 bg-white text-xs font-semibold text-amber-800 hover:bg-amber-100">
+                <button type="button" onClick={checkResult} disabled={loading}
+                  className="disabled:opacity-50 h-8 px-3 rounded-lg border border-amber-300 bg-white text-xs font-semibold text-amber-800 hover:bg-amber-100">
                   Check result
                 </button>
               </div>

@@ -41,9 +41,15 @@ let eventBookings: Record<string, Record<string, unknown>>
 let membershipSeq: number
 // mergedUserId -> keptUserId (AccountMerge rows)
 let accountMerges: Record<string, string>
+// Users soft-deleted by a merge, and a hook that runs when the webhook's
+// transaction takes its user lock (to simulate a merge committing meanwhile).
+let deletedUsers: Set<string>
+let onUserLock: (() => void) | null
 
 function resetState() {
   accountMerges = {}
+  deletedUsers = new Set()
+  onUserLock = null
   webhookEvents = {}
   memberships = {}
   eventBookings = {}
@@ -121,8 +127,18 @@ const mockEventBookingUpdate = vi.fn((args: { where: { id: string }; data: Recor
   return Promise.resolve(b)
 })
 
+// SELECT "deletedAt" FROM users WHERE id = ${id} FOR SHARE
+const mockUserLock = vi.fn((_sql: TemplateStringsArray, id: string) => {
+  const hook = onUserLock
+  onUserLock = null
+  hook?.()
+  return Promise.resolve([{ deletedAt: deletedUsers.has(id) ? new Date() : null }])
+})
+
 const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
   const tx = {
+    $queryRaw: mockUserLock,
+    accountMerge: { findFirst: mockAccountMergeFindFirst },
     membership: { findFirst: mockMembershipFindFirst, create: mockMembershipCreate },
     schoolMember: { create: mockSchoolMemberCreate, updateMany: mockSchoolMemberUpdateMany, findUnique: mockSchoolMemberFindUnique },
     eventBooking: { findUnique: mockEventBookingFindUnique, updateMany: mockEventBookingUpdateMany, update: mockEventBookingUpdate },
@@ -280,6 +296,7 @@ describe('POST /api/webhooks/stripe — event ticket checkout.session.completed 
 describe('POST /api/webhooks/stripe — checkout started by an account merged away since', () => {
   it('activates the membership on the surviving account, also on redelivery', async () => {
     accountMerges = { 'user-1': 'user-keep' } // checkout metadata still says user-1
+    deletedUsers = new Set(['user-1'])
     const event = checkoutSessionEvent('evt_merged')
 
     expect((await POST(makeRequest(event))).status).toBe(200)
@@ -295,7 +312,39 @@ describe('POST /api/webhooks/stripe — checkout started by an account merged aw
 
   it('follows chained merges to the last surviving account', async () => {
     accountMerges = { 'user-1': 'user-mid', 'user-mid': 'user-keep' }
+    deletedUsers = new Set(['user-1', 'user-mid'])
     expect((await POST(makeRequest(checkoutSessionEvent('evt_chain')))).status).toBe(200)
     expect(mockMembershipCreate.mock.calls[0]![0].data).toMatchObject({ userId: 'user-keep' })
+  })
+})
+
+describe('POST /api/webhooks/stripe — merge that commits between the lookup and the write', () => {
+  // The webhook looks up user-1 (not merged yet), then waits for the user row
+  // lock while a merge user-1 → user-keep commits. It must write to user-keep.
+  function mergeWhileWaitingForLock(chain = false) {
+    onUserLock = () => {
+      accountMerges = chain ? { 'user-1': 'user-mid', 'user-mid': 'user-keep' } : { 'user-1': 'user-keep' }
+      deletedUsers = new Set(chain ? ['user-1', 'user-mid'] : ['user-1'])
+    }
+  }
+
+  it('membership checkout: activation, payment and member row go to the surviving account', async () => {
+    mergeWhileWaitingForLock()
+    expect((await POST(makeRequest(checkoutSessionEvent('evt_race')))).status).toBe(200)
+    expect(mockMembershipCreate.mock.calls[0]![0].data).toMatchObject({ userId: 'user-keep' })
+    expect(mockRecordOnlinePayment.mock.calls[0]![1]).toMatchObject({ userId: 'user-keep' })
+    expect(mockSchoolMemberCreate.mock.calls[0]![0].data).toMatchObject({ userId: 'user-keep' })
+  })
+
+  it('also through a chain of merges', async () => {
+    mergeWhileWaitingForLock(true)
+    expect((await POST(makeRequest(checkoutSessionEvent('evt_race_chain')))).status).toBe(200)
+    expect(mockMembershipCreate.mock.calls[0]![0].data).toMatchObject({ userId: 'user-keep' })
+  })
+
+  it('a webhook that takes the lock first writes to the original account (the merge then moves it)', async () => {
+    expect((await POST(makeRequest(checkoutSessionEvent('evt_first')))).status).toBe(200)
+    expect(mockMembershipCreate.mock.calls[0]![0].data).toMatchObject({ userId: 'user-1' })
+    expect(mockUserLock).toHaveBeenCalled()
   })
 })

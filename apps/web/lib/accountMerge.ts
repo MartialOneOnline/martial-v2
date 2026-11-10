@@ -14,11 +14,13 @@ import type { Prisma } from '@/lib/prisma-client/client'
 // user is banned and renamed, otherwise resolveDbUser()'s email fallback or
 // OAuth auto-provisioning would recreate the duplicate on its next login.
 //
-// The whole merge runs inside one Prisma transaction that locks both rows
-// first; inside it, Auth changes come first (each one read back), then the
-// data moves. If anything fails after an Auth change, the transaction rolls
-// back, the kept login still reaches its old row, and running the merge again
-// is safe — it also unbans the kept login if an earlier attempt banned it.
+// Both accounts are claimed first (account_merge_claims), so no other merge
+// or retry overlaps. Then Auth changes (each one read back), then the data in
+// one short transaction. If anything fails after an Auth change, the kept
+// login still reaches its old row and running the merge again is safe — it
+// also unbans the kept login if an earlier attempt banned it. An Auth write
+// with an unknown outcome keeps the claims for a few minutes, so a request
+// Supabase applies late can't undo a retry.
 // ─────────────────────────────────────────────────────────────────────────────
 
 type Tx = Prisma.TransactionClient
@@ -573,27 +575,34 @@ export type AuthUser = { id: string; email: string | null; providers: string[]; 
 // unclear (error, timeout, lost response) is 'error' and stops the merge.
 export type AuthRead = { status: 'found'; user: AuthUser } | { status: 'missing' } | { status: 'error'; message: string }
 
+// `uncertain`: the request may still be applied by Supabase later (timeout,
+// network error, 5xx) — as opposed to a definite refusal (4xx).
+export type AuthWrite = { error: string | null; uncertain: boolean }
+
 // The slice of supabase.auth.admin the merge uses (injected for tests).
 // Neither method throws.
 export type AuthAdmin = {
   getUser(id: string): Promise<AuthRead>
-  updateUser(id: string, attrs: { email?: string; email_confirm?: boolean; ban_duration?: string }): Promise<{ error: string | null }>
+  updateUser(id: string, attrs: { email?: string; email_confirm?: boolean; ban_duration?: string }): Promise<AuthWrite>
 }
 
-// Database side of one merge, used while both user rows are locked.
-export type LockedPair = {
-  load(id: string): Promise<SideSummary | null>
-  signedWaiverConflicts(): Promise<number>
-  applyDb(input: MergeTxInput): Promise<Record<string, number>>
+// Per-user claims (account_merge_claims). acquire() is all-or-nothing.
+export type ClaimStore = {
+  acquire(userIds: string[], attemptId: string, holdUntil: Date): Promise<{ ok: true } | { ok: false; holdUntil: Date }>
+  // Keep (or extend) this attempt's claims until `holdUntil`
+  hold(userIds: string[], attemptId: string, holdUntil: Date): Promise<void>
+  release(userIds: string[], attemptId: string): Promise<void>
 }
 
 export type MergeDeps = {
   auth: AuthAdmin
-  // Runs fn inside one database transaction that first locks both user rows
-  // (SELECT … FOR UPDATE) and holds them through the Auth calls, so two
-  // merges touching the same account never overlap: the second waits, then
-  // sees the first one's result (merged row → blocker) before touching Auth.
-  withLockedPair<T>(keepId: string, mergeId: string, fn: (pair: LockedPair) => Promise<T>): Promise<T>
+  claims: ClaimStore
+  load(id: string): Promise<SideSummary | null>
+  signedWaiverConflicts(keepId: string, mergeId: string): Promise<number>
+  // One short transaction: mergeUsersInTx (locks both rows, re-checks, moves).
+  commit(input: MergeTxInput): Promise<Record<string, number>>
+  now?(): Date
+  newAttemptId?(): string
 }
 
 export type MergeResult =
@@ -603,75 +612,120 @@ export type MergeResult =
 // ~100 years: GoTrue has no "forever" (same value as account self-delete).
 const BAN_FOREVER = '876000h'
 
+// While a merge runs, its claims last this long — longer than the route's
+// 60 s limit, so a killed function can't leave them forever, short enough
+// to retry soon after.
+export const RUN_HOLD_MS = 3 * 60_000
+// After an Auth write whose outcome is unknown. Every Auth request is
+// aborted client-side after 10 s (lib/accountMergeServer.ts), so by then it
+// has either reached Supabase and been applied or never will; this margin
+// lets that settle before anyone re-reads the state and changes it again.
+export const SETTLE_HOLD_MS = 2 * 60_000
+
 export const isBanned = (u: AuthUser, now = Date.now()) => !!u.bannedUntil && Date.parse(u.bannedUntil) > now
 const sameEmail = (a: string | null, b: string) => (a ?? '').toLowerCase() === b.toLowerCase()
 
 export async function runAccountMerge(deps: MergeDeps, choice: MergeChoice, actorId: string | null): Promise<MergeResult> {
+  const now = () => deps.now?.() ?? new Date()
+  const ids = [choice.keepId, choice.mergeId]
+  const attemptId = deps.newAttemptId?.() ?? crypto.randomUUID()
+
+  // Claim both accounts first: no other merge (or retry) can touch them
+  // until this one has finished — or, if an Auth write is left uncertain,
+  // until it has had time to settle.
+  const claim = await deps.claims.acquire(ids, attemptId, new Date(now().getTime() + RUN_HOLD_MS))
+  if (!claim.ok) {
+    const at = claim.holdUntil.toISOString().slice(11, 16)
+    return { ok: false, status: 409, error: `Another merge of these accounts is running or still settling. Try again after ${at} UTC.` }
+  }
+
+  let uncertain = false
+  const write = async (id: string, attrs: Parameters<AuthAdmin['updateUser']>[1]) => {
+    const r = await deps.auth.updateUser(id, attrs)
+    if (r.error) uncertain ||= r.uncertain
+    return r
+  }
+
+  try {
+    return await mergeWithClaims(deps, choice, actorId, write)
+  } finally {
+    // If this fails the claims simply expire after RUN_HOLD_MS (the safe side).
+    await (uncertain
+      ? deps.claims.hold(ids, attemptId, new Date(now().getTime() + SETTLE_HOLD_MS))
+      : deps.claims.release(ids, attemptId)
+    ).catch(err => console.error('[account-merge] could not update claims', err))
+  }
+}
+
+async function mergeWithClaims(
+  deps: MergeDeps,
+  choice: MergeChoice,
+  actorId: string | null,
+  write: (id: string, attrs: Parameters<AuthAdmin['updateUser']>[1]) => Promise<AuthWrite>,
+): Promise<MergeResult> {
   const { auth } = deps
-  return deps.withLockedPair(choice.keepId, choice.mergeId, async pair => {
-    const [keep, merge] = await Promise.all([pair.load(choice.keepId), pair.load(choice.mergeId)])
-    const blockers = mergeBlockers(keep, merge, choice, { signedWaiverConflicts: keep && merge ? await pair.signedWaiverConflicts() : 0 })
-    if (blockers.length || !keep || !merge) return { ok: false, status: 409, error: blockers[0] ?? 'Cannot merge' }
+  const [keep, merge] = await Promise.all([deps.load(choice.keepId), deps.load(choice.mergeId)])
+  const conflicts = keep && merge ? await deps.signedWaiverConflicts(keep.id, merge.id) : 0
+  const blockers = mergeBlockers(keep, merge, choice, { signedWaiverConflicts: conflicts })
+  if (blockers.length || !keep || !merge) return { ok: false, status: 409, error: blockers[0] ?? 'Cannot merge' }
 
-    const winner = choice.loginFrom === 'keep' ? keep : merge
-    const loser = choice.loginFrom === 'keep' ? merge : keep
-    const finalEmail = choice.emailFrom === 'keep' ? keep.email : merge.email
-    // mergeBlockers() guarantees: if the winner has no login, neither has the loser.
-    const keptAuthId = winner.supabaseAuthId
-    const retiredAuthId = loser.supabaseAuthId
+  const winner = choice.loginFrom === 'keep' ? keep : merge
+  const loser = choice.loginFrom === 'keep' ? merge : keep
+  const finalEmail = choice.emailFrom === 'keep' ? keep.email : merge.email
+  // mergeBlockers() guarantees: if the winner has no login, neither has the loser.
+  const keptAuthId = winner.supabaseAuthId
+  const retiredAuthId = loser.supabaseAuthId
 
-    // 0. Read both logins before changing anything.
-    const unclear = (r: AuthRead | null) => r?.status === 'error'
-    const loserBefore = retiredAuthId ? await auth.getUser(retiredAuthId) : null
-    const winnerBefore = keptAuthId ? await auth.getUser(keptAuthId) : null
-    if (unclear(loserBefore) || unclear(winnerBefore)) {
-      return { ok: false, status: 503, error: 'Supabase Auth didn’t answer clearly. Nothing changed — try again.' }
+  // 0. Read both logins before changing anything.
+  const loserBefore = retiredAuthId ? await auth.getUser(retiredAuthId) : null
+  const winnerBefore = keptAuthId ? await auth.getUser(keptAuthId) : null
+  if (loserBefore?.status === 'error' || winnerBefore?.status === 'error') {
+    return { ok: false, status: 503, error: 'Supabase Auth didn’t answer clearly. Nothing changed — try again.' }
+  }
+  if (winnerBefore?.status === 'missing') {
+    return { ok: false, status: 409, error: 'The chosen login no longer exists in Supabase Auth. Choose the other one.' }
+  }
+
+  // 1. Retire the other login: ban it and move it off its email, so that
+  //    neither it nor an OAuth re-login can land on (or recreate) a row.
+  //    The result is read back — a failed or lost answer never counts as done.
+  const disabledAuth: { id: string; email: string | null }[] = []
+  if (retiredAuthId && loserBefore?.status === 'found') {
+    const placeholder = mergedPlaceholderEmail(loser.id)
+    await write(retiredAuthId, { email: placeholder, email_confirm: true, ban_duration: BAN_FOREVER })
+    const after = await auth.getUser(retiredAuthId)
+    const retired = after.status === 'missing' || (after.status === 'found' && isBanned(after.user) && sameEmail(after.user.email, placeholder))
+    if (!retired) {
+      return { ok: false, status: 502, error: 'Couldn’t confirm the other login was disabled. Nothing in the database changed — run the merge again in a few minutes.' }
     }
-    if (winnerBefore?.status === 'missing') {
-      return { ok: false, status: 409, error: 'The chosen login no longer exists in Supabase Auth. Choose the other one.' }
-    }
+    // On a rerun it already carries the placeholder; the original address is no longer known.
+    const original = loserBefore.user.email
+    disabledAuth.push({ id: retiredAuthId, email: original && !sameEmail(original, placeholder) ? original : null })
+  } else if (retiredAuthId) {
+    disabledAuth.push({ id: retiredAuthId, email: null }) // confirmed already gone
+  }
 
-    // 1. Retire the other login: ban it and move it off its email, so that
-    //    neither it nor an OAuth re-login can land on (or recreate) a row.
-    //    The result is read back — a failed or lost answer never counts as done.
-    const disabledAuth: { id: string; email: string | null }[] = []
-    if (retiredAuthId && loserBefore?.status === 'found') {
-      const placeholder = mergedPlaceholderEmail(loser.id)
-      await auth.updateUser(retiredAuthId, { email: placeholder, email_confirm: true, ban_duration: BAN_FOREVER })
-      const after = await auth.getUser(retiredAuthId)
-      const retired = after.status === 'missing' || (after.status === 'found' && isBanned(after.user) && sameEmail(after.user.email, placeholder))
-      if (!retired) {
-        return { ok: false, status: 502, error: 'Couldn’t confirm the other login was disabled. Nothing in the database changed — run the merge again.' }
-      }
-      // On a rerun it already carries the placeholder; the original address is no longer known.
-      const original = loserBefore.user.email
-      disabledAuth.push({ id: retiredAuthId, email: original && !sameEmail(original, placeholder) ? original : null })
-    } else if (retiredAuthId) {
-      disabledAuth.push({ id: retiredAuthId, email: null }) // confirmed already gone
-    }
-
-    // 2. The kept login: kept email, and never banned — this also repairs an
-    //    earlier attempt that kept the other login and failed halfway.
-    if (keptAuthId && winnerBefore?.status === 'found') {
-      const w = winnerBefore.user
-      if (!sameEmail(w.email, finalEmail) || isBanned(w)) {
-        await auth.updateUser(keptAuthId, {
-          ...(sameEmail(w.email, finalEmail) ? {} : { email: finalEmail, email_confirm: true }),
-          ban_duration: 'none',
-        })
-        const after = await auth.getUser(keptAuthId)
-        if (!(after.status === 'found' && sameEmail(after.user.email, finalEmail) && !isBanned(after.user))) {
-          return {
-            ok: false,
-            status: 502,
-            error: 'The other login was disabled, but the kept login couldn’t be confirmed with the kept email. Nothing in the database changed — run the merge again.',
-          }
+  // 2. The kept login: kept email, and never banned — this also repairs an
+  //    earlier attempt that kept the other login and stopped halfway.
+  if (keptAuthId && winnerBefore?.status === 'found') {
+    const w = winnerBefore.user
+    if (!sameEmail(w.email, finalEmail) || isBanned(w)) {
+      await write(keptAuthId, {
+        ...(sameEmail(w.email, finalEmail) ? {} : { email: finalEmail, email_confirm: true }),
+        ban_duration: 'none',
+      })
+      const after = await auth.getUser(keptAuthId)
+      if (!(after.status === 'found' && sameEmail(after.user.email, finalEmail) && !isBanned(after.user))) {
+        return {
+          ok: false,
+          status: 502,
+          error: 'The other login was disabled, but the kept login couldn’t be confirmed with the kept email. Nothing in the database changed — run the merge again in a few minutes.',
         }
       }
     }
+  }
 
-    // 3. Database, in the same transaction that holds the locks.
-    const moved = await pair.applyDb({ ...choice, keptAuthId, actorId, disabledAuth })
-    return { ok: true, moved, keptEmail: finalEmail, disabledAuth }
-  })
+  // 3. Database: one short transaction that locks both rows and re-checks.
+  const moved = await deps.commit({ ...choice, keptAuthId, actorId, disabledAuth })
+  return { ok: true, moved, keptEmail: finalEmail, disabledAuth }
 }

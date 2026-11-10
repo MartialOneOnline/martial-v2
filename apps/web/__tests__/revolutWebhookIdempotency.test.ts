@@ -20,6 +20,11 @@ import { NextRequest } from 'next/server'
 const mockGetRevolutOrder = vi.fn().mockResolvedValue({ state: 'COMPLETED' })
 const mockRefundRevolutOrder = vi.fn().mockResolvedValue({})
 const mockVerifyRevolutWebhook = vi.fn().mockResolvedValue(true)
+// No account merges in these tests: user ids resolve to themselves.
+vi.mock('@/lib/mergedUsers', () => ({
+  resolveSurvivingUserId: async (id: string) => id,
+  lockSurvivingUser: async (_tx: unknown, id: string) => id,
+}))
 vi.mock('@/lib/revolut', () => ({
   getRevolutOrder: (...args: unknown[]) => mockGetRevolutOrder(...args),
   refundRevolutOrder: (...args: unknown[]) => mockRefundRevolutOrder(...args),

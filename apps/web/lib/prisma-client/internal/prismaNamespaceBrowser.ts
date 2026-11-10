@@ -112,7 +112,8 @@ export const ModelName = {
   StripeWebhookEvent: 'StripeWebhookEvent',
   InviteToken: 'InviteToken',
   EmailChangeRequest: 'EmailChangeRequest',
-  AccountMerge: 'AccountMerge'
+  AccountMerge: 'AccountMerge',
+  AccountMergeClaim: 'AccountMergeClaim'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1318,6 +1319,16 @@ export const AccountMergeScalarFieldEnum = {
 } as const
 
 export type AccountMergeScalarFieldEnum = (typeof AccountMergeScalarFieldEnum)[keyof typeof AccountMergeScalarFieldEnum]
+
+
+export const AccountMergeClaimScalarFieldEnum = {
+  userId: 'userId',
+  attemptId: 'attemptId',
+  holdUntil: 'holdUntil',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeClaimScalarFieldEnum = (typeof AccountMergeClaimScalarFieldEnum)[keyof typeof AccountMergeClaimScalarFieldEnum]
 
 
 export const SortOrder = {

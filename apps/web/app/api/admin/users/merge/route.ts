@@ -4,7 +4,7 @@ import { guardSuperadmin, guardSuperadminUser } from '@/lib/auth/server'
 import { MergeConflictError, runAccountMerge, type Side } from '@/lib/accountMerge'
 import { buildMergePreview, prismaMergeDeps, supabaseAuthAdmin } from '@/lib/accountMergeServer'
 
-// Auth calls run inside the locked transaction (lib/accountMergeServer.ts).
+// Claims + up to 4 Auth calls (10 s each, aborted) + one short transaction.
 export const maxDuration = 60
 
 const isSide = (v: unknown): v is Side => v === 'keep' || v === 'merge'

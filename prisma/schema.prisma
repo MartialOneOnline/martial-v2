@@ -2405,3 +2405,17 @@ model AccountMerge {
   @@index([mergedUserId])
   @@map("account_merges")
 }
+
+// Claim on a user while an admin account merge runs, or while it settles
+// after an uncertain Supabase Auth write (lib/accountMerge.ts). A merge that
+// touches a user with a live claim (holdUntil in the future) is refused, so
+// a late-arriving Auth write from an earlier attempt can never race a retry.
+// Expired rows are simply taken over; nothing needs cleaning up.
+model AccountMergeClaim {
+  userId    String   @id
+  attemptId String
+  holdUntil DateTime
+  createdAt DateTime @default(now())
+
+  @@map("account_merge_claims")
+}

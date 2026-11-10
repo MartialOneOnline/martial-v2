@@ -3,16 +3,24 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const getUserById = vi.fn()
 const updateUserById = vi.fn()
-vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ auth: { admin: { getUserById, updateUserById } } }) }))
-vi.mock('@/lib/db', () => ({ prisma: {} }))
+const createClient = vi.fn((...args: unknown[]) => args && ({ auth: { admin: { getUserById, updateUserById } } }))
+vi.mock('@supabase/supabase-js', () => ({ createClient: (...a: unknown[]) => createClient(...a) }))
 
-const { supabaseAuthAdmin, isUserNotFound } = await import('@/lib/accountMergeServer')
-const { resolveSurvivingUserId } = await import('@/lib/mergedUsers')
+const claimQuery = vi.fn()
+const claimFindUnique = vi.fn()
+vi.mock('@/lib/db', () => ({
+  prisma: {
+    $transaction: (fn: (tx: unknown) => unknown) => fn({ $queryRaw: claimQuery, accountMergeClaim: { findUnique: claimFindUnique } }),
+  },
+}))
+
+const { supabaseAuthAdmin, isUserNotFound, isUncertainWriteError, abortingFetch, prismaClaimStore } = await import('@/lib/accountMergeServer')
+const { resolveSurvivingUserId, lockSurvivingUser } = await import('@/lib/mergedUsers')
 
 beforeEach(() => vi.clearAllMocks())
-afterEach(() => vi.useRealTimers())
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 
-describe('supabaseAuthAdmin — only a confirmed "not found" counts as missing', () => {
+describe('supabaseAuthAdmin reads — only a confirmed "not found" counts as missing', () => {
   it('maps a found user, including the ban', async () => {
     getUserById.mockResolvedValue({ data: { user: { id: 'a', email: 'a@x.com', identities: [{ provider: 'apple' }], last_sign_in_at: null, banned_until: '2126-01-01T00:00:00Z' } }, error: null })
     expect(await supabaseAuthAdmin().getUser('a')).toEqual({ status: 'found', user: { id: 'a', email: 'a@x.com', providers: ['apple'], lastSignInAt: null, bannedUntil: '2126-01-01T00:00:00Z' } })
@@ -21,7 +29,7 @@ describe('supabaseAuthAdmin — only a confirmed "not found" counts as missing',
     getUserById.mockResolvedValue({ data: { user: null }, error: { status: 404, code: 'user_not_found', message: 'User not found' } })
     expect(await supabaseAuthAdmin().getUser('a')).toEqual({ status: 'missing' })
   })
-  it('any other error, a lost response or a throw → error', async () => {
+  it('any other error, a lost response, an empty answer or a throw → error', async () => {
     getUserById.mockResolvedValueOnce({ data: { user: null }, error: { status: 500, message: 'boom' } })
     expect((await supabaseAuthAdmin().getUser('a')).status).toBe('error')
     getUserById.mockResolvedValueOnce({ data: { user: null }, error: { name: 'AuthRetryableFetchError', status: 0, message: 'fetch failed' } })
@@ -38,10 +46,6 @@ describe('supabaseAuthAdmin — only a confirmed "not found" counts as missing',
     await vi.advanceTimersByTimeAsync(10_001)
     expect((await p).status).toBe('error')
   })
-  it('updateUser never throws', async () => {
-    updateUserById.mockRejectedValueOnce(new Error('net'))
-    expect(await supabaseAuthAdmin().updateUser('a', { ban_duration: 'none' })).toEqual({ error: 'net' })
-  })
   it('isUserNotFound', () => {
     expect(isUserNotFound({ status: 404 })).toBe(true)
     expect(isUserNotFound({ code: 'user_not_found' })).toBe(true)
@@ -50,17 +54,81 @@ describe('supabaseAuthAdmin — only a confirmed "not found" counts as missing',
   })
 })
 
-describe('resolveSurvivingUserId', () => {
-  const db = (map: Record<string, string>) => ({
+describe('supabaseAuthAdmin writes — whether a failed write may still land later', () => {
+  it('a definite 4xx refusal is not uncertain; network errors, 5xx, 408/429, throws and timeouts are', async () => {
+    updateUserById.mockResolvedValueOnce({ error: { status: 422, message: 'Email address already registered' } })
+    expect(await supabaseAuthAdmin().updateUser('a', { email: 'b@x.com' })).toEqual({ error: 'Email address already registered', uncertain: false })
+    updateUserById.mockResolvedValueOnce({ error: { status: 503, message: 'unavailable' } })
+    expect((await supabaseAuthAdmin().updateUser('a', {})).uncertain).toBe(true)
+    updateUserById.mockResolvedValueOnce({ error: { name: 'AuthRetryableFetchError', status: 0, message: 'fetch failed' } })
+    expect((await supabaseAuthAdmin().updateUser('a', {})).uncertain).toBe(true)
+    updateUserById.mockRejectedValueOnce(new Error('net'))
+    expect(await supabaseAuthAdmin().updateUser('a', {})).toEqual({ error: 'net', uncertain: true })
+    updateUserById.mockResolvedValueOnce({ error: null })
+    expect(await supabaseAuthAdmin().updateUser('a', {})).toEqual({ error: null, uncertain: false })
+  })
+  it('isUncertainWriteError', () => {
+    expect(isUncertainWriteError({ status: 400 })).toBe(false)
+    expect(isUncertainWriteError({ status: 408 })).toBe(true)
+    expect(isUncertainWriteError({ status: 429 })).toBe(true)
+    expect(isUncertainWriteError({ status: 400, name: 'AuthRetryableFetchError' })).toBe(true)
+    expect(isUncertainWriteError({})).toBe(true)
+  })
+})
+
+describe('abortingFetch — Auth requests are aborted, not just abandoned', () => {
+  it('the merge client is built with it', () => {
+    supabaseAuthAdmin()
+    expect(createClient.mock.calls[0]![2]).toMatchObject({ global: { fetch: abortingFetch } })
+  })
+  it('every request carries an abort signal, combined with the caller’s', async () => {
+    const seen: AbortSignal[] = []
+    vi.stubGlobal('fetch', vi.fn(async (_u: unknown, init: RequestInit) => { seen.push(init.signal!); return new Response('{}') }))
+    await abortingFetch('https://x', {})
+    expect(seen[0]).toBeInstanceOf(AbortSignal)
+    const caller = new AbortController()
+    await abortingFetch('https://x', { signal: caller.signal })
+    expect(seen[1]!.aborted).toBe(false)
+    caller.abort()
+    expect(seen[1]!.aborted).toBe(true)
+  })
+})
+
+describe('prismaClaimStore.acquire', () => {
+  it('takes every claim when none is live', async () => {
+    claimQuery.mockResolvedValue([{ userId: 'x' }])
+    expect(await prismaClaimStore.acquire(['S', 'K'], 'a1', new Date())).toEqual({ ok: true })
+    // fixed order (sorted) so two acquirers can't deadlock
+    expect(claimQuery.mock.calls.map(c => c[1])).toEqual(['K', 'S'])
+  })
+  it('reports busy (and the transaction rolls back) when one claim is still live', async () => {
+    const until = new Date('2026-11-10T12:05:00Z')
+    claimQuery.mockResolvedValueOnce([{ userId: 'K' }]).mockResolvedValueOnce([])
+    claimFindUnique.mockResolvedValue({ holdUntil: until })
+    expect(await prismaClaimStore.acquire(['K', 'S'], 'a1', new Date())).toEqual({ ok: false, holdUntil: until })
+  })
+})
+
+describe('resolveSurvivingUserId / lockSurvivingUser', () => {
+  const db = (map: Record<string, string>, deleted: string[] = Object.keys(map)) => ({
     accountMerge: { findFirst: vi.fn(async ({ where }: any) => (map[where.mergedUserId] ? { keptUserId: map[where.mergedUserId] } : null)) },
+    $queryRaw: vi.fn(async (_s: TemplateStringsArray, id: string) => [{ deletedAt: deleted.includes(id) ? new Date() : null }]),
   }) as any
   it('returns the id itself when it was never merged', async () => {
     expect(await resolveSurvivingUserId('u', db({}))).toBe('u')
+    expect(await lockSurvivingUser(db({}), 'u')).toBe('u')
   })
-  it('follows a chain of merges', async () => {
-    expect(await resolveSurvivingUserId('a', db({ a: 'b', b: 'c' }))).toBe('c')
+  it('follows a chain of merges, locking each row on the way', async () => {
+    const d = db({ a: 'b', b: 'c' })
+    expect(await resolveSurvivingUserId('a', d)).toBe('c')
+    expect(await lockSurvivingUser(d, 'a')).toBe('c')
+    expect(d.$queryRaw.mock.calls.map((c: any[]) => c[1])).toEqual(['a', 'b', 'c'])
+  })
+  it('a self-deleted (not merged) account stays as it is', async () => {
+    expect(await lockSurvivingUser(db({}, ['u']), 'u')).toBe('u')
   })
   it('stops on a cycle instead of looping', async () => {
     expect(['a', 'b']).toContain(await resolveSurvivingUserId('a', db({ a: 'b', b: 'a' })))
+    expect(['a', 'b']).toContain(await lockSurvivingUser(db({ a: 'b', b: 'a' }), 'a'))
   })
 })

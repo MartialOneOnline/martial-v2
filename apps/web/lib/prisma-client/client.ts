@@ -351,3 +351,8 @@ export type EmailChangeRequest = Prisma.EmailChangeRequestModel
  * 
  */
 export type AccountMerge = Prisma.AccountMergeModel
+/**
+ * Model AccountMergeClaim
+ * 
+ */
+export type AccountMergeClaim = Prisma.AccountMergeClaimModel
