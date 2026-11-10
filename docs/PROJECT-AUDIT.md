@@ -265,6 +265,37 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 — regresión de rendimiento: formateador por zona y caché por sesión; 50.000 reservas en ~173 ms.
 - No verificado tras la aprobación: sesión autenticada y datos reales (Codex recorrió la UI con API simulada en escritorio, móvil y 4 idiomas).
 
+### Lote R — Sesión del alumno: no pedir login cada día (rama `claude/session-refresh-all-routes`, PR #58)
+
+- Estado: `APROBADO CON PENDIENTES` en `0b2d3fa` (1 P2, 2 P3) → `APROBADO CON PENDIENTES` en `fc34e5b` (2 P2) → `APROBADO CON PENDIENTES` en `6d7cf91` (1 P2) → **`APROBADO`** en `68a06ed`. Sin migración. **Mergeado (`b52d4a0`) y en producción el 2026-11-09.**
+- Pedido del usuario: los alumnos tenían que volver a entrar cada vez que reservaban de un día para otro, sobre todo en la app.
+- Causas: (1) la app Flutter abre siempre `/login` y `/login` no reanudaba una sesión válida (causa principal en la app); (2) el proxy solo refrescaba la sesión en `/my`, `/dashboard`, `/admin`, así que `POST /api/bookings` y las rutas públicas rotaban el refresh token sin devolver la cookie (mecanismo parcial: la revocación depende de las reglas de reutilización de Supabase).
+- Hallazgos de Codex corregidos: refresh público sin plazo (3 s + abort); detección de cookie demasiado amplia (regex exacta); diagnóstico documentado como parcial; plazo de 8 s que no cancelaba la cadena de redirección; bucle sin `sessionStorage` (respaldo en cookie y, si no, «Continuar / Usar otra cuenta»); «Continuar» sin plazo.
+- No verificado: reapertura real de la app al día siguiente; ajustes de Supabase → Sessions (time-box / inactivity timeout).
+
+### Lote S — Email oculto de Apple → email real verificado (rama `claude/apple-relay-email`, PR #59)
+
+- Estado: **`RECHAZADO`** en `27284ff` (1 P1, 4 P2) → `APROBADO CON PENDIENTES` en `3428d88` (3 P2) → `APROBADO CON PENDIENTES` en `ecb927e` (2 P2) → **`APROBADO`** en `9af08af`. Migración `20261109120000_email_change_requests` **aplicada en Supabase el 2026-11-09**. Pendiente de merge.
+- Pedido del usuario: los alumnos que entran con Apple ocultando el email no reciben los correos de la escuela. Decisión del usuario tras el rechazo: verificar con un código de 6 dígitos.
+- Hallazgos de Codex corregidos: email adjudicado sin verificar (P1); Auth y Prisma desalineados con cambios simultáneos; rollback que ignoraba el `{ error }` devuelto; `/my` sin el control; textos sin i18n; borrado del bloqueo por un 5.º intento fallido; respuesta perdida de Auth liberada como si nada; cooldown no atómico; `AuthRetryableFetchError` devuelto (no lanzado) por el SDK; una confirmación antigua que borraba el código nuevo.
+- No verificado: navegador, Resend real y cuenta real de Apple.
+
+### Lote T — Moneda según el país de la escuela (rama `claude/currency-by-country`)
+
+- Estado: **`RECHAZADO`** en `942b643` (1 P1, 3 P2) → **`APROBADO`** en `dad5acf`, sin hallazgos nuevos (Codex: 13/13, suite 1229 / los mismos 55 de `main`, hook probado en Chromium a 375 y 1280 px). Sin migración. Pendiente: checkout real en AUD y recorrido con sesión real.
+- Pedido del usuario: ACT Pinoy Taekwondo (Holt, AU) tenía su plan en "65 €" y no se podía poner AUD. Debe haber un selector de monedas según el país (EUR, USD, GBP y otras como AUD).
+- Criterios: (1) planes, clases, entradas de evento y pago manual nuevos nacen en la moneda del país de la escuela (`School.country`, ISO-2) — AU→AUD, GB→GBP, US→USD, zona euro→EUR, desconocido→EUR; (2) los selectores ofrecen 18 monedas, todas de 2 decimales (el checkout de Stripe envía `precio × 100`); (3) editar un registro con una moneda fuera de la lista no la cambia en silencio; (4) EUR/GBP/USD se muestran igual que antes, las demás con su símbolo (A$65); (5) las APIs de creación sin `currency` usan la del país, no 'EUR'; (6) sin cambios de esquema.
+- Fuera de alcance (documentado): transacciones automáticas en `api/bookings`, `api/memberships/trial`, `api/dashboard/checkin` siguen en 'EUR'; informe de pagos del super admin solo suma EUR; MRR de suscripciones en EUR.
+- Evidencia: `tsc --noEmit` limpio; `__tests__/currency.test.ts` 9/9; suite completa 12 ficheros / 55 tests fallando **idénticos en `origin/main`** (mocks de Prisma); avisos de lint en los 4 clientes tocados iguales a `main`.
+- No verificado: navegador (el usuario prueba la UI), Stripe checkout real en AUD.
+- Correcciones tras `RECHAZADO`:
+  - P1 PUT de evento cambiaba la moneda de una entrada existente: `resolveTicketCurrency()` (`lib/currency.ts`) — lo enviado gana; entrada existente sin moneda conserva la suya; entrada nueva sigue a las del evento y solo después al país. 4 tests nuevos.
+  - P2 contexto pendiente: hook `useFollowSchoolCurrency(active, apply)` en `DashboardShell` — mientras el formulario de alta está abierto y el usuario no ha tocado la moneda, la actualiza cuando llega el contexto; tocar el selector (o elegir plan en pago manual) la fija. Aplicado en planes, clases, eventos y pago manual.
+  - P2 `onAssigned` sin moneda: `AssignPlanModal` propaga `data.currency` (la membresía la trae de `plan.currency`).
+  - P2 euros fijos: vista previa del evento ("from …") y opciones de plan del pago manual con `fmtPrice`; elegir un plan en el pago manual pone su moneda. Extra: Pagos → Suscripciones mostraba "€" en las opciones de plan y enviaba `currency: 'EUR'` (el servidor ya lo ignoraba y usa `plan.currency`), ahora usa la del plan.
+  - Sin tocar (fuera de alcance, ya listado o etiqueta): "Monthly Salary (€)" en staff y la tasa de graduación "€" en Settings.
+  - Evidencia: `tsc` limpio; `currency.test.ts` 13/13; suite 1229 pasan / los mismos 55 fallan / 1 pendiente; avisos de lint iguales a `main` en los 8 ficheros tocados.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

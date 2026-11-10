@@ -411,3 +411,11 @@ export const ClaimRequestStatus = {
 } as const
 
 export type ClaimRequestStatus = (typeof ClaimRequestStatus)[keyof typeof ClaimRequestStatus]
+
+
+export const EmailChangeStatus = {
+  PENDING: 'PENDING',
+  APPLYING: 'APPLYING'
+} as const
+
+export type EmailChangeStatus = (typeof EmailChangeStatus)[keyof typeof EmailChangeStatus]

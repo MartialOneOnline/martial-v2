@@ -5,6 +5,7 @@ import { requireSchoolAccess } from '@/lib/auth/contexts'
 import type { Permission } from '@/lib/auth/permissions'
 import { memberHasPermission } from '@/lib/auth/customRoles'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
+import { schoolDefaultCurrency } from '@/lib/schoolCurrency'
 
 async function authorise(permission: Permission) {
   const user = await getAuthUser()
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
       duration: duration ? Number(duration) : null,
       capacity: capacity ? Number(capacity) : null,
       price: price !== undefined && price !== '' ? Number(price) : null,
-      currency: currency || 'EUR',
+      currency: currency || await schoolDefaultCurrency(auth.schoolId),
       isTrial: isTrial ?? false,
       isActive: isActive ?? true,
       isPublished: isPublished ?? false,

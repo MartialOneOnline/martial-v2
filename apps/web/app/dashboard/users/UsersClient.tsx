@@ -23,7 +23,7 @@ import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/me
 import { downloadCsv } from '../../../lib/csvExport'
 import { matchesSearch } from '../../../lib/search'
 import { normalizeBeltName } from '../../../lib/beltGroups'
-import { fmtPrice } from '../../../lib/format'
+import { fmtPrice, currencySymbol } from '../../../lib/format'
 import CampaignComposerModal from './CampaignComposerModal'
 import SendWaiverModal from '../../../components/SendWaiverModal'
 
@@ -1484,13 +1484,6 @@ const PAY_METHODS: { value: PayMethod; label: string; icon: string }[] = [
   { value: 'CASH',          label: 'Cash',          icon: '💵' },
   { value: 'BANK_TRANSFER', label: 'Bank Transfer',  icon: '🏦' },
 ]
-
-function currencySymbol(currency: string) {
-  if (currency === 'EUR') return '€'
-  if (currency === 'GBP') return '£'
-  if (currency === 'USD') return '$'
-  return currency + ' '
-}
 
 function MarkAsPaidModal({
   student, onClose, onSuccess,

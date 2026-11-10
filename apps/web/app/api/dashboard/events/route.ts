@@ -7,6 +7,7 @@ import { memberHasPermission } from '@/lib/auth/customRoles'
 import { getBookedCounts } from '@/lib/services/eventCapacity'
 import { getSchoolPaymentCapabilities, sanitizePaymentMethods } from '@/lib/services/paymentCapabilities'
 import { slugify, uniqueSlug } from '@/lib/slug'
+import { schoolDefaultCurrency } from '@/lib/schoolCurrency'
 
 async function authorise(permission: Permission) {
   const user = await getAuthUser()
@@ -80,6 +81,7 @@ export async function POST(req: NextRequest) {
     (await prisma.event.count({ where: { schoolId: auth.schoolId, slug: candidate } })) > 0
   )
 
+  const fallbackCurrency = await schoolDefaultCurrency(auth.schoolId)
   const event = await prisma.event.create({
     data: {
       schoolId: auth.schoolId,
@@ -104,7 +106,7 @@ export async function POST(req: NextRequest) {
           name: t.name.trim(),
           description: t.description?.trim() || null,
           price: t.price !== undefined ? Number(t.price) : 0,
-          currency: t.currency || 'EUR',
+          currency: t.currency || fallbackCurrency,
           capacity: t.capacity != null ? Number(t.capacity) : null,
           sortOrder: i,
         })),

@@ -7,7 +7,8 @@ import {
   Users, Share2, Copy, Mail, Upload, MoreVertical, AlertTriangle, Download,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useDashboard } from '../../../components/DashboardShell'
+import { useDashboard, useSchoolDefaultCurrency, useFollowSchoolCurrency } from '../../../components/DashboardShell'
+import CurrencySelect from '../../../components/CurrencySelect'
 import NotificationBell from '../../../components/NotificationBell'
 import RowMenu from '../../../components/RowMenu'
 import MembershipRowActions from '../../../components/MembershipRowActions'
@@ -403,9 +404,10 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes, availableMethod
   classes: ClassOption[]
   availableMethods: string[]
 }) {
+  const schoolCurrency = useSchoolDefaultCurrency()
   const defaultForm = (planType: PlanType = 'SUBSCRIPTION'): PlanForm => ({
     name: '', description: '', imageUrl: '',
-    price: '', currency: 'EUR',
+    price: '', currency: schoolCurrency,
     planType,
     billingCycle: 'monthly',
     validityDays: '30', validityPeriod: 'days',
@@ -432,6 +434,8 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes, availableMethod
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editPlan])
+
+  const markCurrencyTouched = useFollowSchoolCurrency(open && !editPlan, code => setForm(f => ({ ...f, currency: code })))
 
   function switchTab(tab: DrawerTab) {
     setActiveTab(tab)
@@ -555,11 +559,7 @@ function PlanDrawer({ open, onClose, onSaved, editPlan, classes, availableMethod
                 </div>
                 <div style={{ flex: '1 1 90px' }}>
                   <label style={labelSt}>Currency</label>
-                  <select value={form.currency} onChange={e => set('currency', e.target.value)} style={inputSt}>
-                    <option value="EUR">EUR €</option>
-                    <option value="USD">USD $</option>
-                    <option value="GBP">GBP £</option>
-                  </select>
+                  <CurrencySelect value={form.currency} onChange={v => { markCurrencyTouched(); set('currency', v) }} style={inputSt} />
                 </div>
                 {isSubscription && (
                   <div style={{ flex: '2 1 140px' }}>

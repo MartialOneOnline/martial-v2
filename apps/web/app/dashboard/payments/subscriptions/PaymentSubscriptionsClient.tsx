@@ -329,7 +329,7 @@ const MEM_LBL: React.CSSProperties = {
 
 function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [members, setMembers] = useState<MemberOption[]>([])
-  const [plans,   setPlans]   = useState<{ id: string; name: string; price: number; planType: string }[]>([])
+  const [plans,   setPlans]   = useState<{ id: string; name: string; price: number; currency: string; planType: string }[]>([])
   const [form, setForm] = useState({
     userId: '', planId: '', paymentMethod: 'CASH',
     startDate: new Date().toISOString().slice(0, 10),
@@ -343,7 +343,7 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
       setMembers((d.members ?? []).map((m: { userId: string; name: string; email: string; avatarUrl?: string | null }) => ({ id: m.userId, name: m.name, email: m.email, avatarUrl: m.avatarUrl ?? null })))
     )
     fetch('/api/dashboard/membership-plans').then(r => r.json()).then(d =>
-      setPlans((d.plans ?? []).map((p: { id: string; name: string; price: number; planType: string }) => ({ id: p.id, name: p.name, price: p.price, planType: p.planType })))
+      setPlans((d.plans ?? []).map((p: { id: string; name: string; price: number; currency?: string; planType: string }) => ({ id: p.id, name: p.name, price: p.price, currency: p.currency ?? 'EUR', planType: p.planType })))
     )
   }, [])
 
@@ -377,7 +377,7 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
         planId:        form.planId,
         planName:      plan?.name ?? '',
         price:         plan?.price ?? 0,
-        currency:      'EUR',
+        currency:      plan?.currency ?? 'EUR',
         paymentMethod: form.paymentMethod,
         startDate:     form.startDate,
         endDate:       form.endDate || null,
@@ -423,11 +423,11 @@ function AssignMembershipModal({ onClose, onSaved }: { onClose: () => void; onSa
               <label style={MEM_LBL}>Plan</label>
               <select value={form.planId} onChange={e => pickPlan(e.target.value)} style={MEM_INP}>
                 <option value="">Selecciona un plan…</option>
-                {plans.map(p => <option key={p.id} value={p.id}>{p.name} — €{p.price} ({p.planType})</option>)}
+                {plans.map(p => <option key={p.id} value={p.id}>{p.name} — {fmtPrice(p.price, p.currency)} ({p.planType})</option>)}
               </select>
               {selectedPlan && (
                 <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>
-                  {selectedPlan.planType} · €{selectedPlan.price}
+                  {selectedPlan.planType} · {fmtPrice(selectedPlan.price, selectedPlan.currency)}
                 </p>
               )}
             </div>
