@@ -243,6 +243,8 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
 
 vi.mock('@/lib/db', () => ({
   prisma: {
+    // No account merges: checkout metadata user ids resolve to themselves.
+    accountMerge: { findFirst: vi.fn().mockResolvedValue(null) },
     school: { findUnique: mockSchoolFindUnique, findMany: mockSchoolFindMany },
     stripeWebhookEvent: { create: mockStripeWebhookEventCreate, updateMany: mockStripeWebhookEventUpdateMany, update: mockStripeWebhookEventUpdate },
     membership: { findFirst: mockMembershipFindFirst, findUnique: mockMembershipFindUnique, create: mockMembershipCreate, updateMany: mockMembershipUpdateMany },

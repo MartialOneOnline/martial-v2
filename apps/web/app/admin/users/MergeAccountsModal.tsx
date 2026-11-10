@@ -184,6 +184,7 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState<{ moved: Record<string, number>; keptEmail: string } | null>(null)
+  const [uncertain, setUncertain] = useState(false)
 
   const load = useCallback((params: Record<string, string>) => {
     setLoading(true)
@@ -213,16 +214,36 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
     if (!preview) return
     setBusy(true)
     setError('')
-    const res = await adminFetch('/api/admin/users/merge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...preview.choice, password }),
-    })
-    const d = await res.json().catch(() => ({}))
-    setBusy(false)
-    if (!res.ok) { setError(d.error || 'Merge failed'); return }
-    setDone({ moved: d.moved ?? {}, keptEmail: d.keptEmail })
-    onMerged(`${preview.keep.name || preview.keep.email}: accounts merged`)
+    setUncertain(false)
+    // A bit longer than the route's 60 s budget; past that the answer is lost.
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 75_000)
+    try {
+      const res = await adminFetch('/api/admin/users/merge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...preview.choice, password }),
+        signal: ctrl.signal,
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(d.error || 'Merge failed'); return }
+      setDone({ moved: d.moved ?? {}, keptEmail: d.keptEmail })
+      onMerged(`${preview.keep.name || preview.keep.email}: accounts merged`)
+    } catch {
+      // No answer: the merge may or may not have run on the server.
+      setUncertain(true)
+    } finally {
+      clearTimeout(timer)
+      setBusy(false)
+    }
+  }
+
+  // Reload the preview: if the merge went through, it now shows the merged
+  // account as a blocker instead of letting the admin run it twice.
+  function checkResult() {
+    if (!preview) return
+    setUncertain(false)
+    update(preview.choice)
   }
 
   const c = preview?.choice
@@ -312,13 +333,25 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
             </div>
 
             {error && <p className="text-xs text-red-500">{error}</p>}
+            {uncertain && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                <p className="flex gap-2 text-xs text-amber-800">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  No answer from the server, so the merge may or may not have happened. Check the result before trying again.
+                </p>
+                <button type="button" onClick={checkResult}
+                  className="h-8 px-3 rounded-lg border border-amber-300 bg-white text-xs font-semibold text-amber-800 hover:bg-amber-100">
+                  Check result
+                </button>
+              </div>
+            )}
 
             <div className="flex gap-3">
               <button type="button" onClick={onClose}
                 className="flex-1 h-10 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50">
                 Cancel
               </button>
-              <button type="button" onClick={handleMerge} disabled={busy || blocked || !password}
+              <button type="button" onClick={handleMerge} disabled={busy || blocked || !password || uncertain}
                 className="flex-1 h-10 rounded-xl bg-[#DC2626] text-white text-sm font-semibold hover:bg-[#B91C1C] disabled:opacity-50 flex items-center justify-center gap-2">
                 {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Merge className="w-4 h-4" />}
                 {busy ? 'Merging…' : 'Merge accounts'}

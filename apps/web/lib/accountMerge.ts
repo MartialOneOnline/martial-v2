@@ -14,9 +14,11 @@ import type { Prisma } from '@/lib/prisma-client/client'
 // user is banned and renamed, otherwise resolveDbUser()'s email fallback or
 // OAuth auto-provisioning would recreate the duplicate on its next login.
 //
-// Order is Auth first, then one Prisma transaction. If Prisma fails after the
-// Auth step, the chosen login still reaches its old row and the whole merge
-// can simply be run again (every Auth step is idempotent).
+// The whole merge runs inside one Prisma transaction that locks both rows
+// first; inside it, Auth changes come first (each one read back), then the
+// data moves. If anything fails after an Auth change, the transaction rolls
+// back, the kept login still reaches its old row, and running the merge again
+// is safe — it also unbans the kept login if an earlier attempt banned it.
 // ─────────────────────────────────────────────────────────────────────────────
 
 type Tx = Prisma.TransactionClient
@@ -103,19 +105,25 @@ export type MemberFields = {
 }
 
 // Both accounts are members of the same school: fold them into keep's row.
-// The most "alive" status and the highest role win; the belt moves as one
-// block (keep's if it has one) so rank, degree and date never get mixed.
+// Role and status are one unit — the row with the most "alive" status (then
+// the higher role, then keep) gives role, custom role AND status together.
+// Mixing them would let an INACTIVE owner's role ride on the other row's
+// ACTIVE status and reactivate access neither account had.
+// The belt moves as one block too (keep's if it has one).
 export function combineMembers(keep: MemberFields, merge: MemberFields): MemberFields {
-  const roleFromMerge = rank(MEMBER_ROLE_RANK, merge.role) > rank(MEMBER_ROLE_RANK, keep.role)
+  const statusDiff = rank(MEMBER_STATUS_RANK, merge.status) - rank(MEMBER_STATUS_RANK, keep.status)
+  const accessFrom = statusDiff > 0 || (statusDiff === 0 && rank(MEMBER_ROLE_RANK, merge.role) > rank(MEMBER_ROLE_RANK, keep.role))
+    ? merge
+    : keep
   const beltFrom = keep.belt || keep.beltRankId ? keep : merge.belt || merge.beltRankId ? merge : keep
   const joined = [keep.joinedAt, merge.joinedAt].filter((d): d is Date => !!d)
   const notes = [keep.notes, merge.notes]
     .map(n => n?.trim())
     .filter((n, i, all): n is string => !!n && all.indexOf(n) === i)
   return {
-    role: roleFromMerge ? merge.role : keep.role,
-    customRoleId: roleFromMerge ? merge.customRoleId : keep.customRoleId,
-    status: rank(MEMBER_STATUS_RANK, merge.status) > rank(MEMBER_STATUS_RANK, keep.status) ? merge.status : keep.status,
+    role: accessFrom.role,
+    customRoleId: accessFrom.customRoleId,
+    status: accessFrom.status,
     joinedAt: joined.length ? new Date(Math.min(...joined.map(d => d.getTime()))) : null,
     belt: beltFrom.belt,
     beltRankId: beltFrom.beltRankId,
@@ -160,6 +168,38 @@ export function combineProfile(keep: ProfileFields, merge: ProfileFields): Profi
   }
 }
 
+type AccessFields = { isActive: boolean; revokedAt: Date | null; endDate: Date | null }
+
+export function isLiveAccess(a: AccessFields, now: Date): boolean {
+  return a.isActive && !a.revokedAt && (!a.endDate || a.endDate > now)
+}
+
+// Same platform on both accounts: the live grant wins; if both or neither
+// are live, the one that lasts longer (no end date = open-ended); tie → keep.
+export function pickContentAccess(keep: AccessFields, merge: AccessFields, now: Date): Side {
+  const live = (a: AccessFields) => isLiveAccess(a, now)
+  if (live(keep) !== live(merge)) return live(merge) ? 'merge' : 'keep'
+  const end = (a: AccessFields) => (a.endDate ? a.endDate.getTime() : Number.POSITIVE_INFINITY)
+  return end(merge) > end(keep) ? 'merge' : 'keep'
+}
+
+type ViewFields = { viewCount: number; firstViewedAt: Date; lastViewedAt: Date }
+
+export function combineLessonViews(keep: ViewFields, merge: ViewFields): ViewFields {
+  return {
+    viewCount: keep.viewCount + merge.viewCount,
+    firstViewedAt: keep.firstViewedAt < merge.firstViewedAt ? keep.firstViewedAt : merge.firstViewedAt,
+    lastViewedAt: keep.lastViewedAt > merge.lastViewedAt ? keep.lastViewedAt : merge.lastViewedAt,
+  }
+}
+
+// Same waiver on both accounts. Returns which row survives — the other one
+// is deleted, so a signed row must never be the loser.
+export function pickWaiver(keep: { signedAt: Date | null }, merge: { signedAt: Date | null }): Side | 'conflict' {
+  if (keep.signedAt && merge.signedAt) return 'conflict'
+  return merge.signedAt ? 'merge' : 'keep'
+}
+
 export type LoginInfo = { authId: string; email: string | null; providers: string[]; lastSignInAt: string | null }
 
 export type SideSummary = {
@@ -202,6 +242,7 @@ export function mergeBlockers(
   keep: SideSummary | null,
   merge: SideSummary | null,
   choice: Pick<MergeChoice, 'loginFrom'>,
+  extra: { signedWaiverConflicts?: number } = {},
 ): string[] {
   if (!keep || !merge) return ['One of the accounts no longer exists.']
   const out: string[] = []
@@ -215,6 +256,9 @@ export function mergeBlockers(
   const otherSide = choice.loginFrom === 'keep' ? merge : keep
   if (!loginSide.supabaseAuthId && otherSide.supabaseAuthId) {
     out.push('The account whose login you chose has no login — choose the other one.')
+  }
+  if (extra.signedWaiverConflicts) {
+    out.push('Both accounts signed the same waiver. A signature can’t be thrown away — ask the school which one to keep, then remove the other before merging.')
   }
   return out
 }
@@ -232,6 +276,17 @@ export async function loadSummary(db: Tx, id: string): Promise<SideSummary | nul
   if (!u) return null
   const { _count, ...rest } = u
   return { ...rest, activity: _count.bookings + _count.transactions + _count.memberships }
+}
+
+// Waivers signed on both accounts: the unique (waiverId, userId) row can keep
+// only one signature, so these block the merge.
+export async function signedWaiverConflicts(db: Tx, keepId: string, mergeId: string): Promise<number> {
+  const [k, m] = await Promise.all([
+    db.userWaiver.findMany({ where: { userId: keepId, signedAt: { not: null } }, select: { waiverId: true } }),
+    db.userWaiver.findMany({ where: { userId: mergeId, signedAt: { not: null } }, select: { waiverId: true } }),
+  ])
+  const signed = new Set(k.map(w => w.waiverId))
+  return m.filter(w => signed.has(w.waiverId)).length
 }
 
 // Detail shown side by side in the admin modal.
@@ -379,17 +434,52 @@ export async function mergeUsersInTx(tx: Tx, input: MergeTxInput): Promise<Recor
   }
   add('bookings', (await tx.booking.updateMany({ where: { userId: S }, data: { userId: K } })).count)
 
-  // Other unique-per-user rows: keep's copy wins ------------------------------
-  const keepPlatforms = (await tx.contentAccess.findMany({ where: { userId: K }, select: { platformId: true } })).map(r => r.platformId)
-  await tx.contentAccess.deleteMany({ where: { userId: S, platformId: { in: keepPlatforms } } })
+  // Other unique-per-user rows ------------------------------------------------
+  // Content access: one row per platform. The live grant wins (then the
+  // longer one), so moving the memberships never strands a valid right.
+  const now = new Date()
+  const ACCESS_SELECT = { id: true, platformId: true, isActive: true, revokedAt: true, endDate: true } as const
+  const [keepAccess, mergeAccess] = await Promise.all([
+    tx.contentAccess.findMany({ where: { userId: K }, select: ACCESS_SELECT }),
+    tx.contentAccess.findMany({ where: { userId: S }, select: ACCESS_SELECT }),
+  ])
+  for (const m of mergeAccess) {
+    const k = keepAccess.find(a => a.platformId === m.platformId)
+    if (!k) continue
+    if (pickContentAccess(k, m, now) === 'merge') await tx.contentAccess.delete({ where: { id: k.id } })
+    else await tx.contentAccess.delete({ where: { id: m.id } })
+  }
   add('contentAccesses', (await tx.contentAccess.updateMany({ where: { userId: S }, data: { userId: K } })).count)
 
-  const keepLessons = (await tx.curriculumLessonView.findMany({ where: { userId: K }, select: { lessonId: true } })).map(r => r.lessonId)
-  await tx.curriculumLessonView.deleteMany({ where: { userId: S, lessonId: { in: keepLessons } } })
+  // Lesson views: one row per lesson — add the counts together.
+  const VIEW_SELECT = { id: true, lessonId: true, viewCount: true, firstViewedAt: true, lastViewedAt: true } as const
+  const [keepViews, mergeViews] = await Promise.all([
+    tx.curriculumLessonView.findMany({ where: { userId: K }, select: VIEW_SELECT }),
+    tx.curriculumLessonView.findMany({ where: { userId: S }, select: VIEW_SELECT }),
+  ])
+  for (const m of mergeViews) {
+    const k = keepViews.find(v => v.lessonId === m.lessonId)
+    if (!k) continue
+    await tx.curriculumLessonView.update({ where: { id: k.id }, data: combineLessonViews(k, m) })
+    await tx.curriculumLessonView.delete({ where: { id: m.id } })
+  }
   add('curriculumLessonViews', (await tx.curriculumLessonView.updateMany({ where: { userId: S }, data: { userId: K } })).count)
 
-  const keepWaivers = (await tx.userWaiver.findMany({ where: { userId: K }, select: { waiverId: true } })).map(r => r.waiverId)
-  await tx.userWaiver.deleteMany({ where: { userId: S, waiverId: { in: keepWaivers } } })
+  // Waivers: one row per waiver. A signature is legal evidence and is never
+  // deleted: the signed row wins over an unsigned one, and two signed rows
+  // block the merge (checked by signedWaiverConflicts before Auth runs).
+  const WAIVER_SELECT = { id: true, waiverId: true, signedAt: true } as const
+  const [keepWaivers, mergeWaivers] = await Promise.all([
+    tx.userWaiver.findMany({ where: { userId: K }, select: WAIVER_SELECT }),
+    tx.userWaiver.findMany({ where: { userId: S }, select: WAIVER_SELECT }),
+  ])
+  for (const m of mergeWaivers) {
+    const k = keepWaivers.find(w => w.waiverId === m.waiverId)
+    if (!k) continue
+    const pick = pickWaiver(k, m)
+    if (pick === 'conflict') throw new MergeConflictError('Both accounts signed the same waiver — resolve that first.')
+    await tx.userWaiver.delete({ where: { id: pick === 'merge' ? k.id : m.id } })
+  }
   add('userWaivers', (await tx.userWaiver.updateMany({ where: { userId: S }, data: { userId: K } })).count)
 
   if (await tx.userPreference.findUnique({ where: { userId: K }, select: { id: true } })) {
@@ -477,17 +567,33 @@ export async function mergeUsersInTx(tx: Tx, input: MergeTxInput): Promise<Recor
 
 // ── Auth (Supabase) ─────────────────────────────────────────────────────────
 
+export type AuthUser = { id: string; email: string | null; providers: string[]; lastSignInAt: string | null; bannedUntil: string | null }
+
+// 'missing' only when Supabase confirmed the user doesn't exist; anything
+// unclear (error, timeout, lost response) is 'error' and stops the merge.
+export type AuthRead = { status: 'found'; user: AuthUser } | { status: 'missing' } | { status: 'error'; message: string }
+
 // The slice of supabase.auth.admin the merge uses (injected for tests).
+// Neither method throws.
 export type AuthAdmin = {
-  getUser(id: string): Promise<{ id: string; email: string | null; providers: string[]; lastSignInAt: string | null } | null>
+  getUser(id: string): Promise<AuthRead>
   updateUser(id: string, attrs: { email?: string; email_confirm?: boolean; ban_duration?: string }): Promise<{ error: string | null }>
+}
+
+// Database side of one merge, used while both user rows are locked.
+export type LockedPair = {
+  load(id: string): Promise<SideSummary | null>
+  signedWaiverConflicts(): Promise<number>
+  applyDb(input: MergeTxInput): Promise<Record<string, number>>
 }
 
 export type MergeDeps = {
   auth: AuthAdmin
-  // Runs mergeUsersInTx in a transaction (prisma.$transaction in prod)
-  runTx(input: MergeTxInput): Promise<Record<string, number>>
-  load(id: string): Promise<SideSummary | null>
+  // Runs fn inside one database transaction that first locks both user rows
+  // (SELECT … FOR UPDATE) and holds them through the Auth calls, so two
+  // merges touching the same account never overlap: the second waits, then
+  // sees the first one's result (merged row → blocker) before touching Auth.
+  withLockedPair<T>(keepId: string, mergeId: string, fn: (pair: LockedPair) => Promise<T>): Promise<T>
 }
 
 export type MergeResult =
@@ -497,49 +603,75 @@ export type MergeResult =
 // ~100 years: GoTrue has no "forever" (same value as account self-delete).
 const BAN_FOREVER = '876000h'
 
+export const isBanned = (u: AuthUser, now = Date.now()) => !!u.bannedUntil && Date.parse(u.bannedUntil) > now
+const sameEmail = (a: string | null, b: string) => (a ?? '').toLowerCase() === b.toLowerCase()
+
 export async function runAccountMerge(deps: MergeDeps, choice: MergeChoice, actorId: string | null): Promise<MergeResult> {
-  const [keep, merge] = await Promise.all([deps.load(choice.keepId), deps.load(choice.mergeId)])
-  const blockers = mergeBlockers(keep, merge, choice)
-  if (blockers.length || !keep || !merge) return { ok: false, status: 409, error: blockers[0] ?? 'Cannot merge' }
+  const { auth } = deps
+  return deps.withLockedPair(choice.keepId, choice.mergeId, async pair => {
+    const [keep, merge] = await Promise.all([pair.load(choice.keepId), pair.load(choice.mergeId)])
+    const blockers = mergeBlockers(keep, merge, choice, { signedWaiverConflicts: keep && merge ? await pair.signedWaiverConflicts() : 0 })
+    if (blockers.length || !keep || !merge) return { ok: false, status: 409, error: blockers[0] ?? 'Cannot merge' }
 
-  const winner = choice.loginFrom === 'keep' ? keep : merge
-  const loser = choice.loginFrom === 'keep' ? merge : keep
-  const finalEmail = choice.emailFrom === 'keep' ? keep.email : merge.email
-  // mergeBlockers() guarantees: if the winner has no login, neither has the loser.
-  const keptAuthId = winner.supabaseAuthId
-  const disabledAuthId = loser.supabaseAuthId
+    const winner = choice.loginFrom === 'keep' ? keep : merge
+    const loser = choice.loginFrom === 'keep' ? merge : keep
+    const finalEmail = choice.emailFrom === 'keep' ? keep.email : merge.email
+    // mergeBlockers() guarantees: if the winner has no login, neither has the loser.
+    const keptAuthId = winner.supabaseAuthId
+    const retiredAuthId = loser.supabaseAuthId
 
-  // 1. Retire the other login: ban it and move it off its email, so that
-  //    neither it nor an OAuth re-login can land on (or recreate) a row.
-  const disabledAuth: { id: string; email: string | null }[] = []
-  if (disabledAuthId) {
-    const before = await deps.auth.getUser(disabledAuthId)
-    if (before) {
-      const placeholder = mergedPlaceholderEmail(loser.id)
-      const { error } = await deps.auth.updateUser(disabledAuthId, { email: placeholder, email_confirm: true, ban_duration: BAN_FOREVER })
-      if (error) return { ok: false, status: 502, error: `Could not disable the other login: ${error}` }
-      // On a retry it already carries the placeholder; the original address is no longer known.
-      disabledAuth.push({ id: disabledAuthId, email: before.email === placeholder ? null : before.email })
+    // 0. Read both logins before changing anything.
+    const unclear = (r: AuthRead | null) => r?.status === 'error'
+    const loserBefore = retiredAuthId ? await auth.getUser(retiredAuthId) : null
+    const winnerBefore = keptAuthId ? await auth.getUser(keptAuthId) : null
+    if (unclear(loserBefore) || unclear(winnerBefore)) {
+      return { ok: false, status: 503, error: 'Supabase Auth didn’t answer clearly. Nothing changed — try again.' }
     }
-  }
+    if (winnerBefore?.status === 'missing') {
+      return { ok: false, status: 409, error: 'The chosen login no longer exists in Supabase Auth. Choose the other one.' }
+    }
 
-  // 2. The kept login signs in with the kept email from now on.
-  if (keptAuthId) {
-    const current = await deps.auth.getUser(keptAuthId)
-    if (!current) return { ok: false, status: 409, error: 'The chosen login no longer exists in Supabase Auth.' }
-    if ((current.email ?? '').toLowerCase() !== finalEmail.toLowerCase()) {
-      const { error } = await deps.auth.updateUser(keptAuthId, { email: finalEmail, email_confirm: true })
-      if (error) {
-        return {
-          ok: false,
-          status: 502,
-          error: `The other login was disabled, but the kept login’s email could not be changed (${error}). Nothing else changed — run the merge again.`,
+    // 1. Retire the other login: ban it and move it off its email, so that
+    //    neither it nor an OAuth re-login can land on (or recreate) a row.
+    //    The result is read back — a failed or lost answer never counts as done.
+    const disabledAuth: { id: string; email: string | null }[] = []
+    if (retiredAuthId && loserBefore?.status === 'found') {
+      const placeholder = mergedPlaceholderEmail(loser.id)
+      await auth.updateUser(retiredAuthId, { email: placeholder, email_confirm: true, ban_duration: BAN_FOREVER })
+      const after = await auth.getUser(retiredAuthId)
+      const retired = after.status === 'missing' || (after.status === 'found' && isBanned(after.user) && sameEmail(after.user.email, placeholder))
+      if (!retired) {
+        return { ok: false, status: 502, error: 'Couldn’t confirm the other login was disabled. Nothing in the database changed — run the merge again.' }
+      }
+      // On a rerun it already carries the placeholder; the original address is no longer known.
+      const original = loserBefore.user.email
+      disabledAuth.push({ id: retiredAuthId, email: original && !sameEmail(original, placeholder) ? original : null })
+    } else if (retiredAuthId) {
+      disabledAuth.push({ id: retiredAuthId, email: null }) // confirmed already gone
+    }
+
+    // 2. The kept login: kept email, and never banned — this also repairs an
+    //    earlier attempt that kept the other login and failed halfway.
+    if (keptAuthId && winnerBefore?.status === 'found') {
+      const w = winnerBefore.user
+      if (!sameEmail(w.email, finalEmail) || isBanned(w)) {
+        await auth.updateUser(keptAuthId, {
+          ...(sameEmail(w.email, finalEmail) ? {} : { email: finalEmail, email_confirm: true }),
+          ban_duration: 'none',
+        })
+        const after = await auth.getUser(keptAuthId)
+        if (!(after.status === 'found' && sameEmail(after.user.email, finalEmail) && !isBanned(after.user))) {
+          return {
+            ok: false,
+            status: 502,
+            error: 'The other login was disabled, but the kept login couldn’t be confirmed with the kept email. Nothing in the database changed — run the merge again.',
+          }
         }
       }
     }
-  }
 
-  // 3. Database.
-  const moved = await deps.runTx({ ...choice, keptAuthId, actorId, disabledAuth })
-  return { ok: true, moved, keptEmail: finalEmail, disabledAuth }
+    // 3. Database, in the same transaction that holds the locks.
+    const moved = await pair.applyDb({ ...choice, keptAuthId, actorId, disabledAuth })
+    return { ok: true, moved, keptEmail: finalEmail, disabledAuth }
+  })
 }

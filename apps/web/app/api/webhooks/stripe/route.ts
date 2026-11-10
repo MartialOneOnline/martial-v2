@@ -13,6 +13,7 @@ import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, Membershi
 import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
+import { resolveSurvivingUserId } from '@/lib/mergedUsers'
 import { alertWebhookFailure } from '@/lib/alerts/webhookFailure'
 
 // A row still PROCESSING past this long was orphaned by a request that
@@ -272,7 +273,8 @@ async function handleStripeEvent(event: Stripe.Event) {
       const { planId, planType, validityDays, eventBookingId, collectibleUnitId } = meta
       // Non-null: these always accompany planId, set together by /api/my/checkout.
       const schoolId = meta.schoolId!
-      const userId = meta.userId!
+      // The checkout may have been created by an account merged away since.
+      const userId = meta.userId ? await resolveSurvivingUserId(meta.userId) : meta.userId!
       const planName = meta.planName!
       const price = meta.price!
       const currency = meta.currency!
@@ -283,7 +285,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       if (collectibleUnitId) {
         await fulfillCollectibleCheckout({
           collectibleUnitId,
-          userId: meta.userId!,
+          userId,
           amountTotalCents: session.amount_total ?? null,
           currency: session.currency ?? null,
           stripePaymentIntentId: session.payment_intent ?? null,

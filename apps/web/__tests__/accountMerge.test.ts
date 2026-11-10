@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   combineMembers, combineProfile, defaultSides, suggestDefaults, mergeBlockers, mergeWarnings,
-  runAccountMerge, mergedPlaceholderEmail, isRelayEmail,
-  type MemberFields, type ProfileFields, type SideSummary, type MergeDeps, type AuthAdmin,
+  runAccountMerge, mergedPlaceholderEmail, isRelayEmail, pickContentAccess, pickWaiver, combineLessonViews,
+  type MemberFields, type ProfileFields, type SideSummary, type MergeDeps, type AuthAdmin, type AuthUser, type MergeTxInput,
 } from '@/lib/accountMerge'
 
 const member = (o: Partial<MemberFields> = {}): MemberFields => ({
@@ -37,11 +37,32 @@ describe('combineMembers (same school on both accounts)', () => {
     expect(out).toMatchObject({ belt: 'Azul', beltRankId: 'r2', beltDegree: 1, beltDate: new Date('2026-01-01') })
   })
 
-  it('takes the higher role together with its custom role id, and joins distinct notes', () => {
-    const out = combineMembers(member({ role: 'STUDENT', notes: 'a' }), member({ role: 'INSTRUCTOR', customRoleId: null, notes: 'b' }))
-    expect(out.role).toBe('INSTRUCTOR')
+  it('with equal status takes the higher role together with its custom role id, and joins distinct notes', () => {
+    const out = combineMembers(member({ status: 'ACTIVE', notes: 'a' }), member({ status: 'ACTIVE', role: 'INSTRUCTOR', notes: 'b' }))
+    expect(out).toMatchObject({ role: 'INSTRUCTOR', status: 'ACTIVE' })
     expect(out.notes).toBe('a\nb')
     expect(combineMembers(member({ notes: 'same' }), member({ notes: 'same' })).notes).toBe('same')
+  })
+
+  // Role and status come from the same row: a revoked staff role must never
+  // ride on the other row's ACTIVE status.
+  it.each([
+    ['INACTIVE', 'OWNER'], ['ARCHIVED', 'ADMIN'], ['PENDING', 'MANAGER'], ['FROZEN', 'INSTRUCTOR'],
+  ])('does not reactivate a %s %s next to an ACTIVE student (either side)', (status, role) => {
+    const revoked = member({ status, role })
+    const student = member({ status: 'ACTIVE', role: 'STUDENT' })
+    expect(combineMembers(revoked, student)).toMatchObject({ role: 'STUDENT', status: 'ACTIVE', customRoleId: null })
+    expect(combineMembers(student, revoked)).toMatchObject({ role: 'STUDENT', status: 'ACTIVE', customRoleId: null })
+  })
+
+  it('keeps a revoked CUSTOM role out, and carries an active one with its customRoleId', () => {
+    const custom = (status: string) => member({ status, role: 'CUSTOM', customRoleId: 'role-front-desk' })
+    expect(combineMembers(custom('INACTIVE'), member({ status: 'ACTIVE' }))).toMatchObject({ role: 'STUDENT', customRoleId: null })
+    expect(combineMembers(member({ status: 'ACTIVE' }), custom('ACTIVE'))).toMatchObject({ role: 'CUSTOM', customRoleId: 'role-front-desk', status: 'ACTIVE' })
+  })
+
+  it('keeps an owner who is ACTIVE on its own row', () => {
+    expect(combineMembers(member({ status: 'ACTIVE' }), member({ status: 'ACTIVE', role: 'OWNER' }))).toMatchObject({ role: 'OWNER', status: 'ACTIVE' })
   })
 })
 
@@ -121,81 +142,239 @@ describe('mergeWarnings', () => {
   })
 })
 
-describe('runAccountMerge (Auth first, then the database)', () => {
-  function setup(o: { keep?: Partial<SideSummary>; merge?: Partial<SideSummary>; failUpdate?: (id: string, attrs: object) => string | null } = {}) {
-    const users: Record<string, { id: string; email: string | null; providers: string[]; lastSignInAt: string | null }> = {
-      'auth-h': { id: 'auth-h', email: 'manuel@hotmail.com', providers: ['email'], lastSignInAt: null },
-      'auth-r': { id: 'auth-r', email: 'x@privaterelay.appleid.com', providers: ['apple'], lastSignInAt: null },
-    }
-    const calls: string[] = []
-    const auth: AuthAdmin = {
-      getUser: vi.fn(async id => users[id] ?? null),
-      updateUser: vi.fn(async (id, attrs) => {
-        const err = o.failUpdate?.(id, attrs) ?? null
-        calls.push(`update ${id} ${JSON.stringify(attrs)}${err ? ' FAIL' : ''}`)
-        if (!err && attrs.email) users[id] = { ...users[id]!, email: attrs.email }
-        return { error: err }
-      }),
-    }
-    const rows: Record<string, SideSummary> = {
-      K: side({ id: 'K', email: 'manuel@hotmail.com', supabaseAuthId: 'auth-h', ...o.keep }),
-      S: side({ id: 'S', email: 'x@privaterelay.appleid.com', supabaseAuthId: 'auth-r', ...o.merge }),
-    }
-    const runTx = vi.fn(async () => { calls.push('tx'); return { bookings: 17 } })
-    const deps: MergeDeps = { auth, load: async id => rows[id] ?? null, runTx }
-    return { deps, calls, runTx, users }
-  }
+describe('pickContentAccess', () => {
+  const now = new Date('2026-11-10')
+  const access = (o: Partial<{ isActive: boolean; revokedAt: Date | null; endDate: Date | null }> = {}) =>
+    ({ isActive: true, revokedAt: null, endDate: null, ...o })
+  it('a live grant beats a revoked or expired one, whichever account has it', () => {
+    expect(pickContentAccess(access({ isActive: false, revokedAt: new Date('2026-09-01') }), access(), now)).toBe('merge')
+    expect(pickContentAccess(access({ endDate: new Date('2026-10-01') }), access(), now)).toBe('merge')
+    expect(pickContentAccess(access(), access({ revokedAt: new Date('2026-09-01') }), now)).toBe('keep')
+  })
+  it('between two live grants keeps the longer one (no end date = open-ended); tie → keep', () => {
+    expect(pickContentAccess(access({ endDate: new Date('2026-12-01') }), access({ endDate: new Date('2027-01-01') }), now)).toBe('merge')
+    expect(pickContentAccess(access({ endDate: new Date('2027-01-01') }), access(), now)).toBe('merge')
+    expect(pickContentAccess(access(), access(), now)).toBe('keep')
+  })
+})
 
+describe('pickWaiver / combineLessonViews', () => {
+  it('never lets a signed waiver be the one deleted', () => {
+    expect(pickWaiver({ signedAt: null }, { signedAt: new Date() })).toBe('merge')
+    expect(pickWaiver({ signedAt: new Date() }, { signedAt: null })).toBe('keep')
+    expect(pickWaiver({ signedAt: null }, { signedAt: null })).toBe('keep')
+    expect(pickWaiver({ signedAt: new Date() }, { signedAt: new Date() })).toBe('conflict')
+  })
+  it('adds lesson views together', () => {
+    const out = combineLessonViews(
+      { viewCount: 2, firstViewedAt: new Date('2026-09-01'), lastViewedAt: new Date('2026-09-10') },
+      { viewCount: 3, firstViewedAt: new Date('2026-08-01'), lastViewedAt: new Date('2026-09-05') },
+    )
+    expect(out).toEqual({ viewCount: 5, firstViewedAt: new Date('2026-08-01'), lastViewedAt: new Date('2026-09-10') })
+  })
+  it('blocks a merge when both accounts signed the same waiver', () => {
+    expect(mergeBlockers(side({ id: 'k' }), side({ id: 'm' }), { loginFrom: 'keep' }, { signedWaiverConflicts: 1 })[0]).toMatch(/signed the same waiver/)
+  })
+})
+
+// ── Orchestration: a fake Supabase Auth and a fake locked database ─────────────
+
+const FUTURE = '2126-01-01T00:00:00Z'
+
+function harness(o: {
+  keep?: Partial<SideSummary>
+  merge?: Partial<SideSummary>
+  // Return a value to override the auth call; undefined = normal behaviour
+  getUser?: (id: string, n: number) => ReturnType<AuthAdmin['getUser']> | undefined
+  updateUser?: (id: string, attrs: Record<string, unknown>) => { apply: boolean; error: string | null } | undefined
+  failDb?: boolean
+} = {}) {
+  const authUsers: Record<string, AuthUser> = {
+    'auth-h': { id: 'auth-h', email: 'manuel@hotmail.com', providers: ['email'], lastSignInAt: null, bannedUntil: null },
+    'auth-r': { id: 'auth-r', email: 'x@privaterelay.appleid.com', providers: ['apple'], lastSignInAt: null, bannedUntil: null },
+  }
+  const rows: Record<string, SideSummary> = {
+    K: side({ id: 'K', email: 'manuel@hotmail.com', supabaseAuthId: 'auth-h', ...o.keep }),
+    S: side({ id: 'S', email: 'x@privaterelay.appleid.com', supabaseAuthId: 'auth-r', ...o.merge }),
+  }
+  const calls: string[] = []
+  const reads: Record<string, number> = {}
+  const auth: AuthAdmin = {
+    async getUser(id) {
+      reads[id] = (reads[id] ?? 0) + 1
+      const forced = o.getUser?.(id, reads[id]!)
+      if (forced) return forced
+      const u = authUsers[id]
+      return u ? { status: 'found', user: { ...u } } : { status: 'missing' }
+    },
+    async updateUser(id, attrs) {
+      const forced = o.updateUser?.(id, attrs) ?? { apply: true, error: null }
+      calls.push(`update ${id} ${JSON.stringify(attrs)}`)
+      if (forced.apply && authUsers[id]) {
+        const u = authUsers[id]!
+        if (typeof attrs.email === 'string') u.email = attrs.email
+        if (attrs.ban_duration === 'none') u.bannedUntil = null
+        else if (attrs.ban_duration) u.bannedUntil = FUTURE
+      }
+      return { error: forced.error }
+    },
+  }
+  // One lock for the pair, like SELECT … FOR UPDATE: callers queue up.
+  let lock = Promise.resolve()
+  const applied: MergeTxInput[] = []
+  const deps: MergeDeps = {
+    auth,
+    async withLockedPair(_k, _m, fn) {
+      const prev = lock
+      let release!: () => void
+      lock = new Promise(r => { release = r })
+      await prev
+      try {
+        // Snapshot = rollback on failure
+        const snapshot = JSON.parse(JSON.stringify(rows))
+        try {
+          return await fn({
+            load: async id => (rows[id] ? { ...rows[id]!, createdAt: new Date(rows[id]!.createdAt), deletedAt: rows[id]!.deletedAt ? new Date(rows[id]!.deletedAt!) : null } : null),
+            signedWaiverConflicts: async () => 0,
+            applyDb: async input => {
+              if (o.failDb) throw new Error('db down')
+              calls.push('tx')
+              applied.push(input)
+              rows[input.mergeId]!.deletedAt = new Date()
+              rows[input.mergeId]!.supabaseAuthId = null
+              rows[input.keepId]!.supabaseAuthId = input.keptAuthId
+              return { bookings: 17 }
+            },
+          })
+        } catch (e) {
+          Object.assign(rows, snapshot)
+          throw e
+        }
+      } finally {
+        release()
+      }
+    },
+  }
+  return { deps, calls, authUsers, rows, applied }
+}
+
+const KEEP_RELAY_LOGIN = { keepId: 'K', mergeId: 'S', loginFrom: 'merge', emailFrom: 'keep' } as const
+
+describe('runAccountMerge', () => {
   it('disables the other login, gives the kept login the real email, then writes the database', async () => {
-    const { deps, calls, runTx, users } = setup()
-    const r = await runAccountMerge(deps, { keepId: 'K', mergeId: 'S', loginFrom: 'merge', emailFrom: 'keep' }, 'admin')
+    const { deps, calls, authUsers, applied } = harness()
+    const r = await runAccountMerge(deps, KEEP_RELAY_LOGIN, 'admin')
     expect(r).toEqual({ ok: true, moved: { bookings: 17 }, keptEmail: 'manuel@hotmail.com', disabledAuth: [{ id: 'auth-h', email: 'manuel@hotmail.com' }] })
     expect(calls).toEqual([
       `update auth-h ${JSON.stringify({ email: mergedPlaceholderEmail('K'), email_confirm: true, ban_duration: '876000h' })}`,
-      `update auth-r ${JSON.stringify({ email: 'manuel@hotmail.com', email_confirm: true })}`,
+      `update auth-r ${JSON.stringify({ email: 'manuel@hotmail.com', email_confirm: true, ban_duration: 'none' })}`,
       'tx',
     ])
-    expect(users['auth-r']!.email).toBe('manuel@hotmail.com')
-    expect(runTx).toHaveBeenCalledWith(expect.objectContaining({ keptAuthId: 'auth-r', actorId: 'admin' }))
+    expect(authUsers['auth-r']).toMatchObject({ email: 'manuel@hotmail.com', bannedUntil: null })
+    expect(authUsers['auth-h']).toMatchObject({ email: mergedPlaceholderEmail('K'), bannedUntil: FUTURE })
+    expect(applied[0]).toMatchObject({ keptAuthId: 'auth-r', actorId: 'admin' })
   })
 
-  it('stops before the database if the other login cannot be disabled', async () => {
-    const { deps, runTx } = setup({ failUpdate: id => (id === 'auth-h' ? 'boom' : null) })
-    const r = await runAccountMerge(deps, { keepId: 'K', mergeId: 'S', loginFrom: 'merge', emailFrom: 'keep' }, null)
+  it('two concurrent merges of the same pair with opposite logins: one wins, the other is refused, one login stays usable', async () => {
+    const { deps, authUsers } = harness()
+    const [a, b] = await Promise.all([
+      runAccountMerge(deps, KEEP_RELAY_LOGIN, null),
+      runAccountMerge(deps, { ...KEEP_RELAY_LOGIN, loginFrom: 'keep' }, null),
+    ])
+    expect(a.ok).toBe(true)
+    expect(b).toMatchObject({ ok: false, status: 409 })
+    expect(authUsers['auth-r']!.bannedUntil).toBeNull() // the winner's login still works
+  })
+
+  it('a later attempt that keeps the other login repairs a half-done earlier one (unbans it)', async () => {
+    // First attempt (keep the relay login) bans hotmail, then the database fails.
+    const { deps, authUsers, rows } = harness({ failDb: true })
+    await expect(runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).rejects.toThrow('db down')
+    expect(authUsers['auth-h']!.bannedUntil).toBe(FUTURE)
+    expect(rows.S!.deletedAt).toBeNull() // rolled back
+
+    // Admin changes their mind and keeps the hotmail login instead.
+    const ok = harness()
+    Object.assign(ok.authUsers, authUsers)
+    const r = await runAccountMerge(ok.deps, { ...KEEP_RELAY_LOGIN, loginFrom: 'keep' }, null)
+    expect(r.ok).toBe(true)
+    expect(ok.authUsers['auth-h']!.bannedUntil).toBeNull()
+    expect(ok.authUsers['auth-h']!.email).toBe('manuel@hotmail.com')
+    expect(ok.authUsers['auth-r']!.bannedUntil).toBe(FUTURE)
+  })
+
+  it.each([
+    ['an error', { status: 'error', message: 'fetch failed' }],
+  ] as const)('stops before changing anything when reading the other login returns %s', async (_label, answer) => {
+    const { deps, calls } = harness({ getUser: id => (id === 'auth-h' ? Promise.resolve(answer) : undefined) })
+    const r = await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)
+    expect(r).toMatchObject({ ok: false, status: 503 })
+    expect(calls).toEqual([])
+  })
+
+  it('does not finish when the ban answer is lost and the read-back can’t confirm it', async () => {
+    const { deps, calls } = harness({
+      updateUser: id => (id === 'auth-h' ? { apply: false, error: 'AuthRetryableFetchError' } : undefined),
+    })
+    const r = await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)
     expect(r).toMatchObject({ ok: false, status: 502 })
-    expect(runTx).not.toHaveBeenCalled()
+    expect(calls).not.toContain('tx')
   })
 
-  it('stops before the database if the kept login’s email cannot change, and a rerun completes', async () => {
+  it('does not finish when the read-back after the ban fails', async () => {
+    const { deps, calls } = harness({ getUser: (id, n) => (id === 'auth-h' && n === 2 ? Promise.resolve({ status: 'error', message: 'timeout' }) : undefined) })
+    expect(await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 502 })
+    expect(calls).not.toContain('tx')
+  })
+
+  it('accepts a ban whose answer was lost but which the read-back shows applied', async () => {
+    const { deps } = harness({ updateUser: id => (id === 'auth-h' ? { apply: true, error: 'AuthRetryableFetchError' } : undefined) })
+    expect((await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).ok).toBe(true)
+  })
+
+  it('stops before the database if the kept login can’t be confirmed with the kept email', async () => {
+    const { deps, calls } = harness({ updateUser: (id, a) => (id === 'auth-r' && 'email' in a ? { apply: false, error: 'email taken' } : undefined) })
+    expect(await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 502 })
+    expect(calls).not.toContain('tx')
+  })
+
+  it('a rerun after a half-done attempt completes and logs the unknown original email as null', async () => {
     let fail = true
-    const { deps, runTx } = setup({ failUpdate: (id, a) => (fail && id === 'auth-r' && 'email' in a ? 'taken' : null) })
-    const choice = { keepId: 'K', mergeId: 'S', loginFrom: 'merge', emailFrom: 'keep' } as const
-    expect(await runAccountMerge(deps, choice, null)).toMatchObject({ ok: false, status: 502 })
-    expect(runTx).not.toHaveBeenCalled()
+    const { deps } = harness({ updateUser: (id, a) => (fail && id === 'auth-r' && 'email' in a ? { apply: false, error: 'x' } : undefined) })
+    expect((await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).ok).toBe(false)
     fail = false
-    const again = await runAccountMerge(deps, choice, null)
-    expect(again.ok).toBe(true)
-    // The original address isn't known on the rerun — logged as null, not as the placeholder
+    const again = await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)
     expect(again.ok && again.disabledAuth).toEqual([{ id: 'auth-h', email: null }])
   })
 
-  it('skips the email update when the kept login already has the kept email', async () => {
-    const { deps, calls } = setup()
+  it('a login Supabase confirms is already gone needs no ban', async () => {
+    const { deps, calls } = harness({ getUser: id => (id === 'auth-h' ? Promise.resolve({ status: 'missing' }) : undefined) })
+    const r = await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)
+    expect(r.ok && r.disabledAuth).toEqual([{ id: 'auth-h', email: null }])
+    expect(calls.some(c => c.startsWith('update auth-h'))).toBe(false)
+  })
+
+  it('refuses when the chosen login no longer exists', async () => {
+    const { deps, calls } = harness({ getUser: id => (id === 'auth-r' ? Promise.resolve({ status: 'missing' }) : undefined) })
+    expect(await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 409 })
+    expect(calls).toEqual([])
+  })
+
+  it('skips the kept login update when it already has the kept email and isn’t banned', async () => {
+    const { deps, calls } = harness()
     await runAccountMerge(deps, { keepId: 'K', mergeId: 'S', loginFrom: 'keep', emailFrom: 'keep' }, null)
     expect(calls).toEqual([`update auth-r ${JSON.stringify({ email: mergedPlaceholderEmail('S'), email_confirm: true, ban_duration: '876000h' })}`, 'tx'])
   })
 
   it('touches no login when neither account has one (V1 imports)', async () => {
-    const { deps, calls } = setup({ keep: { supabaseAuthId: null }, merge: { supabaseAuthId: null } })
-    const r = await runAccountMerge(deps, { keepId: 'K', mergeId: 'S', loginFrom: 'keep', emailFrom: 'keep' }, null)
-    expect(r.ok).toBe(true)
+    const { deps, calls } = harness({ keep: { supabaseAuthId: null }, merge: { supabaseAuthId: null } })
+    expect((await runAccountMerge(deps, { ...KEEP_RELAY_LOGIN, loginFrom: 'keep' }, null)).ok).toBe(true)
     expect(calls).toEqual(['tx'])
   })
 
   it('refuses a blocked pair without calling Auth', async () => {
-    const { deps, calls } = setup({ merge: { role: 'SUPERADMIN' } })
-    const r = await runAccountMerge(deps, { keepId: 'K', mergeId: 'S', loginFrom: 'keep', emailFrom: 'keep' }, null)
-    expect(r).toMatchObject({ ok: false, status: 409 })
+    const { deps, calls } = harness({ merge: { role: 'SUPERADMIN' } })
+    expect(await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 409 })
     expect(calls).toEqual([])
   })
 })

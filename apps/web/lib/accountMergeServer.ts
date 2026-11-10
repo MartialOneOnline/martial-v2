@@ -3,44 +3,91 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeForSearch } from '@/lib/search'
 import {
   type AuthAdmin, type LoginInfo, type MergeChoice, type MergeDeps, type Side,
-  defaultSides, loadSideDetail, loadSummary, mergeBlockers, mergeUsersInTx, mergeWarnings, suggestDefaults,
+  defaultSides, loadSideDetail, loadSummary, mergeBlockers, mergeUsersInTx, mergeWarnings, signedWaiverConflicts, suggestDefaults,
 } from '@/lib/accountMerge'
 
 // Production wiring for lib/accountMerge.ts (Supabase service-role + Prisma).
+
+const AUTH_TIMEOUT_MS = 10_000
+
+// Never hangs and never throws: a slow or lost answer becomes an error.
+async function withTimeout<T>(p: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      p,
+      new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Supabase Auth timed out')), AUTH_TIMEOUT_MS) }),
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+// supabase-js reports "no such user" as an error with status 404 /
+// code user_not_found; only that counts as missing.
+export function isUserNotFound(error: { status?: number; code?: string } | null | undefined): boolean {
+  return !!error && (error.code === 'user_not_found' || error.status === 404)
+}
 
 export function supabaseAuthAdmin(): AuthAdmin {
   const admin = createAdminClient()
   return {
     async getUser(id) {
-      const { data, error } = await admin.auth.admin.getUserById(id)
-      if (error || !data?.user) return null
-      const u = data.user
-      return {
-        id: u.id,
-        email: u.email ?? null,
-        providers: [...new Set((u.identities ?? []).map(i => i.provider))],
-        lastSignInAt: u.last_sign_in_at ?? null,
+      try {
+        const { data, error } = await withTimeout(admin.auth.admin.getUserById(id))
+        if (error) return isUserNotFound(error) ? { status: 'missing' } : { status: 'error', message: error.message }
+        const u = data?.user
+        if (!u) return { status: 'error', message: 'Empty answer from Supabase Auth' }
+        return {
+          status: 'found',
+          user: {
+            id: u.id,
+            email: u.email ?? null,
+            providers: [...new Set((u.identities ?? []).map(i => i.provider))],
+            lastSignInAt: u.last_sign_in_at ?? null,
+            bannedUntil: (u as { banned_until?: string | null }).banned_until ?? null,
+          },
+        }
+      } catch (err) {
+        return { status: 'error', message: err instanceof Error ? err.message : String(err) }
       }
     },
     async updateUser(id, attrs) {
-      const { error } = await admin.auth.admin.updateUserById(id, attrs)
-      return { error: error ? error.message : null }
+      try {
+        const { error } = await withTimeout(admin.auth.admin.updateUserById(id, attrs))
+        return { error: error ? error.message : null }
+      } catch (err) {
+        return { error: err instanceof Error ? err.message : String(err) }
+      }
     },
   }
 }
 
+// Auth calls run inside the transaction (up to ~4 × 10 s), so it gets a
+// generous budget; the route's maxDuration matches.
+export const MERGE_TX_TIMEOUT_MS = 55_000
+
 export function prismaMergeDeps(auth: AuthAdmin): MergeDeps {
   return {
     auth,
-    load: id => loadSummary(prisma, id),
-    runTx: input => prisma.$transaction(tx => mergeUsersInTx(tx, input), { timeout: 30_000, maxWait: 10_000 }),
+    withLockedPair: (keepId, mergeId, fn) =>
+      prisma.$transaction(async tx => {
+        await tx.$queryRaw`SELECT id FROM users WHERE id IN (${keepId}, ${mergeId}) FOR UPDATE`
+        return fn({
+          load: id => loadSummary(tx, id),
+          signedWaiverConflicts: () => signedWaiverConflicts(tx, keepId, mergeId),
+          applyDb: input => mergeUsersInTx(tx, input),
+        })
+      }, { timeout: MERGE_TX_TIMEOUT_MS, maxWait: 10_000 }),
   }
 }
 
 async function loginOf(auth: AuthAdmin, authId: string | null): Promise<LoginInfo | null> {
   if (!authId) return null
-  const u = await auth.getUser(authId)
-  return u ? { authId: u.id, email: u.email, providers: u.providers, lastSignInAt: u.lastSignInAt } : null
+  const r = await auth.getUser(authId)
+  return r.status === 'found'
+    ? { authId: r.user.id, email: r.user.email, providers: r.user.providers, lastSignInAt: r.user.lastSignInAt }
+    : null
 }
 
 // Everything the admin modal shows. Without loginFrom/emailFrom (or with
@@ -69,10 +116,11 @@ export async function buildMergePreview(
     emailFrom: params.suggest ? defaults.emailFrom : params.emailFrom ?? defaults.emailFrom,
   }
 
-  const [keepDetail, mergeDetail, selfRequestLeads] = await Promise.all([
+  const [keepDetail, mergeDetail, selfRequestLeads, waiverConflicts] = await Promise.all([
     loadSideDetail(prisma, keep.id),
     loadSideDetail(prisma, merge.id),
     prisma.lead.count({ where: { convertedUserId: merge.id, source: 'SELF_REQUEST' } }),
+    signedWaiverConflicts(prisma, keep.id, merge.id),
   ])
   const K = { ...keep, detail: keepDetail }
   const M = { ...merge, detail: mergeDetail }
@@ -85,7 +133,7 @@ export async function buildMergePreview(
     keep: side(K),
     merge: side(M),
     choice,
-    blockers: mergeBlockers(keep, merge, choice),
+    blockers: mergeBlockers(keep, merge, choice, { signedWaiverConflicts: waiverConflicts }),
     warnings: mergeWarnings(K, M, choice, selfRequestLeads),
   }
 }

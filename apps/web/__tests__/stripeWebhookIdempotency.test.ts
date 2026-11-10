@@ -39,8 +39,11 @@ let webhookEvents: Record<string, { status: string; updatedAt: number }>
 let memberships: Record<string, Record<string, unknown>>
 let eventBookings: Record<string, Record<string, unknown>>
 let membershipSeq: number
+// mergedUserId -> keptUserId (AccountMerge rows)
+let accountMerges: Record<string, string>
 
 function resetState() {
+  accountMerges = {}
   webhookEvents = {}
   memberships = {}
   eventBookings = {}
@@ -127,8 +130,14 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
   return fn(tx)
 })
 
+const mockAccountMergeFindFirst = vi.fn((args: { where: { mergedUserId: string } }) => {
+  const kept = accountMerges[args.where.mergedUserId]
+  return Promise.resolve(kept ? { keptUserId: kept } : null)
+})
+
 vi.mock('@/lib/db', () => ({
   prisma: {
+    accountMerge: { findFirst: mockAccountMergeFindFirst },
     school: { findUnique: mockSchoolFindUnique },
     stripeWebhookEvent: {
       create: mockStripeWebhookEventCreate,
@@ -265,5 +274,28 @@ describe('POST /api/webhooks/stripe — event ticket checkout.session.completed 
     expect(second.status).toBe(200)
     expect(eventBookings['booking-1']!.status).toBe('CONFIRMED')
     expect(mockRecordOnlinePayment).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('POST /api/webhooks/stripe — checkout started by an account merged away since', () => {
+  it('activates the membership on the surviving account, also on redelivery', async () => {
+    accountMerges = { 'user-1': 'user-keep' } // checkout metadata still says user-1
+    const event = checkoutSessionEvent('evt_merged')
+
+    expect((await POST(makeRequest(event))).status).toBe(200)
+    expect(mockMembershipCreate).toHaveBeenCalledTimes(1)
+    expect(mockMembershipCreate.mock.calls[0]![0].data).toMatchObject({ userId: 'user-keep' })
+    expect(mockRecordOnlinePayment.mock.calls[0]![1]).toMatchObject({ userId: 'user-keep' })
+    expect(mockSchoolMemberCreate.mock.calls[0]![0].data).toMatchObject({ userId: 'user-keep' })
+
+    expect((await POST(makeRequest(event))).status).toBe(200)
+    expect(mockMembershipCreate).toHaveBeenCalledTimes(1)
+    expect(Object.values(memberships).every(m => m.userId === 'user-keep')).toBe(true)
+  })
+
+  it('follows chained merges to the last surviving account', async () => {
+    accountMerges = { 'user-1': 'user-mid', 'user-mid': 'user-keep' }
+    expect((await POST(makeRequest(checkoutSessionEvent('evt_chain')))).status).toBe(200)
+    expect(mockMembershipCreate.mock.calls[0]![0].data).toMatchObject({ userId: 'user-keep' })
   })
 })
