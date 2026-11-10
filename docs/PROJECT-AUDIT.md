@@ -296,6 +296,24 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   - Sin tocar (fuera de alcance, ya listado o etiqueta): "Monthly Salary (€)" en staff y la tasa de graduación "€" en Settings.
   - Evidencia: `tsc` limpio; `currency.test.ts` 13/13; suite 1229 pasan / los mismos 55 fallan / 1 pendiente; avisos de lint iguales a `main` en los 8 ficheros tocados.
 
+### Lote U — Lista de alumnos continua en orden A–Z con índice por letras (rama `claude/users-list-az`)
+
+- Estado: **pendiente de Project Audit** sobre `9d2b8c7` (funcional) + merge de `origin/main`. Sin migración. Sin PR todavía; la rama no está subida (worktree local `.claude/worktrees/users-list-az`).
+- Pedido del usuario: el panel lateral de Users en desktop mostraba 8 alumnos por página ("1–8 of 59"), con más de un tercio del panel vacío. Quiere scroll continuo, orden alfabético y un marcador por letras tipo agenda. Maqueta aprobada antes de tocar código.
+- Alcance: solo `apps/web/app/dashboard/users/StudentListPanel.tsx` (vista dividida de desktop, montada desde `layout.tsx` vía `UsersSplitShell`). La tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8 a propósito.
+- Criterios:
+  1. Sin paginación: todos los alumnos del filtro/búsqueda en una lista con scroll; contador "N alumnos" (singular con 1).
+  2. Orden A–Z por defecto, insensible a mayúsculas y acentos (Álvaro → A, "ana" junto a "Ana"); Ñ como letra propia entre N y O solo con idioma `es` (en EN/PT/FR va con la N); lo que no empieza por letra (número, emoji, vacío) va a `#` al final.
+  3. Encabezados de sección fijos (sticky) al hacer scroll.
+  4. Barra A–Z a la derecha: clic salta a la sección; letras sin alumnos deshabilitadas; letra actual resaltada; oculta con menos de 20 resultados y en modo Recientes.
+  5. Selector A–Z / Recientes (Recientes = `joinedAt` desc, agrupado por mes en el idioma activo, sin fecha al final bajo "—"); la preferencia se guarda en `localStorage` (`martial_users_list_sort`) con try/catch.
+  6. Cambiar filtro, búsqueda u orden vuelve la lista arriba; abrir un alumno por enlace directo (o búsqueda global `?search=`) trae su fila a la vista.
+  7. Textos nuevos en EN/ES/PT/FR (`users.student`, `sortAz`, `sortRecent`, `sortLabel`, `alphaIndex`, `jumpToLetter`).
+- Archivos: `StudentListPanel.tsx`, `lib/alphaIndex.ts` (nuevo, lógica pura), `__tests__/alphaIndex.test.ts` (nuevo), `lib/i18n/translations.ts`, `CONTEXT.md`.
+- Evidencia: `tsc --noEmit` limpio; `alphaIndex.test.ts` 9/9; suite completa 12 ficheros / 55 tests fallando, los mismos que en `main` (mocks de Prisma de rutas API, sin relación); lint del panel: solo el aviso `no-img-element` que ya existía.
+- A revisar: rendimiento con escuelas grandes (todo se pinta sin virtualizar; avatares con `loading="lazy"`); `offsetTop` de secciones con el contenedor `position: relative`; scroll al seleccionado en el primer render junto con el reset a arriba; cambio de idioma con la lista abierta; nombres que son el email (fallback de `name`); estado `PENDING` que aparece en "Pending" e "Invited" (comportamiento previo, sin cambiar).
+- No verificado: navegador (el usuario prueba la UI) ni datos reales.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
