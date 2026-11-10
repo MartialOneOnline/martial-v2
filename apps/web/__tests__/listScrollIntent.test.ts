@@ -49,6 +49,42 @@ describe('list scroll intent', () => {
     expect(c.consume()).toBe('top')
   })
 
+  // Lote U P2 (ea527c2): React skips the render when a control is set to the
+  // value it already has, so nothing consumed the 'top' and the next render
+  // (the rail highlighting M) sent the list back to the top.
+  it('pressing the active order again, then a letter, keeps the jump (A–Z → A–Z → M)', () => {
+    const c = createListScrollController()
+    c.markReady(); c.consume()
+    expect(c.requestTopIfChanged('az', 'az')).toBe(false) // no render follows
+    c.clear() // jumpTo('M') sets scrollTop itself
+    // Rail highlight re-render after the jump:
+    expect(c.consume()).toBeNull()
+  })
+
+  it('pressing the active filter again, then a letter, keeps the jump', () => {
+    const c = createListScrollController()
+    c.markReady(); c.consume()
+    expect(c.requestTopIfChanged('Active', 'Active')).toBe(false)
+    expect(c.consume()).toBeNull()
+  })
+
+  it('a real change still goes to the top', () => {
+    const c = createListScrollController()
+    c.markReady(); c.consume()
+    expect(c.requestTopIfChanged('az', 'recent')).toBe(true)
+    expect(c.consume()).toBe('top')
+    expect(c.requestTopIfChanged('', 's')).toBe(true)
+    expect(c.consume()).toBe('top')
+  })
+
+  it('a letter jump drops anything still pending', () => {
+    const c = createListScrollController()
+    c.markReady(); c.consume()
+    c.request('top')
+    c.clear()
+    expect(c.consume()).toBeNull()
+  })
+
   it('the latest request wins when two land in the same render', () => {
     const c = createListScrollController()
     c.markReady(); c.consume()

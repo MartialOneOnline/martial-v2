@@ -298,7 +298,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote U — Lista de alumnos continua en orden A–Z con índice por letras (rama `claude/users-list-az`)
 
-- Estado: `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía; rama publicada en `origin/claude/users-list-az`.
+- Estado: `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → `APROBADO CON PENDIENTES` en `ea527c2` (1 P2 nuevo) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía; rama publicada en `origin/claude/users-list-az`.
 - Pedido del usuario: el panel lateral de Users en desktop mostraba 8 alumnos por página ("1–8 of 59"), con más de un tercio del panel vacío. Quiere scroll continuo, orden alfabético y un marcador por letras tipo agenda. Maqueta aprobada antes de tocar código.
 - Alcance: solo `apps/web/app/dashboard/users/StudentListPanel.tsx` (vista dividida de desktop, montada desde `layout.tsx` vía `UsersSplitShell`). La tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8 a propósito.
 - Criterios:
@@ -317,6 +317,10 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   1. P2 — los dos efectos de scroll se pisaban: con `?search=` el reset a arriba dejaba fuera de vista al alumno abierto por enlace, y al pasar a Recientes con un alumno seleccionado `scrollIntoView` anulaba la vuelta arriba. Ahora un único controlador (`lib/listScrollIntent.ts`) decide el scroll tras cada render: los cambios explícitos de filtro, búsqueda u orden piden "arriba" desde sus handlers; un cambio del alumno seleccionado pide "mostrar fila"; gana la última petición; y nada se aplica hasta que el panel ha cargado la búsqueda de la URL y el orden guardado, así que un enlace directo muestra la fila en la lista ya filtrada. Se aplica en `useLayoutEffect` (antes de pintar).
   - Pruebas: `__tests__/listScrollIntent.test.ts` (6) reproduce las secuencias del panel: enlace con `?search=` → mostrar fila tras aplicar la búsqueda; cambiar a Recientes con seleccionado → arriba; filtro/búsqueda → arriba; abrir otro alumno → mostrar fila; cambio antes de estar listo; la última petición gana. El repo no tiene jsdom ni Testing Library; no se han añadido para no cambiar dependencias en este lote, así que las pruebas cubren la decisión, no el DOM.
   - Evidencia: `tsc` limpio; 15/15 en los tests del lote; suite 1244 pasan / los mismos 55 fallan / 1 pendiente; lint: solo el aviso `no-img-element` previo.
+- Hallazgo de Codex en `ea527c2` y corrección:
+  1. P2 — una petición "arriba" pendiente deshacía el salto por letras: pulsar un control ya activo (A–Z estando en A–Z, o el filtro activo) pedía "arriba", React no re-renderizaba (mismo valor) y la petición se consumía en el render siguiente, el del resaltado de la letra tras el salto. Ahora (a) filtro, búsqueda y orden solo piden "arriba" si el valor cambia (`requestTopIfChanged`), y (b) el salto por letra borra cualquier petición pendiente (`clear()`) antes de mover el scroll, porque es un scroll del propio usuario.
+  - Pruebas: 4 tests nuevos en `listScrollIntent.test.ts` (A–Z→A–Z→M, filtro activo otra vez, un cambio real sigue yendo arriba, el salto anula lo pendiente). Siguen siendo pruebas de la lógica sin DOM: Codex las acepta para el controlador, pero no validan la integración con React (este fallo dependía de que no hubiera render). Añadir jsdom + Testing Library queda como decisión aparte del usuario.
+  - Evidencia: `tsc` limpio; 19/19 en los tests del lote; suite 1248 pasan / los mismos 55 fallan / 1 pendiente; lint: solo el aviso `no-img-element` previo.
 
 ## Próxima entrega de Claude
 

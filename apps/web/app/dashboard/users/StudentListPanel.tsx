@@ -106,21 +106,25 @@ export default function StudentListPanel({ students }: { students: StudentListIt
   const jumpTo = (key: string) => {
     const list = listRef.current
     const el = list?.querySelector<HTMLElement>(`[data-section-key="${CSS.escape(key)}"]`)
-    if (list && el) list.scrollTop = el.offsetTop
+    if (!list || !el) return
+    // A jump is the user's own scroll: nothing pending may undo it later.
+    scrollRef.current.clear()
+    list.scrollTop = el.offsetTop
   }
 
+  // Only real changes send the list to the top (see requestTopIfChanged).
   const changeSearch = (next: string) => {
-    scrollRef.current.request('top')
+    scrollRef.current.requestTopIfChanged(search, next)
     setSearch(next)
   }
 
   const changeFilter = (next: FilterType) => {
-    scrollRef.current.request('top')
+    scrollRef.current.requestTopIfChanged(activeFilter, next)
     setActiveFilter(next)
   }
 
   const changeSort = (next: SortMode) => {
-    scrollRef.current.request('top')
+    scrollRef.current.requestTopIfChanged(sort, next)
     setSort(next)
     try { localStorage.setItem(SORT_STORAGE_KEY, next) } catch { /* ignore */ }
   }

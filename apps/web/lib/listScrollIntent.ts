@@ -10,6 +10,14 @@ export type ScrollIntent = 'top' | 'reveal'
 export interface ListScrollController {
   /** Ask for a scroll after the next render; replaces any pending request. */
   request(intent: ScrollIntent): void
+  /**
+   * 'top' for an explicit change, only when the value really changes. React
+   * skips the render when state is set to the same value, so a request for an
+   * unchanged control would linger and fire on some unrelated later render.
+   */
+  requestTopIfChanged<T>(prev: T, next: T): boolean
+  /** Drop any pending request (the user just scrolled the list themselves). */
+  clear(): void
   /** The list now shows its initial state (URL search, saved sort applied). */
   markReady(): void
   /** Take the pending request, if the list is ready; null means "leave it". */
@@ -22,6 +30,12 @@ export function createListScrollController(): ListScrollController {
   let ready = false
   return {
     request(intent) { pending = intent },
+    requestTopIfChanged(prev, next) {
+      if (Object.is(prev, next)) return false
+      pending = 'top'
+      return true
+    },
+    clear() { pending = null },
     markReady() { ready = true },
     consume() {
       if (!ready) return null
