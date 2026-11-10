@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, Users as UsersIcon } from 'lucide-react'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { useLanguage } from '../../../lib/i18n/LanguageContext'
 import { matchesSearch } from '../../../lib/search'
 import { alphabetFor, groupAlphabetically, groupByMonth, type Section } from '../../../lib/alphaIndex'
+import { createListScrollController } from '../../../lib/listScrollIntent'
 import type { StudentListItem } from './data'
 
 // One continuous list (no pages): every student is already loaded client-side.
@@ -33,6 +34,9 @@ export default function StudentListPanel({ students }: { students: StudentListIt
   const [sort, setSort] = useState<SortMode>('az')
   const [currentKey, setCurrentKey] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  // Where the list scrolls after the next render (top vs. selected row).
+  const scrollRef = useRef(createListScrollController())
+  const [, setReady] = useState(false)
 
   // Parity with UsersClient: seed search from the dashboard's global-search
   // deep link (/dashboard/users?search=X) so it still works when the full
@@ -45,6 +49,10 @@ export default function StudentListPanel({ students }: { students: StudentListIt
       const saved = localStorage.getItem(SORT_STORAGE_KEY)
       if (saved === 'az' || saved === 'recent') setSort(saved)
     } catch { /* storage blocked: keep the default */ }
+    // The URL search and saved order are in: a deep-linked student can be
+    // revealed in the list they will actually see.
+    scrollRef.current.markReady()
+    setReady(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -63,18 +71,24 @@ export default function StudentListPanel({ students }: { students: StudentListIt
   const showRail = sort === 'az' && filtered.length >= RAIL_MIN_RESULTS
   const presentKeys = useMemo(() => new Set(sections.map(s => s.key)), [sections])
 
-  // A new filter, search or order is a different list: start it from the top.
-  useEffect(() => {
-    if (listRef.current) listRef.current.scrollTop = 0
-  }, [activeFilter, search, sort])
-
-  // Opening a student from elsewhere (deep link, global search) — bring their
-  // row into view. A row clicked here is already visible, so this is a no-op.
-  useEffect(() => {
-    if (!selectedId || !listRef.current) return
-    const row = listRef.current.querySelector<HTMLElement>(`[data-student-id="${CSS.escape(selectedId)}"]`)
+  // Apply the pending scroll once the new list is on screen. Explicit filter,
+  // search and order changes request 'top' in their handlers; opening a
+  // student (deep link, global search, another row) requests 'reveal' here —
+  // a row clicked in this list is already visible, so that's a no-op.
+  const lastSelectedRef = useRef(selectedId)
+  useLayoutEffect(() => {
+    if (selectedId !== lastSelectedRef.current) {
+      lastSelectedRef.current = selectedId
+      scrollRef.current.request('reveal')
+    }
+    const intent = scrollRef.current.consume()
+    const list = listRef.current
+    if (!intent || !list) return
+    if (intent === 'top') { list.scrollTop = 0; return }
+    if (!selectedId) return
+    const row = list.querySelector<HTMLElement>(`[data-student-id="${CSS.escape(selectedId)}"]`)
     row?.scrollIntoView({ block: 'nearest' })
-  }, [selectedId, sort])
+  })
 
   // Which section the top of the list is in — highlighted on the rail.
   const updateCurrentKey = useCallback(() => {
@@ -95,7 +109,18 @@ export default function StudentListPanel({ students }: { students: StudentListIt
     if (list && el) list.scrollTop = el.offsetTop
   }
 
+  const changeSearch = (next: string) => {
+    scrollRef.current.request('top')
+    setSearch(next)
+  }
+
+  const changeFilter = (next: FilterType) => {
+    scrollRef.current.request('top')
+    setActiveFilter(next)
+  }
+
   const changeSort = (next: SortMode) => {
+    scrollRef.current.request('top')
     setSort(next)
     try { localStorage.setItem(SORT_STORAGE_KEY, next) } catch { /* ignore */ }
   }
@@ -119,12 +144,12 @@ export default function StudentListPanel({ students }: { students: StudentListIt
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', marginBottom: 10 }}>
           <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
           <input type="text" placeholder={t.users.searchPlaceholder} value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => changeSearch(e.target.value)}
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
         <div className="flex items-center gap-1.5" style={{ overflowX: 'auto' }}>
           {FILTERS.map(f => (
-            <button key={f} onClick={() => setActiveFilter(f)}
+            <button key={f} onClick={() => changeFilter(f)}
               className="cursor-pointer"
               style={{ fontSize: 11, fontWeight: activeFilter === f ? 600 : 400, padding: '4px 9px', borderRadius: 999,
                 whiteSpace: 'nowrap', border: '1px solid ' + (activeFilter === f ? '#111827' : '#E5E7EB'),

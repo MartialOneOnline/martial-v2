@@ -298,7 +298,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote U — Lista de alumnos continua en orden A–Z con índice por letras (rama `claude/users-list-az`)
 
-- Estado: **pendiente de Project Audit** sobre `9d2b8c7` (funcional) + merge de `origin/main`. Sin migración. Sin PR todavía; rama publicada en `origin/claude/users-list-az`.
+- Estado: `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía; rama publicada en `origin/claude/users-list-az`.
 - Pedido del usuario: el panel lateral de Users en desktop mostraba 8 alumnos por página ("1–8 of 59"), con más de un tercio del panel vacío. Quiere scroll continuo, orden alfabético y un marcador por letras tipo agenda. Maqueta aprobada antes de tocar código.
 - Alcance: solo `apps/web/app/dashboard/users/StudentListPanel.tsx` (vista dividida de desktop, montada desde `layout.tsx` vía `UsersSplitShell`). La tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8 a propósito.
 - Criterios:
@@ -313,6 +313,10 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Evidencia: `tsc --noEmit` limpio; `alphaIndex.test.ts` 9/9; suite completa 12 ficheros / 55 tests fallando, los mismos que en `main` (mocks de Prisma de rutas API, sin relación); lint del panel: solo el aviso `no-img-element` que ya existía.
 - A revisar: rendimiento con escuelas grandes (todo se pinta sin virtualizar; avatares con `loading="lazy"`); `offsetTop` de secciones con el contenedor `position: relative`; scroll al seleccionado en el primer render junto con el reset a arriba; cambio de idioma con la lista abierta; nombres que son el email (fallback de `name`); estado `PENDING` que aparece en "Pending" e "Invited" (comportamiento previo, sin cambiar).
 - No verificado: navegador (el usuario prueba la UI) ni datos reales.
+- Hallazgo de Codex en `24f813b` y corrección:
+  1. P2 — los dos efectos de scroll se pisaban: con `?search=` el reset a arriba dejaba fuera de vista al alumno abierto por enlace, y al pasar a Recientes con un alumno seleccionado `scrollIntoView` anulaba la vuelta arriba. Ahora un único controlador (`lib/listScrollIntent.ts`) decide el scroll tras cada render: los cambios explícitos de filtro, búsqueda u orden piden "arriba" desde sus handlers; un cambio del alumno seleccionado pide "mostrar fila"; gana la última petición; y nada se aplica hasta que el panel ha cargado la búsqueda de la URL y el orden guardado, así que un enlace directo muestra la fila en la lista ya filtrada. Se aplica en `useLayoutEffect` (antes de pintar).
+  - Pruebas: `__tests__/listScrollIntent.test.ts` (6) reproduce las secuencias del panel: enlace con `?search=` → mostrar fila tras aplicar la búsqueda; cambiar a Recientes con seleccionado → arriba; filtro/búsqueda → arriba; abrir otro alumno → mostrar fila; cambio antes de estar listo; la última petición gana. El repo no tiene jsdom ni Testing Library; no se han añadido para no cambiar dependencias en este lote, así que las pruebas cubren la decisión, no el DOM.
+  - Evidencia: `tsc` limpio; 15/15 en los tests del lote; suite 1244 pasan / los mismos 55 fallan / 1 pendiente; lint: solo el aviso `no-img-element` previo.
 
 ## Próxima entrega de Claude
 
