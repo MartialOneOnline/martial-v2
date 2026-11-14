@@ -303,6 +303,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Diseño: acción de super admin «Merge with…» y página «Possible duplicates». La fusión mueve todas las referencias al usuario conservado y resuelve los conflictos únicos. La fila fusionada se borra de verdad y queda registrada en `AccountMerge`. Solo sobrevive un login: el otro se banea y se renombra. Reservas (`account_merge_claims`) y pins permanentes (`account_merge_auth_pins`) compartidos por todo lo que escribe en Supabase Auth: la fusión, el cambio de email del PR #59, su reconciliación y el auto-borrado. `lockSurvivingUser` y `resolveSurvivingUserId` protegen webhooks, crons y el QR de check-in.
 - No verificado: navegador, Supabase Auth real.
 
+### Lote V — Deshacer una cancelación programada (rama `claude/membership-undo-cancel`)
+
+- Estado: pendiente de auditoría en `8e0cd9a`. Sin migración.
+- Pedido del usuario: no se podía añadir un pago a una membresía marcada para cancelarse al final del periodo («Payment» visible pero rechazado por el servidor) y no había forma de deshacer la cancelación.
+- Criterios: (1) «Payment» no aparece mientras haya `cancelledAt`; (2) «Deshacer cancelación» solo para ACTIVE + `cancelledAt`, en los 4 idiomas; (3) con Stripe, primero `cancel_at_period_end: false` y, si falla, nada local; (4) escritura condicional, que no revive una membresía terminada; (5) mismo permiso que cancelar.
+- No verificado: navegador (el usuario prueba la UI), Stripe real.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
