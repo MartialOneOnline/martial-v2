@@ -62,11 +62,9 @@ describe('undoCancelMembership', () => {
     expect(mockUpdateMany).not.toHaveBeenCalled()
   })
 
-  it('refuses a membership that already ended, one not set to cancel, or another school’s', async () => {
+  it('refuses a membership that already ended, or another school’s', async () => {
     mockFindFirst.mockResolvedValue(scheduled({ status: 'CANCELLED' }))
     await expect(undoCancelMembership(input)).rejects.toThrow(/assign a plan/)
-    mockFindFirst.mockResolvedValue(scheduled({ cancelledAt: null }))
-    await expect(undoCancelMembership(input)).rejects.toThrow(/not set to cancel/)
     mockFindFirst.mockResolvedValue(null)
     await expect(undoCancelMembership(input)).rejects.toThrow(/not found/)
     expect(mockFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'm1', schoolId: 's1' } }))
@@ -77,5 +75,19 @@ describe('undoCancelMembership', () => {
     mockFindFirst.mockResolvedValue(scheduled())
     mockUpdateMany.mockResolvedValue({ count: 0 })
     await expect(undoCancelMembership(input)).rejects.toThrow(/changed meanwhile/)
+  })
+  it('Stripe subscription but no school key: clear error, nothing written locally (Project Audit P2)', async () => {
+    mockFindFirst.mockResolvedValue(scheduled({ stripeSubId: 'sub_1', school: { stripeSecretKey: null } }))
+    await expect(undoCancelMembership(input)).rejects.toThrow(/no Stripe key/)
+    expect(mockUpdateMany).not.toHaveBeenCalled()
+    expect(mockSubUpdate).not.toHaveBeenCalled()
+  })
+
+  it('a retry after the cancellation was already undone succeeds without writing or calling Stripe', async () => {
+    const done = scheduled({ cancelledAt: null, stripeSubId: 'sub_1', school: { stripeSecretKey: 'sk_test' } })
+    mockFindFirst.mockResolvedValue(done)
+    await expect(undoCancelMembership(input)).resolves.toBe(done)
+    expect(mockUpdateMany).not.toHaveBeenCalled()
+    expect(mockSubUpdate).not.toHaveBeenCalled()
   })
 })

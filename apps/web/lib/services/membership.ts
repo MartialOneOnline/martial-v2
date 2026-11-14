@@ -748,7 +748,8 @@ export interface UndoCancelMembershipInput {
  * With a Stripe subscription, Stripe's cancel_at_period_end is cleared first,
  * awaited, same order as cancelMembership: if Stripe fails nothing local
  * changes. Pending payments the cancellation cancelled are not brought back —
- * staff add the next payment again with "Payment".
+ * staff add the next payment again with "Payment". Safe to retry: a
+ * membership already back to normal is returned unchanged.
  */
 export async function undoCancelMembership(input: UndoCancelMembershipInput) {
   const { membershipId, schoolId } = input
@@ -760,9 +761,15 @@ export async function undoCancelMembership(input: UndoCancelMembershipInput) {
   if (membership.status !== MembershipStatus.ACTIVE) {
     throw new Error('Only an active membership can have its cancellation undone — assign a plan instead')
   }
-  if (!membership.cancelledAt) throw new Error('Membership is not set to cancel')
+  // Already undone (e.g. a retry after the first answer was lost): nothing to do.
+  if (!membership.cancelledAt) return membership
 
-  if (membership.stripeSubId && membership.school?.stripeSecretKey) {
+  if (membership.stripeSubId) {
+    // Without the school's key Stripe would keep the cancellation scheduled
+    // while the dashboard says the membership continues.
+    if (!membership.school?.stripeSecretKey) {
+      throw new Error('This membership is billed through Stripe, but the school has no Stripe key configured — the cancellation can’t be undone in Stripe')
+    }
     try {
       await getStripe(membership.school.stripeSecretKey).subscriptions.update(membership.stripeSubId, { cancel_at_period_end: false })
     } catch (err) {

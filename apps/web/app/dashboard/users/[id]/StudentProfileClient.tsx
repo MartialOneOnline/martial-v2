@@ -1360,6 +1360,11 @@ function MembershipSection({
         const d = await res.json().catch(() => ({}))
         alert(d.error ?? tt.studentProfile.couldNotUndoCancel)
       }
+    } catch {
+      // No answer: it may or may not have gone through. Retrying is safe
+      // (an already-undone membership is returned unchanged), and a reload
+      // shows the current state.
+      alert(tt.studentProfile.undoCancelNoAnswer)
     } finally {
       setUndoingCancel(false)
     }
