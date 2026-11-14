@@ -12,7 +12,7 @@ import {
 import { makeAuthWriteGuard, relayChangeLocked } from '@/lib/authPins'
 import { needsRealEmailStep } from '@/lib/privateRelay'
 import {
-  requestEmailChange, confirmEmailChange, type AuthEmailApi, type ChangeRow, type EmailChangeDeps, type EmailChangeStore,
+  requestEmailChange, confirmEmailChange, reconcileEmailChange, type AuthEmailApi, type ChangeRow, type EmailChangeDeps, type EmailChangeStore,
 } from '@/lib/emailChange'
 
 const RELAY = 'abc123@privaterelay.appleid.com'
@@ -45,8 +45,16 @@ function world() {
       return { error: null, uncertain: false }
     },
   }
+  // Runs right after Auth answers a read, before the caller continues.
+  let afterGetEmail: (() => Promise<void>) | null = null
   const emailAuth: AuthEmailApi = {
-    async getEmail(id) { return authUsers[id]?.email ?? null },
+    async getEmail(id) {
+      const email = authUsers[id]?.email ?? null
+      const hook = afterGetEmail
+      afterGetEmail = null
+      await hook?.()
+      return email
+    },
     async setEmail(id, email) {
       if (lateIf?.(id, { email })) { late.push(() => apply(id, { email })); throw new Error('timed out') }
       apply(id, { email })
@@ -120,6 +128,7 @@ function world() {
   return {
     authUsers, users, pinRows, claimRows, mergeDeps, emailDeps, sent,
     lateWrites: (pred: typeof lateIf) => { lateIf = pred },
+    pauseAfterAuthRead: (f: () => Promise<void>) => { afterGetEmail = f },
     applyLateWrites: () => { late.splice(0).forEach(f => f()) },
     row: () => row,
   }
@@ -262,5 +271,59 @@ describe('Project Audit re-audit 5: a merge between requesting the code and conf
     expect(await runAccountMerge(w.mergeDeps, MERGE, null)).toMatchObject({ ok: false, status: 409 })
     if (g.ok) await g.handle.release()
     expect((await runAccountMerge(w.mergeDeps, MERGE, null)).ok).toBe(true)
+  })
+})
+
+describe('Project Audit re-audit 6: reconcile of a stale APPLYING row vs a merge', () => {
+  // A confirm died after Auth took the new email but before Prisma did.
+  async function halfApplied() {
+    const w = world()
+    expect((await requestEmailChange(w.emailDeps, { id: 'K', authId: 'auth-k' }, { email: 'verified@example.invalid' })).ok).toBe(true)
+    await w.emailDeps.store.claimForApplying('r1', w.row()!.codeHash, 5)
+    w.authUsers['auth-k']!.email = 'verified@example.invalid'
+    return w
+  }
+
+  it('a merge can’t run between reconcile reading Auth and writing Prisma', async () => {
+    const w = await halfApplied()
+    let mergeDuringPause: Awaited<ReturnType<typeof runAccountMerge>> | null = null
+    w.pauseAfterAuthRead(async () => { mergeDuringPause = await runAccountMerge(w.mergeDeps, MERGE, null) })
+    await reconcileEmailChange(w.emailDeps, { id: 'K', authId: 'auth-k' }, { force: true })
+    expect(mergeDuringPause).toMatchObject({ ok: false, status: 409 }) // reconcile holds the user
+    // Reconcile finished against an unchanged identity: Auth = Prisma.
+    expect(w.users.K).toEqual({ email: 'verified@example.invalid', supabaseAuthId: 'auth-k' })
+    expect(w.row()).toBeNull()
+    expect(w.claimRows).toEqual({})
+  })
+
+  it('after a merge that kept another login, the old session’s reconcile writes nothing; the kept login’s drops the row', async () => {
+    const w = await halfApplied()
+    expect((await runAccountMerge(w.mergeDeps, MERGE, null)).ok).toBe(true)
+    expect(w.users.K).toEqual({ email: RELAY, supabaseAuthId: 'auth-g' })
+    expect(w.authUsers['auth-g']!.email).toBe(RELAY)
+
+    await reconcileEmailChange(w.emailDeps, { id: 'K', authId: 'auth-k' }, { force: true })
+    expect(w.users.K!.email).toBe(RELAY) // not the retired login's email
+    expect(w.row()?.status).toBe('APPLYING')
+
+    await reconcileEmailChange(w.emailDeps, { id: 'K', authId: 'auth-g' }, { force: true })
+    expect(w.users.K!.email).toBe(w.authUsers['auth-g']!.email) // Auth = Prisma
+    expect(w.row()).toBeNull()
+  })
+
+  it('a running merge makes reconcile do nothing', async () => {
+    const w = await halfApplied()
+    w.claimRows.K = { attemptId: 'merge-running', holdUntil: Date.parse(FUTURE) }
+    await reconcileEmailChange(w.emailDeps, { id: 'K', authId: 'auth-k' }, { force: true })
+    expect(w.users.K!.email).toBe(RELAY)
+    expect(w.row()?.status).toBe('APPLYING')
+  })
+
+  it('a pending merge write with another email blocks the repair', async () => {
+    const w = await halfApplied()
+    w.pinRows['auth-k'] = { authId: 'auth-k', attemptId: 'merge-x', intent: 'KEEP', email: RELAY }
+    await reconcileEmailChange(w.emailDeps, { id: 'K', authId: 'auth-k' }, { force: true })
+    expect(w.users.K!.email).toBe(RELAY)
+    expect(w.row()?.status).toBe('APPLYING')
   })
 })

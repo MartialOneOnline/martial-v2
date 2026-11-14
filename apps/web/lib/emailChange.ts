@@ -162,10 +162,40 @@ async function reconcile(
   opts: { force?: boolean },
 ): Promise<void> {
   const now = (deps.now ?? (() => new Date()))()
+  const first = await deps.store.getRequest(user.id)
+  if (!first || first.status !== 'APPLYING') return
+  // Younger rows may still belong to a live attempt.
+  if (!opts.force && now.getTime() - first.updatedAt.getTime() < STALE_APPLYING_MS) return
+
+  // Claim the user against a running account merge BEFORE reading Auth, and
+  // hold it until Prisma is written (lib/authPins.ts): otherwise a merge
+  // between the read and the write could move this account to another login,
+  // and Prisma would copy an email the kept login doesn't have.
+  let release: (() => Promise<void>) | null = null
+  if (deps.guard) {
+    const began = await deps.guard.begin(user.id, user.authId)
+    if (!began.ok) return // a merge is running: leave it for next time
+    release = () => began.handle.release()
+  }
+  try {
+    await reconcileUnderClaim(deps, user)
+  } finally {
+    await release?.()
+  }
+}
+
+async function reconcileUnderClaim(deps: EmailChangeDeps, user: { id: string; authId: string }): Promise<void> {
+  // Re-read everything under the claim. The login must still be this
+  // session's: after a merge it's the kept login's session that reconciles
+  // (and there, Auth and Prisma already agree, so the row is just dropped).
+  if ((await deps.store.getUserAuthId(user.id)) !== user.authId) return
   const row = await deps.store.getRequest(user.id)
   if (!row || row.status !== 'APPLYING') return
-  // Younger rows may still belong to a live attempt.
-  if (!opts.force && now.getTime() - row.updatedAt.getTime() < STALE_APPLYING_MS) return
+  // An unanswered earlier write that would set another email could still land.
+  if (await deps.guard?.conflicts(user.authId, { intent: 'KEEP', email: row.newEmail })) {
+    deps.log?.('[emailChange] reconcile skipped: a pending account-merge write disagrees', { userId: user.id })
+    return
+  }
 
   const authEmail = normalizeEmail(await deps.auth.getEmail(user.authId))
   const dbEmail = normalizeEmail(await deps.store.getUserEmail(user.id))
