@@ -365,7 +365,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote Y — Barra superior a 40px en todas las páginas del dashboard (rama `claude/topbar-40`)
 
-- Estado: `APROBADO CON PENDIENTES` en `34976f3` (3 P2: 1 regresión, 2 previos) → `APROBADO CON PENDIENTES` en `2b7fe64` (los 3 cerrados; 1 P2 nuevo en tablet) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía.
+- Estado: `APROBADO CON PENDIENTES` en `34976f3` (3 P2: 1 regresión, 2 previos) → `APROBADO CON PENDIENTES` en `2b7fe64` (los 3 cerrados; 1 P2 nuevo en tablet) → **`APROBADO`** en `08a2342`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados, sidebar de 232px, 375–1440px; `@container`/`@3xl`/`@5xl` confirmadas en el CSS del build; sin sesión real ni iOS). Sin migración.
 - Pedido del usuario: aplicar en todas las páginas del dashboard la barra superior de Users (Lote X): todos los controles a 40px y, en móvil, el buscador hasta la campana.
 - Alcance: la barra superior de las 29 páginas del dashboard con menú móvil (no hay barra compartida: cada página tiene su copia) + `NotificationBell` y `DashboardLanguageSelector` (solo se usan en el dashboard). Sin cambios de comportamiento ni de datos.
 - Criterios:
