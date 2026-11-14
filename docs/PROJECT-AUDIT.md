@@ -340,7 +340,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote X — Tabla de alumnos en móvil: lista A–Z con índice por letras + barra superior a 40px (rama `claude/users-mobile-az`)
 
-- Estado: **`RECHAZADO`** en `4e03990` (1 P1, 1 P2) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía.
+- Estado: **`RECHAZADO`** en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados a 375/800/1280 px; sin regresiones en `/`, `/explore`, `/my` y Clases; sin sesión real ni Safari/iOS). Sin migración.
 - Pedido del usuario: llevar a la tabla de móvil lo mismo que el panel de desktop (Lote W), con maqueta aprobada antes del código. Además, en la barra superior de móvil el buscador debe llegar hasta la campana, y menú, buscador, campana, idioma y filtros deben tener la misma altura.
 - Alcance: `apps/web/app/dashboard/users/UsersClient.tsx` (la vista de lista que se ve en móvil/tablet y en desktop cuando no hay vista dividida). El panel de desktop (Lote W) no cambia.
 - Criterios:
