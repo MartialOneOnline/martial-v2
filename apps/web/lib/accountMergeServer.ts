@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { normalizeForSearch } from '@/lib/search'
 import {
-  type AuthAdmin, type ClaimStore, type LoginInfo, type MergeChoice, type MergeDeps, type Side,
-  defaultSides, loadSideDetail, loadSummary, mergeBlockers, mergeUsersInTx, mergeWarnings, signedWaiverConflicts, suggestDefaults,
+  type AuthAdmin, type ClaimStore, type LoginInfo, type PinStore, type MergeChoice, type MergeDeps, type Side,
+  defaultSides, loadSideDetail, loadSummary, mergeBlockers, mergeUsersInTx, mergeWarnings, pinClash, signedWaiverConflicts, suggestDefaults,
 } from '@/lib/accountMerge'
 
 // Production wiring for lib/accountMerge.ts (Supabase service-role + Prisma).
@@ -11,9 +11,8 @@ import {
 export const AUTH_TIMEOUT_MS = 10_000
 
 // Every request is aborted after AUTH_TIMEOUT_MS at the fetch level — not
-// just abandoned — so it can't still be sent much later. (Supabase may have
-// received it just before the abort; runAccountMerge holds the claims for a
-// couple of minutes after such an uncertain write.)
+// just abandoned. That doesn't prove Supabase never applies it (it may have
+// arrived just before the abort), which is what the auth pins are for.
 export const abortingFetch: typeof fetch = (input, init) => {
   const timeout = AbortSignal.timeout(AUTH_TIMEOUT_MS)
   const signal = init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout
@@ -118,11 +117,28 @@ export const prismaClaimStore: ClaimStore = {
       throw err
     }
   },
-  async hold(userIds, attemptId, holdUntil) {
-    await prisma.accountMergeClaim.updateMany({ where: { userId: { in: userIds }, attemptId }, data: { holdUntil } })
-  },
   async release(userIds, attemptId) {
     await prisma.accountMergeClaim.deleteMany({ where: { userId: { in: userIds }, attemptId } })
+  },
+}
+
+// account_merge_auth_pins: see PinStore in lib/accountMerge.ts.
+export const prismaPinStore: PinStore = {
+  async get(authIds) {
+    if (authIds.length === 0) return []
+    const rows = await prisma.accountMergeAuthPin.findMany({ where: { authId: { in: authIds } } })
+    return rows.map(r => (r.intent === 'KEEP'
+      ? { authId: r.authId, attemptId: r.attemptId, intent: 'KEEP' as const, email: r.email }
+      : { authId: r.authId, attemptId: r.attemptId, intent: 'RETIRE' as const }))
+  },
+  async put(pin) {
+    await prisma.accountMergeAuthPin.createMany({
+      data: [{ authId: pin.authId, attemptId: pin.attemptId, intent: pin.intent, email: pin.intent === 'KEEP' ? pin.email : '' }],
+      skipDuplicates: true,
+    })
+  },
+  async remove(authId, attemptId) {
+    await prisma.accountMergeAuthPin.deleteMany({ where: { authId, attemptId } })
   },
 }
 
@@ -130,6 +146,7 @@ export function prismaMergeDeps(auth: AuthAdmin): MergeDeps {
   return {
     auth,
     claims: prismaClaimStore,
+    pins: prismaPinStore,
     load: id => loadSummary(prisma, id),
     signedWaiverConflicts: (keepId, mergeId) => signedWaiverConflicts(prisma, keepId, mergeId),
     // Short: no network calls inside. mergeUsersInTx locks both user rows
@@ -178,6 +195,14 @@ export async function buildMergePreview(
     prisma.lead.count({ where: { convertedUserId: merge.id, source: 'SELF_REQUEST' } }),
     signedWaiverConflicts(prisma, keep.id, merge.id),
   ])
+  // Same check runAccountMerge makes: an unanswered earlier write must agree.
+  const plan = {
+    retiredAuthId: (choice.loginFrom === 'keep' ? merge : keep).supabaseAuthId,
+    keptAuthId: (choice.loginFrom === 'keep' ? keep : merge).supabaseAuthId,
+    finalEmail: choice.emailFrom === 'keep' ? keep.email : merge.email,
+  }
+  const pins = await prismaPinStore.get([plan.retiredAuthId, plan.keptAuthId].filter((x): x is string => !!x))
+
   const K = { ...keep, detail: keepDetail }
   const M = { ...merge, detail: mergeDetail }
 
@@ -189,12 +214,26 @@ export async function buildMergePreview(
     keep: side(K),
     merge: side(M),
     choice,
-    blockers: mergeBlockers(keep, merge, choice, { signedWaiverConflicts: waiverConflicts }),
+    blockers: [
+      ...mergeBlockers(keep, merge, choice, { signedWaiverConflicts: waiverConflicts }),
+      ...[pinClash(pins, plan)].filter((x): x is string => !!x),
+    ],
     warnings: mergeWarnings(K, M, choice, selfRequestLeads),
   }
 }
 
 export type MergePreview = NonNullable<Awaited<ReturnType<typeof buildMergePreview>>>
+
+// When one of the two ids no longer exists because it was merged (the
+// merge deletes that row): which account it went into. Lets the admin modal
+// tell "already merged" apart from a failure after a lost answer.
+export async function findCompletedMerge(ids: string[]) {
+  return prisma.accountMerge.findFirst({
+    where: { mergedUserId: { in: ids } },
+    orderBy: { createdAt: 'desc' },
+    select: { mergedUserId: true, keptUserId: true, createdAt: true },
+  })
+}
 
 // Likely duplicates: same normalized name, or same phone (last 9 digits).
 // A shortlist for a human to check, never merged automatically — two

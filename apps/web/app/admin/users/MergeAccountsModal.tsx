@@ -185,6 +185,7 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState<{ moved: Record<string, number>; keptEmail: string } | null>(null)
   const [uncertain, setUncertain] = useState(false)
+  const [alreadyMerged, setAlreadyMerged] = useState(false)
 
   // Resolves true only when a fresh preview arrived.
   const load = useCallback((params: Record<string, string>): Promise<boolean> => {
@@ -194,6 +195,9 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
       .then(async r => {
         const d = await r.json().catch(() => ({}))
         if (!r.ok) throw new Error(d.error || 'Could not load accounts')
+        // One of the two no longer exists because it was merged — e.g. the
+        // POST went through but its answer was lost.
+        if (d.alreadyMerged) { setAlreadyMerged(true); return true }
         setPreview(d)
         return true
       })
@@ -265,7 +269,14 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
           </button>
         </div>
 
-        {done ? (
+        {alreadyMerged && !done ? (
+          <div className="py-6 flex flex-col items-center gap-3 text-center">
+            <CheckCircle2 className="w-9 h-9 text-emerald-500" />
+            <p className="text-sm font-semibold text-gray-900">These accounts are already merged</p>
+            <p className="text-xs text-gray-500 max-w-md">One of them was merged into the other, so there’s nothing left to do.</p>
+            <button onClick={onClose} className="mt-2 h-10 px-6 rounded-xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0660c8]">Done</button>
+          </div>
+        ) : done ? (
           <div className="py-6 flex flex-col items-center gap-3 text-center">
             <CheckCircle2 className="w-9 h-9 text-emerald-500" />
             <p className="text-sm font-semibold text-gray-900">Accounts merged</p>

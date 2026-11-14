@@ -41,7 +41,7 @@ let eventBookings: Record<string, Record<string, unknown>>
 let membershipSeq: number
 // mergedUserId -> keptUserId (AccountMerge rows)
 let accountMerges: Record<string, string>
-// Users soft-deleted by a merge, and a hook that runs when the webhook's
+// Users whose row a merge deleted, and a hook that runs when the webhook's
 // transaction takes its user lock (to simulate a merge committing meanwhile).
 let deletedUsers: Set<string>
 let onUserLock: (() => void) | null
@@ -132,7 +132,8 @@ const mockUserLock = vi.fn((_sql: TemplateStringsArray, id: string) => {
   const hook = onUserLock
   onUserLock = null
   hook?.()
-  return Promise.resolve([{ deletedAt: deletedUsers.has(id) ? new Date() : null }])
+  // A merged account's row is deleted by the merge: FOR SHARE finds nothing.
+  return Promise.resolve(deletedUsers.has(id) ? [] : [{ deletedAt: null }])
 })
 
 const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {

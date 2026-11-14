@@ -3,7 +3,7 @@ import {
   combineMembers, combineProfile, defaultSides, suggestDefaults, mergeBlockers, mergeWarnings,
   runAccountMerge, mergedPlaceholderEmail, isRelayEmail, pickContentAccess, pickWaiver, combineLessonViews,
   type MemberFields, type ProfileFields, type SideSummary, type MergeDeps, type AuthAdmin, type AuthUser, type MergeTxInput,
-  type ClaimStore, SETTLE_HOLD_MS, MergeConflictError,
+  type ClaimStore, type PinStore, type AuthPin, MergeConflictError, pinAgrees,
 } from '@/lib/accountMerge'
 
 const member = (o: Partial<MemberFields> = {}): MemberFields => ({
@@ -178,9 +178,10 @@ describe('pickWaiver / combineLessonViews', () => {
   })
 })
 
-// ── Orchestration: fake Supabase Auth, fake claims, fake database, fake clock ──
+// ── Orchestration: fake Supabase Auth, claims, pins, database and clock ────────
 
 const FUTURE = '2126-01-01T00:00:00Z'
+const ONE_YEAR = 365 * 24 * 3600_000
 type Attrs = Parameters<AuthAdmin['updateUser']>[1]
 
 function harness(o: {
@@ -235,34 +236,38 @@ function harness(o: {
       for (const id of ids) claimRows[id] = { attemptId, holdUntil: holdUntil.getTime() }
       return { ok: true }
     },
-    async hold(ids, attemptId, holdUntil) {
-      for (const id of ids) if (claimRows[id]?.attemptId === attemptId) claimRows[id]!.holdUntil = holdUntil.getTime()
-    },
     async release(ids, attemptId) {
       for (const id of ids) if (claimRows[id]?.attemptId === attemptId) delete claimRows[id]
     },
+  }
+  const pinRows: Record<string, AuthPin> = {}
+  const pins: PinStore = {
+    async get(ids) { return ids.map(id => pinRows[id]).filter((p): p is AuthPin => !!p) },
+    async put(pin) { pinRows[pin.authId] ??= pin },
+    async remove(authId, attemptId) { if (pinRows[authId]?.attemptId === attemptId) delete pinRows[authId] },
   }
   let seq = 0
   const applied: MergeTxInput[] = []
   const deps: MergeDeps = {
     auth,
     claims,
+    pins,
     now: () => new Date(clock),
     newAttemptId: () => `attempt-${++seq}`,
     load: async id => (rows[id] ? { ...rows[id]! } : null),
     signedWaiverConflicts: async () => 0,
     async commit(input) {
       if (o.failDb) throw new Error('db down')
-      if (rows[input.mergeId]!.deletedAt || rows[input.keepId]!.deletedAt) throw new MergeConflictError('changed')
+      if (!rows[input.mergeId] || !rows[input.keepId]) throw new MergeConflictError('changed')
       calls.push('tx')
       applied.push(input)
-      rows[input.mergeId] = { ...rows[input.mergeId]!, deletedAt: new Date(clock), supabaseAuthId: null }
+      delete rows[input.mergeId] // the merged row is deleted
       rows[input.keepId] = { ...rows[input.keepId]!, supabaseAuthId: input.keptAuthId }
       return { bookings: 17 }
     },
   }
   return {
-    deps, calls, authUsers, rows, applied, claimRows,
+    deps, calls, authUsers, rows, applied, claimRows, pinRows,
     advance: (ms: number) => { clock += ms },
     applyLateWrites: () => { late.splice(0).forEach(f => f()) },
   }
@@ -271,9 +276,19 @@ function harness(o: {
 const KEEP_RELAY_LOGIN = { keepId: 'K', mergeId: 'S', loginFrom: 'merge', emailFrom: 'keep' } as const
 const KEEP_HOTMAIL_LOGIN = { ...KEEP_RELAY_LOGIN, loginFrom: 'keep' } as const
 
+describe('pinAgrees', () => {
+  it('retiring agrees with retiring; keeping only with the same email', () => {
+    expect(pinAgrees({ intent: 'RETIRE' }, { intent: 'RETIRE' })).toBe(true)
+    expect(pinAgrees({ intent: 'RETIRE' }, { intent: 'KEEP', email: 'a@x.com' })).toBe(false)
+    expect(pinAgrees({ intent: 'KEEP', email: 'A@x.com' }, { intent: 'KEEP', email: 'a@x.com' })).toBe(true)
+    expect(pinAgrees({ intent: 'KEEP', email: 'a@x.com' }, { intent: 'KEEP', email: 'b@x.com' })).toBe(false)
+    expect(pinAgrees({ intent: 'KEEP', email: 'a@x.com' }, { intent: 'RETIRE' })).toBe(false)
+  })
+})
+
 describe('runAccountMerge', () => {
-  it('disables the other login, gives the kept login the real email, writes the database and releases the claims', async () => {
-    const { deps, calls, authUsers, applied, claimRows } = harness()
+  it('disables the other login, gives the kept login the real email, writes the database, leaves no claims or pins', async () => {
+    const { deps, calls, authUsers, applied, claimRows, pinRows, rows } = harness()
     const r = await runAccountMerge(deps, KEEP_RELAY_LOGIN, 'admin')
     expect(r).toEqual({ ok: true, moved: { bookings: 17 }, keptEmail: 'manuel@hotmail.com', disabledAuth: [{ id: 'auth-h', email: 'manuel@hotmail.com' }] })
     expect(calls).toEqual([
@@ -285,6 +300,8 @@ describe('runAccountMerge', () => {
     expect(authUsers['auth-h']).toMatchObject({ email: mergedPlaceholderEmail('K'), bannedUntil: FUTURE })
     expect(applied[0]).toMatchObject({ keptAuthId: 'auth-r', actorId: 'admin' })
     expect(claimRows).toEqual({})
+    expect(pinRows).toEqual({}) // every write finished definitely
+    expect(rows.S).toBeUndefined()
   })
 
   it('two concurrent merges of the same pair with opposite logins: the second is refused before touching Auth', async () => {
@@ -299,44 +316,70 @@ describe('runAccountMerge', () => {
     expect(authUsers['auth-r']!.bannedUntil).toBeNull()
   })
 
-  it('a merge on a third account that shares one of these is refused too', async () => {
-    const { deps } = harness({ updateUser: () => ({ apply: 'later', error: 'timeout' }) })
-    await runAccountMerge(deps, KEEP_RELAY_LOGIN, null) // leaves K and S held
-    expect(await runAccountMerge(deps, { ...KEEP_RELAY_LOGIN, mergeId: 'X' }, null)).toMatchObject({ ok: false, status: 409 })
-  })
+  // Codex re-audit 3: no amount of waiting proves a timed-out write won't land.
+  describe('an Auth write whose answer never came', () => {
+    function timedOutBanOfRelay() {
+      let fire = true
+      const h = harness({
+        updateUser: (id, a) => (fire && id === 'auth-r' && a.ban_duration === '876000h' ? { apply: 'later', error: 'Supabase Auth timed out' } : undefined),
+      })
+      return { h, stop: () => { fire = false } }
+    }
 
-  // Codex re-audit: an Auth write that times out may still be applied later.
-  it('an Auth write applied late, after a timeout, can’t undo a retry', async () => {
-    let lateBan = true
-    const h = harness({
-      // First attempt keeps the hotmail login; banning the relay login times out
-      // but Supabase applies it later.
-      updateUser: (id, a) => (lateBan && id === 'auth-r' && a.ban_duration === '876000h' ? { apply: 'later', error: 'Supabase Auth timed out' } : undefined),
+    it('leaves a permanent RETIRE pin; keeping that login is refused even a year later', async () => {
+      const { h, stop } = timedOutBanOfRelay()
+      expect(await runAccountMerge(h.deps, KEEP_HOTMAIL_LOGIN, null)).toMatchObject({ ok: false, status: 502 })
+      stop()
+      expect(h.pinRows['auth-r']).toMatchObject({ intent: 'RETIRE' })
+      h.advance(ONE_YEAR)
+      const r = await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)
+      expect(r).toMatchObject({ ok: false, status: 409 })
+      expect(h.calls.filter(c => c.startsWith('update'))).toHaveLength(1) // nothing new written
     })
-    const first = await runAccountMerge(h.deps, KEEP_HOTMAIL_LOGIN, null)
-    expect(first).toMatchObject({ ok: false, status: 502 })
-    lateBan = false
 
-    // Immediately retrying — even with the opposite login — is refused while it settles.
-    expect(await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 409 })
+    it('a retry that agrees completes — and the late write landing afterwards changes nothing that matters', async () => {
+      const { h, stop } = timedOutBanOfRelay()
+      await runAccountMerge(h.deps, KEEP_HOTMAIL_LOGIN, null)
+      stop()
+      h.advance(ONE_YEAR)
+      const retry = await runAccountMerge(h.deps, KEEP_HOTMAIL_LOGIN, null)
+      expect(retry.ok).toBe(true)
+      const before = JSON.stringify(h.authUsers)
+      h.applyLateWrites() // the old request finally lands, after the plazo and after the successful retry
+      expect(JSON.stringify(h.authUsers)).toBe(before)
+      expect(h.authUsers['auth-h']).toMatchObject({ email: 'manuel@hotmail.com', bannedUntil: null })
+      expect(h.authUsers['auth-r']).toMatchObject({ email: mergedPlaceholderEmail('S'), bannedUntil: FUTURE })
+      expect(h.pinRows['auth-r']).toBeDefined() // still guarding that request
+    })
 
-    // The stale request lands now (it was aborted after 10 s, well inside the hold).
-    h.applyLateWrites()
-    expect(h.authUsers['auth-r']).toMatchObject({ bannedUntil: FUTURE, email: mergedPlaceholderEmail('S') })
+    it('a KEEP pin blocks disabling that login or giving it another email', async () => {
+      let fire = true
+      const h = harness({ updateUser: (id, a) => (fire && id === 'auth-r' && 'email' in a ? { apply: 'later', error: 'fetch failed' } : undefined) })
+      expect(await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 502 })
+      fire = false
+      expect(h.pinRows['auth-r']).toMatchObject({ intent: 'KEEP', email: 'manuel@hotmail.com' })
+      expect((await runAccountMerge(h.deps, KEEP_HOTMAIL_LOGIN, null)).ok).toBe(false) // would retire auth-r
+      expect((await runAccountMerge(h.deps, { ...KEEP_RELAY_LOGIN, emailFrom: 'merge' }, null)).ok).toBe(false) // other email
+      const ok = await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)
+      expect(ok.ok).toBe(true)
+      h.applyLateWrites()
+      expect(h.authUsers['auth-r']).toMatchObject({ email: 'manuel@hotmail.com', bannedUntil: null })
+    })
 
-    // After the hold the retry re-reads Auth and repairs the kept login.
-    h.advance(SETTLE_HOLD_MS + 1)
-    const retry = await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)
-    expect(retry.ok).toBe(true)
-    expect(h.authUsers['auth-r']).toMatchObject({ bannedUntil: null, email: 'manuel@hotmail.com' })
-    expect(h.authUsers['auth-h']!.bannedUntil).toBe(FUTURE)
-    h.applyLateWrites() // nothing left in flight
-    expect(h.authUsers['auth-r']!.bannedUntil).toBeNull()
+    it('a pin is written before the request is sent', async () => {
+      const seen: string[] = []
+      const h = harness()
+      const orig = h.deps.auth.updateUser
+      h.deps.auth.updateUser = async (id, a) => { seen.push(Object.keys(h.pinRows).join(',')); return orig(id, a) }
+      await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)
+      expect(seen).toEqual(['auth-h', 'auth-r'])
+    })
   })
 
-  it('a definite refusal (4xx) doesn’t hold the accounts', async () => {
+  it('a definite refusal (4xx) leaves no pin', async () => {
     const h = harness({ updateUser: (id, a) => (id === 'auth-r' && 'email' in a ? { apply: 'never', error: 'Email address already registered', uncertain: false } : undefined) })
     expect(await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 502 })
+    expect(h.pinRows).toEqual({})
     expect(h.claimRows).toEqual({})
   })
 
@@ -344,8 +387,8 @@ describe('runAccountMerge', () => {
     const h = harness({ failDb: true })
     await expect(runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)).rejects.toThrow('db down')
     expect(h.authUsers['auth-h']!.bannedUntil).toBe(FUTURE)
-    expect(h.rows.S!.deletedAt).toBeNull()
-    expect(h.claimRows).toEqual({}) // no uncertain write: released
+    expect(h.rows.S).toBeDefined()
+    expect(h.pinRows).toEqual({}) // both writes finished definitely
 
     const ok = harness()
     Object.assign(ok.authUsers, h.authUsers)
@@ -355,17 +398,18 @@ describe('runAccountMerge', () => {
   })
 
   it('stops before changing anything when reading a login returns an error', async () => {
-    const { deps, calls, claimRows } = harness({ getUser: id => (id === 'auth-h' ? Promise.resolve({ status: 'error', message: 'fetch failed' }) : undefined) })
+    const { deps, calls, claimRows, pinRows } = harness({ getUser: id => (id === 'auth-h' ? Promise.resolve({ status: 'error', message: 'fetch failed' }) : undefined) })
     expect(await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 503 })
     expect(calls).toEqual([])
     expect(claimRows).toEqual({})
+    expect(pinRows).toEqual({})
   })
 
   it('does not finish when the ban answer is lost and the read-back can’t confirm it', async () => {
-    const { deps, calls, claimRows } = harness({ updateUser: id => (id === 'auth-h' ? { apply: 'never', error: 'AuthRetryableFetchError' } : undefined) })
+    const { deps, calls, pinRows } = harness({ updateUser: id => (id === 'auth-h' ? { apply: 'never', error: 'AuthRetryableFetchError' } : undefined) })
     expect(await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 502 })
     expect(calls).not.toContain('tx')
-    expect(Object.keys(claimRows).sort()).toEqual(['K', 'S']) // held while it settles
+    expect(pinRows['auth-h']).toMatchObject({ intent: 'RETIRE' })
   })
 
   it('does not finish when the read-back after the ban fails', async () => {
@@ -374,10 +418,11 @@ describe('runAccountMerge', () => {
     expect(calls).not.toContain('tx')
   })
 
-  it('accepts a ban whose answer was lost but which the read-back shows applied — and still holds the claims', async () => {
-    const { deps, claimRows } = harness({ updateUser: id => (id === 'auth-h' ? { apply: 'now', error: 'AuthRetryableFetchError' } : undefined) })
+  it('accepts a ban whose answer was lost but which the read-back shows applied — and keeps its pin', async () => {
+    const { deps, pinRows } = harness({ updateUser: id => (id === 'auth-h' ? { apply: 'now', error: 'AuthRetryableFetchError' } : undefined) })
     expect((await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).ok).toBe(true)
-    expect(Object.keys(claimRows).sort()).toEqual(['K', 'S'])
+    expect(pinRows['auth-h']).toMatchObject({ intent: 'RETIRE' })
+    expect(pinRows['auth-r']).toBeUndefined()
   })
 
   it('stops before the database if the kept login can’t be confirmed with the kept email', async () => {
@@ -391,7 +436,6 @@ describe('runAccountMerge', () => {
     const h = harness({ updateUser: (id, a) => (fail && id === 'auth-r' && 'email' in a ? { apply: 'never', error: 'x' } : undefined) })
     expect((await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)).ok).toBe(false)
     fail = false
-    h.advance(SETTLE_HOLD_MS + 1)
     const again = await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)
     expect(again.ok && again.disabledAuth).toEqual([{ id: 'auth-h', email: null }])
   })
@@ -426,5 +470,11 @@ describe('runAccountMerge', () => {
     expect(await runAccountMerge(deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 409 })
     expect(calls).toEqual([])
     expect(claimRows).toEqual({})
+  })
+
+  it('an already merged pair is refused (the merged row is gone)', async () => {
+    const h = harness()
+    expect((await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)).ok).toBe(true)
+    expect(await runAccountMerge(h.deps, KEEP_RELAY_LOGIN, null)).toMatchObject({ ok: false, status: 409 })
   })
 })

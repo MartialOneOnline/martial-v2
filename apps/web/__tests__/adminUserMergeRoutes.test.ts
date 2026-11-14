@@ -11,10 +11,12 @@ const guardSuperadminUser = vi.fn()
 vi.mock('@/lib/auth/server', () => ({ guardSuperadmin, guardSuperadminUser }))
 
 const buildMergePreview = vi.fn()
+const findCompletedMerge = vi.fn(async (_ids: string[]): Promise<unknown> => null)
 const findDuplicateCandidates = vi.fn(async () => [])
 const runTx = vi.fn()
 vi.mock('@/lib/accountMergeServer', () => ({
   buildMergePreview,
+  findCompletedMerge,
   findDuplicateCandidates,
   supabaseAuthAdmin: () => ({}),
   prismaMergeDeps: () => ({ runTx }),
@@ -60,6 +62,14 @@ describe('GET preview', () => {
   it('404s for an unknown account', async () => {
     buildMergePreview.mockResolvedValue(null)
     expect((await merge.GET(req('/api/admin/users/merge?keepId=K&mergeId=S'))).status).toBe(404)
+  })
+  it('says so when one of the two was already merged (its row is gone)', async () => {
+    buildMergePreview.mockResolvedValue(null)
+    findCompletedMerge.mockResolvedValueOnce({ mergedUserId: 'S', keptUserId: 'K', createdAt: new Date('2026-11-14') })
+    const res = await merge.GET(req('/api/admin/users/merge?keepId=K&mergeId=S'))
+    expect(res.status).toBe(200)
+    expect((await res.json()).alreadyMerged).toMatchObject({ mergedUserId: 'S', keptUserId: 'K' })
+    expect(findCompletedMerge).toHaveBeenCalledWith(['K', 'S'])
   })
 })
 

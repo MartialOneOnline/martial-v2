@@ -2419,3 +2419,20 @@ model AccountMergeClaim {
 
   @@map("account_merge_claims")
 }
+
+// Intent recorded for a Supabase Auth user before an account merge writes to
+// it (lib/accountMerge.ts): RETIRE (ban + placeholder email) or KEEP (this
+// email, unbanned). A pin whose write ended with an unknown outcome (timeout,
+// network error, 5xx) stays forever — that request may still be applied by
+// Supabase at any time — and every later merge must agree with it, so a late
+// write can only ever re-apply what was intended. Pins of writes that
+// finished definitely are removed straight away.
+model AccountMergeAuthPin {
+  authId    String   @id @db.Uuid
+  intent    String // RETIRE | KEEP
+  email     String
+  attemptId String
+  createdAt DateTime @default(now())
+
+  @@map("account_merge_auth_pins")
+}

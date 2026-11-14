@@ -8,13 +8,17 @@ vi.mock('@supabase/supabase-js', () => ({ createClient: (...a: unknown[]) => cre
 
 const claimQuery = vi.fn()
 const claimFindUnique = vi.fn()
+const pinFindMany = vi.fn()
+const pinCreateMany = vi.fn()
+const pinDeleteMany = vi.fn()
 vi.mock('@/lib/db', () => ({
   prisma: {
     $transaction: (fn: (tx: unknown) => unknown) => fn({ $queryRaw: claimQuery, accountMergeClaim: { findUnique: claimFindUnique } }),
+    accountMergeAuthPin: { findMany: pinFindMany, createMany: pinCreateMany, deleteMany: pinDeleteMany },
   },
 }))
 
-const { supabaseAuthAdmin, isUserNotFound, isUncertainWriteError, abortingFetch, prismaClaimStore } = await import('@/lib/accountMergeServer')
+const { supabaseAuthAdmin, isUserNotFound, isUncertainWriteError, abortingFetch, prismaClaimStore, prismaPinStore } = await import('@/lib/accountMergeServer')
 const { resolveSurvivingUserId, lockSurvivingUser } = await import('@/lib/mergedUsers')
 
 beforeEach(() => vi.clearAllMocks())
@@ -124,11 +128,39 @@ describe('resolveSurvivingUserId / lockSurvivingUser', () => {
     expect(await lockSurvivingUser(d, 'a')).toBe('c')
     expect(d.$queryRaw.mock.calls.map((c: any[]) => c[1])).toEqual(['a', 'b', 'c'])
   })
+  it('a row deleted by a merge (FOR SHARE finds nothing) leads to the survivor', async () => {
+    const d = {
+      accountMerge: { findFirst: vi.fn(async ({ where }: any) => (where.mergedUserId === 'S' ? { keptUserId: 'K' } : null)) },
+      $queryRaw: vi.fn(async (_s: TemplateStringsArray, id: string) => (id === 'S' ? [] : [{ deletedAt: null }])),
+    } as any
+    expect(await lockSurvivingUser(d, 'S')).toBe('K')
+  })
+  it('a missing row with no merge is returned as is (the write then fails on its foreign key)', async () => {
+    const d = { accountMerge: { findFirst: vi.fn(async () => null) }, $queryRaw: vi.fn(async () => []) } as any
+    expect(await lockSurvivingUser(d, 'gone')).toBe('gone')
+  })
   it('a self-deleted (not merged) account stays as it is', async () => {
     expect(await lockSurvivingUser(db({}, ['u']), 'u')).toBe('u')
   })
   it('stops on a cycle instead of looping', async () => {
     expect(['a', 'b']).toContain(await resolveSurvivingUserId('a', db({ a: 'b', b: 'a' })))
     expect(['a', 'b']).toContain(await lockSurvivingUser(db({ a: 'b', b: 'a' }), 'a'))
+  })
+})
+
+describe('prismaPinStore', () => {
+  it('put never overwrites an existing pin (skipDuplicates); remove only deletes this attempt’s', async () => {
+    await prismaPinStore.put({ authId: 'a', attemptId: 't1', intent: 'KEEP', email: 'x@y.com' })
+    expect(pinCreateMany).toHaveBeenCalledWith({ data: [{ authId: 'a', attemptId: 't1', intent: 'KEEP', email: 'x@y.com' }], skipDuplicates: true })
+    await prismaPinStore.remove('a', 't1')
+    expect(pinDeleteMany).toHaveBeenCalledWith({ where: { authId: 'a', attemptId: 't1' } })
+  })
+  it('get maps rows back to intents', async () => {
+    pinFindMany.mockResolvedValue([{ authId: 'a', attemptId: 't1', intent: 'RETIRE', email: '' }, { authId: 'b', attemptId: 't2', intent: 'KEEP', email: 'b@x.com' }])
+    expect(await prismaPinStore.get(['a', 'b'])).toEqual([
+      { authId: 'a', attemptId: 't1', intent: 'RETIRE' },
+      { authId: 'b', attemptId: 't2', intent: 'KEEP', email: 'b@x.com' },
+    ])
+    expect(await prismaPinStore.get([])).toEqual([])
   })
 })

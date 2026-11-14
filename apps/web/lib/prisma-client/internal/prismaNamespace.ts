@@ -446,7 +446,8 @@ export const ModelName = {
   InviteToken: 'InviteToken',
   EmailChangeRequest: 'EmailChangeRequest',
   AccountMerge: 'AccountMerge',
-  AccountMergeClaim: 'AccountMergeClaim'
+  AccountMergeClaim: 'AccountMergeClaim',
+  AccountMergeAuthPin: 'AccountMergeAuthPin'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -462,7 +463,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest" | "accountMerge" | "accountMergeClaim"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest" | "accountMerge" | "accountMergeClaim" | "accountMergeAuthPin"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -5128,6 +5129,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AccountMergeAuthPin: {
+      payload: Prisma.$AccountMergeAuthPinPayload<ExtArgs>
+      fields: Prisma.AccountMergeAuthPinFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccountMergeAuthPinFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccountMergeAuthPinFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        findFirst: {
+          args: Prisma.AccountMergeAuthPinFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccountMergeAuthPinFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        findMany: {
+          args: Prisma.AccountMergeAuthPinFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>[]
+        }
+        create: {
+          args: Prisma.AccountMergeAuthPinCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        createMany: {
+          args: Prisma.AccountMergeAuthPinCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AccountMergeAuthPinCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>[]
+        }
+        delete: {
+          args: Prisma.AccountMergeAuthPinDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        update: {
+          args: Prisma.AccountMergeAuthPinUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        deleteMany: {
+          args: Prisma.AccountMergeAuthPinDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccountMergeAuthPinUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AccountMergeAuthPinUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>[]
+        }
+        upsert: {
+          args: Prisma.AccountMergeAuthPinUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        aggregate: {
+          args: Prisma.AccountMergeAuthPinAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccountMergeAuthPin>
+        }
+        groupBy: {
+          args: Prisma.AccountMergeAuthPinGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeAuthPinGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccountMergeAuthPinCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeAuthPinCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -6366,6 +6441,17 @@ export const AccountMergeClaimScalarFieldEnum = {
 export type AccountMergeClaimScalarFieldEnum = (typeof AccountMergeClaimScalarFieldEnum)[keyof typeof AccountMergeClaimScalarFieldEnum]
 
 
+export const AccountMergeAuthPinScalarFieldEnum = {
+  authId: 'authId',
+  intent: 'intent',
+  email: 'email',
+  attemptId: 'attemptId',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeAuthPinScalarFieldEnum = (typeof AccountMergeAuthPinScalarFieldEnum)[keyof typeof AccountMergeAuthPinScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -7187,6 +7273,7 @@ export type GlobalOmitConfig = {
   emailChangeRequest?: Prisma.EmailChangeRequestOmit
   accountMerge?: Prisma.AccountMergeOmit
   accountMergeClaim?: Prisma.AccountMergeClaimOmit
+  accountMergeAuthPin?: Prisma.AccountMergeAuthPinOmit
 }
 
 /* Types for Logging */

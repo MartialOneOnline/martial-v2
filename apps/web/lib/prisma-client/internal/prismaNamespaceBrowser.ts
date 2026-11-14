@@ -113,7 +113,8 @@ export const ModelName = {
   InviteToken: 'InviteToken',
   EmailChangeRequest: 'EmailChangeRequest',
   AccountMerge: 'AccountMerge',
-  AccountMergeClaim: 'AccountMergeClaim'
+  AccountMergeClaim: 'AccountMergeClaim',
+  AccountMergeAuthPin: 'AccountMergeAuthPin'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1329,6 +1330,17 @@ export const AccountMergeClaimScalarFieldEnum = {
 } as const
 
 export type AccountMergeClaimScalarFieldEnum = (typeof AccountMergeClaimScalarFieldEnum)[keyof typeof AccountMergeClaimScalarFieldEnum]
+
+
+export const AccountMergeAuthPinScalarFieldEnum = {
+  authId: 'authId',
+  intent: 'intent',
+  email: 'email',
+  attemptId: 'attemptId',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeAuthPinScalarFieldEnum = (typeof AccountMergeAuthPinScalarFieldEnum)[keyof typeof AccountMergeAuthPinScalarFieldEnum]
 
 
 export const SortOrder = {

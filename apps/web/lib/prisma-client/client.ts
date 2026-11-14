@@ -356,3 +356,8 @@ export type AccountMerge = Prisma.AccountMergeModel
  * 
  */
 export type AccountMergeClaim = Prisma.AccountMergeClaimModel
+/**
+ * Model AccountMergeAuthPin
+ * 
+ */
+export type AccountMergeAuthPin = Prisma.AccountMergeAuthPinModel

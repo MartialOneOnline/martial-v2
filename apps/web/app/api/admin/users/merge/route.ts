@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { guardSuperadmin, guardSuperadminUser } from '@/lib/auth/server'
 import { MergeConflictError, runAccountMerge, type Side } from '@/lib/accountMerge'
-import { buildMergePreview, prismaMergeDeps, supabaseAuthAdmin } from '@/lib/accountMergeServer'
+import { buildMergePreview, findCompletedMerge, prismaMergeDeps, supabaseAuthAdmin } from '@/lib/accountMergeServer'
 
 // Claims + up to 4 Auth calls (10 s each, aborted) + one short transaction.
 export const maxDuration = 60
@@ -30,7 +30,11 @@ export async function GET(req: NextRequest) {
     emailFrom: isSide(emailFrom) ? emailFrom : undefined,
     suggest: sp.get('suggest') === '1',
   })
-  if (!preview) return NextResponse.json({ error: 'Account not found' }, { status: 404 })
+  if (!preview) {
+    const done = await findCompletedMerge([keepId, mergeId])
+    if (done) return NextResponse.json({ alreadyMerged: done })
+    return NextResponse.json({ error: 'Account not found' }, { status: 404 })
+  }
   return NextResponse.json(preview)
 }
 

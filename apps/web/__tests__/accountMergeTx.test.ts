@@ -96,3 +96,14 @@ describe('mergeUsersInTx — unique-per-user rows', () => {
     expect(deleted('schoolMember')).toEqual(['m-s'])
   })
 })
+
+describe('mergeUsersInTx — the merged row', () => {
+  it('is deleted (not just marked), before keep gets its final email and login', async () => {
+    const { tx, calls } = fakeTx({})
+    await mergeUsersInTx(tx, { ...input, keptAuthId: 'auth-r' })
+    const userCalls = calls.filter(c => c.model === 'user' && (c.method === 'delete' || c.method === 'update'))
+    expect(userCalls.map(c => `${c.method} ${c.args.where.id}`)).toEqual(['delete S', 'update K'])
+    expect(userCalls[1]!.args.data).toMatchObject({ email: 'K@x.com', supabaseAuthId: 'auth-r' })
+    expect(calls.find(c => c.model === 'accountMerge' && c.method === 'create')?.args.data).toMatchObject({ keptUserId: 'K', mergedUserId: 'S', mergedEmail: 'S@x.com' })
+  })
+})

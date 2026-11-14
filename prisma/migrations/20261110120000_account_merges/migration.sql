@@ -25,3 +25,14 @@ CREATE TABLE IF NOT EXISTS "account_merge_claims" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "account_merge_claims_pkey" PRIMARY KEY ("userId")
 );
+
+-- Intent per Supabase Auth user written by a merge; kept forever when the
+-- write's outcome is unknown, so a late write can't contradict a later merge.
+CREATE TABLE IF NOT EXISTS "account_merge_auth_pins" (
+    "authId" UUID NOT NULL,
+    "intent" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "attemptId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "account_merge_auth_pins_pkey" PRIMARY KEY ("authId")
+);
