@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, CheckCheck, X, Info, AlertTriangle, CheckCircle, MessageSquare, CreditCard, Users, Loader2 } from 'lucide-react'
 
@@ -45,6 +45,29 @@ interface Props {
 
 export default function NotificationsPopup({ onClose, onUnreadChange }: Props) {
   const ref    = useRef<HTMLDivElement>(null)
+
+  // Placed from the bell (the parent element), never past the screen edges:
+  // anchored to the bell's right edge it ran off the left side on mobile,
+  // where the bell isn't the last control in the bar.
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
+  useLayoutEffect(() => {
+    const place = () => {
+      const anchor = ref.current?.parentElement
+      if (!anchor) return
+      const a = anchor.getBoundingClientRect()
+      const margin = 16
+      const width = Math.min(360, window.innerWidth - margin * 2)
+      const left = Math.min(Math.max(a.right - width, margin), window.innerWidth - margin - width)
+      setPos({ top: a.bottom + 8, left, width })
+    }
+    place()
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
+    }
+  }, [])
   const router = useRouter()
   const [notifs,   setNotifs]   = useState<Notif[]>([])
   const [unread,   setUnread]   = useState(0)
@@ -92,8 +115,10 @@ export default function NotificationsPopup({ onClose, onUnreadChange }: Props) {
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-2 w-[360px] max-w-[calc(100vw-32px)] rounded-2xl shadow-2xl z-50 overflow-hidden"
-      style={{ background: '#fff', border: '1px solid #E5E7EB' }}
+      className="fixed rounded-2xl shadow-2xl z-50 overflow-hidden"
+      style={{ background: '#fff', border: '1px solid #E5E7EB',
+        top: pos?.top ?? 0, left: pos?.left ?? 0, width: pos?.width ?? 360,
+        visibility: pos ? 'visible' : 'hidden' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid #F3F4F6' }}>

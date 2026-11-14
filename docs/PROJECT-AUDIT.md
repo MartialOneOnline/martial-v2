@@ -365,7 +365,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote Y — Barra superior a 40px en todas las páginas del dashboard (rama `claude/topbar-40`)
 
-- Estado: **pendiente de Project Audit**. Sin migración. Sin PR todavía.
+- Estado: `APROBADO CON PENDIENTES` en `34976f3` (3 P2: 1 regresión, 2 previos) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía.
 - Pedido del usuario: aplicar en todas las páginas del dashboard la barra superior de Users (Lote X): todos los controles a 40px y, en móvil, el buscador hasta la campana.
 - Alcance: la barra superior de las 29 páginas del dashboard con menú móvil (no hay barra compartida: cada página tiene su copia) + `NotificationBell` y `DashboardLanguageSelector` (solo se usan en el dashboard). Sin cambios de comportamiento ni de datos.
 - Criterios:
@@ -379,6 +379,12 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Evidencia: `tsc --noEmit` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint de los 32 ficheros: 63 avisos, los mismos que en `main`; `next build` local correcto. Medido por Claude en Chromium con una página temporal local (ya borrada) que monta cada página real: a 375px las 29 barras miden 65px con todos sus controles a 40px y sin scroll horizontal; a 1280px igual en las 19 páginas que cargan con la API simulada (las otras 10 fallan por la simulación, no por el cambio; a 375px sí se midieron).
 - Visto y no cambiado: en móvil, las barras de los informes de Balance (3 líneas) y Leads (2 líneas) saltan de línea porque ya tenían `flex-wrap`; no he cambiado anchos, así que el salto ya existía. Las barras de Notificaciones y Soporte no son fijas al hacer scroll (como antes).
 - No verificado: sesión real ni dispositivo iOS.
+- Hallazgos de Codex en `34976f3` y corrección:
+  1. P2 (regresión) — Horario a 375px: la campana tapaba «List» (pulsarlo abría Notificaciones). Con los controles a 40px, título + selector con texto + campana + «+» ya no cabían. Ahora, por debajo de `sm`, el selector Calendar/List muestra solo iconos (botones de 40×40 con `aria-label`) y el título se recorta con «…». Mismo cambio en el Calendario (Month/Week), que tiene la misma estructura.
+  2. P2 (previo) — Informe de Usuarios a 375px: el buscador medía 0px y la campana quedaba fuera. Ahora, por debajo de `md`, la barra hace salto de línea: primera fila menú + buscador + campana; segunda fila el selector de periodo a todo el ancho (y las fechas personalizadas, si se eligen). Desde `md`, una sola fila como antes.
+  3. P2 (previo) — el desplegable de la campana se salía por la izquierda en móvil (iba alineado al borde derecho de la campana, que no es el último control). Ahora se coloca con `position: fixed` calculando la posición de la campana: alineado a su borde derecho, sin salir nunca de la pantalla (16px de margen) y con ancho máximo 360px; se recoloca al cambiar el tamaño o hacer scroll.
+  - Comprobado por Claude en Chromium (página temporal local, ya borrada): Horario a 375px, «Calendar» 153–193 y «List» 193–233 reciben su propio toque y la campana empieza en x=271; Calendario a 375px sin controles tapados; Informe de Usuarios a 375px, buscador de 192px, campana en 319–359, barra de 117px con los periodos en la segunda fila; desplegable en Clases a 375px de x=16 a x=359 (top 60), y a 1280px alineado con la campana (784–1144).
+  - Evidencia: `tsc` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint de los 4 ficheros: 24 avisos, los mismos que en `main`.
 
 ## Próxima entrega de Claude
 

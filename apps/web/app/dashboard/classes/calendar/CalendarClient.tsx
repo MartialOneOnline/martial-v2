@@ -647,7 +647,7 @@ export default function CalendarClient() {
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
               <Menu size={16} style={{ color: '#374151' }} />
             </button>
-            <h1 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+            <h1 className="min-w-0 truncate" style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>
               {t.classes.calendarTitle}
             </h1>
 
@@ -655,14 +655,15 @@ export default function CalendarClient() {
             <div className="flex items-center h-10 rounded-lg overflow-hidden shrink-0"
               style={{ border: '1px solid #E5E7EB', background: '#F9FAFB' }}>
               {(['month', 'week'] as const).map(v => (
-                <button key={v} onClick={() => setView(v)}
-                  className="flex items-center gap-1.5 px-3 h-full cursor-pointer"
+                // Icon-only below sm so the 40px bar fits a 375px screen.
+                <button key={v} onClick={() => setView(v)} aria-label={v === 'month' ? t.classes.month : t.classes.week}
+                  className="flex items-center justify-center gap-1.5 w-10 sm:w-auto sm:px-3 h-full cursor-pointer"
                   style={{ fontSize: 12, fontWeight: 500, border: 'none',
                     background: view === v ? '#fff' : 'transparent',
                     color: view === v ? '#111827' : '#9CA3AF',
                     boxShadow: view === v ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
                   {v === 'month' ? <LayoutList size={13} /> : <CalendarDays size={13} />}
-                  {v === 'month' ? t.classes.month : t.classes.week}
+                  <span className="hidden sm:inline">{v === 'month' ? t.classes.month : t.classes.week}</span>
                 </button>
               ))}
             </div>

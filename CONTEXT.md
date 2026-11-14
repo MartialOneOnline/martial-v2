@@ -303,10 +303,11 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/topbar-40`, Lote Y — pendiente de Codex Project Audit; sin migración; sin PR)
+### Sesión — 2026-11-14 (rama `claude/topbar-40`, Lote Y — `APROBADO CON PENDIENTES` en `34976f3` (3 P2) → corrección pendiente de reauditoría; sin migración; sin PR)
 
 - **Barra superior a 40px en todo el dashboard**: en las 29 páginas con menú móvil, menú, buscador, fecha, campana, idioma, filtros, botones de acción y selectores de periodo/calendario miden 40px; en móvil el buscador llega hasta la campana en las 12 páginas que lo tienen. `NotificationBell` y `DashboardLanguageSelector` pasan a 40px por defecto.
 - Notificaciones y Soporte usan ya el mismo patrón de barra que el resto.
+- En móvil: Horario y Calendario muestran el selector de vista solo con iconos; el Informe de Usuarios pasa los periodos a una segunda fila; el desplegable de la campana (`NotificationsPopup`) se coloca fijo sin salirse de la pantalla.
 - Sigue sin existir una barra compartida: cada página tiene su copia. Un cambio de barra futuro hay que repetirlo en las 29 (o extraer un componente).
 - Verificación: `tsc`, `next build`, lint igual que `main`; medido en Chromium a 375 y 1280 px con una página temporal local.
 
