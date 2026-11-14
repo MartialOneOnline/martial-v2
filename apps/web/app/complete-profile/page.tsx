@@ -8,7 +8,7 @@ import { isValidPhoneNumber } from 'libphonenumber-js'
 import { myFetch } from '@/lib/api/myFetch'
 import { PhoneField } from '@/components/PhoneField'
 import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
-import { isApplePrivateRelayEmail } from '@/lib/privateRelay'
+import { needsRealEmailStep } from '@/lib/privateRelay'
 import { RelayEmailStep } from './RelayEmailStep'
 
 const BLUE = '#0870E2'
@@ -28,6 +28,9 @@ export default function CompleteProfilePage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [emailRequired, setEmailRequired] = useState(false)
+  // The relay → real email step is skipped when that change is blocked
+  // (an account-merge write that never got an answer — lib/authPins.ts).
+  const [relayLocked, setRelayLocked] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState('')
   const [phone, setPhone] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
@@ -47,7 +50,9 @@ export default function CompleteProfilePage() {
         const u = d.user
         const isMinor = u.dateOfBirth && calculateAge(u.dateOfBirth) < MIN_CONSENT_AGE
         const guardianDone = !isMinor || (u.guardianName && u.guardianContact && u.guardianConsentAt)
-        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone && !isApplePrivateRelayEmail(u.email)) { router.replace('/my'); return }
+        const needsEmail = needsRealEmailStep(u.email, Boolean(u.relayEmailLocked))
+        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone && !needsEmail) { router.replace('/my'); return }
+        setRelayLocked(Boolean(u.relayEmailLocked))
         setName(u.name ?? '')
         setEmail(u.email ?? '')
         setAvatarUrl(u.avatarUrl ?? '')
@@ -91,7 +96,7 @@ export default function CompleteProfilePage() {
 
   const age = dateOfBirth ? calculateAge(dateOfBirth) : null
   const isMinor = age !== null && age < MIN_CONSENT_AGE
-  const needsRealEmail = isApplePrivateRelayEmail(email)
+  const needsRealEmail = needsRealEmailStep(email, relayLocked)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

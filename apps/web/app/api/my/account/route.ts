@@ -63,6 +63,26 @@ export async function DELETE() {
   })
   if (!dbUser?.supabaseAuthId || dbUser.deletedAt) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
+  // Claim the user against a running account merge (lib/authPins.ts), then
+  // re-check the link under that claim: a merge may have moved this account
+  // to another login since the lookup above, and deleting would then retire
+  // the wrong login and leave the kept one alive.
+  const began = await authWriteGuard.begin(dbUser.id, authUser.id)
+  if (!began.ok) return NextResponse.json({ error: 'Your account is being updated. Try again in a minute.' }, { status: 409 })
+  try {
+    const current = await prisma.user.findUnique({ where: { id: dbUser.id }, select: { supabaseAuthId: true, deletedAt: true } })
+    if (!current || current.deletedAt || current.supabaseAuthId !== authUser.id) {
+      return NextResponse.json({ error: 'Your account was just updated. Sign in again and retry.', code: 'account_changed' }, { status: 409 })
+    }
+    return await deleteAccount(dbUser.id, authUser.id)
+  } finally {
+    await began.handle.release()
+  }
+}
+
+// Runs under the user claim, with users.supabaseAuthId === authId checked.
+async function deleteAccount(userId: string, authId: string) {
+  const dbUser = { id: userId, supabaseAuthId: authId }
   const admin = createAdminClient()
   const anonymizedEmail = `deleted+${dbUser.id}@${ANONYMIZED_EMAIL_DOMAIN}`
 
@@ -105,7 +125,8 @@ export async function DELETE() {
 
   const { error } = await admin.auth.admin.deleteUser(dbUser.supabaseAuthId)
   if (!error) {
-    await prisma.user.update({ where: { id: dbUser.id }, data: { supabaseAuthId: null } })
+    // Only unlink the login that was just deleted, never another one.
+    await prisma.user.updateMany({ where: { id: dbUser.id, supabaseAuthId: dbUser.supabaseAuthId }, data: { supabaseAuthId: null } })
     return NextResponse.json({ ok: true })
   }
 

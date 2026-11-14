@@ -12,6 +12,10 @@ export const prismaEmailChangeStore: EmailChangeStore = {
     const u = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, deletedAt: true } })
     return u && !u.deletedAt ? u.email : null
   },
+  async getUserAuthId(userId) {
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { supabaseAuthId: true, deletedAt: true } })
+    return u && !u.deletedAt ? u.supabaseAuthId : null
+  },
   async isEmailTaken(email, exceptUserId) {
     const taken = await prisma.user.findFirst({
       where: { email: { equals: email, mode: 'insensitive' }, id: { not: exceptUserId } },

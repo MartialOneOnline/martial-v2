@@ -4,7 +4,7 @@ import { getAuthUser } from '@/lib/auth/server'
 import { hasDashboardAccess, hasStudentAccess } from '@/lib/auth/contexts'
 import { prisma } from '@/lib/db'
 import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
-import { isApplePrivateRelayEmail } from '@/lib/privateRelay'
+import { isApplePrivateRelayEmail, needsRealEmailStep } from '@/lib/privateRelay'
 import { getSchoolModules } from '@/lib/school-modules'
 import { getAuthPin, relayChangeLocked } from '@/lib/authPins'
 import MyShell from '../../components/MyShell'
@@ -49,8 +49,10 @@ export default async function MyLayout({ children }: { children: React.ReactNode
   // Unless that change is blocked by an account-merge write that never got an
   // answer (lib/authPins.ts) — then the step can't be completed, so it isn't
   // required.
-  const relayEmail = isApplePrivateRelayEmail(user.email)
-    && !(profile?.supabaseAuthId && relayChangeLocked(await getAuthPin(profile.supabaseAuthId)))
+  const relayEmail = isApplePrivateRelayEmail(user.email) && needsRealEmailStep(
+    user.email,
+    !!profile?.supabaseAuthId && relayChangeLocked(await getAuthPin(profile.supabaseAuthId)),
+  )
   if (profile && (!profile.phone || !profile.dateOfBirth || !profile.avatarUrl || !guardianDone || relayEmail)) {
     redirect('/complete-profile')
   }

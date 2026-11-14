@@ -4,6 +4,8 @@ import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { getSchoolModules, isGradingEnabled } from '@/lib/school-modules'
 import { hasDashboardAccess, hasStudentAccess } from '@/lib/auth/contexts'
+import { isApplePrivateRelayEmail } from '@/lib/privateRelay'
+import { getAuthPin, relayChangeLocked } from '@/lib/authPins'
 import { getActiveStudentContext } from '@/lib/auth/activeContextCookie'
 
 export async function GET() {
@@ -175,7 +177,10 @@ export async function GET() {
     .slice(0, 10)
     .map(({ school, ...g }) => ({ ...g, school: { name: school.name } }))
 
-  return NextResponse.json({ user: { ...user, memberships, schoolMembers, gradings } })
+  // A relay address whose change is blocked by an account-merge write that
+  // never got an answer (lib/authPins.ts): /complete-profile must not demand it.
+  const relayEmailLocked = isApplePrivateRelayEmail(user.email) && relayChangeLocked(await getAuthPin(authUser.id))
+  return NextResponse.json({ user: { ...user, memberships, schoolMembers, gradings, relayEmailLocked } })
 }
 
 export async function PATCH(req: Request) {

@@ -10,6 +10,7 @@ import {
   runAccountMerge, type AuthAdmin, type AuthPin, type AuthUser, type ClaimStore, type MergeDeps, type PinStore, type SideSummary,
 } from '@/lib/accountMerge'
 import { makeAuthWriteGuard, relayChangeLocked } from '@/lib/authPins'
+import { needsRealEmailStep } from '@/lib/privateRelay'
 import {
   requestEmailChange, confirmEmailChange, type AuthEmailApi, type ChangeRow, type EmailChangeDeps, type EmailChangeStore,
 } from '@/lib/emailChange'
@@ -99,6 +100,7 @@ function world() {
   let row: (ChangeRow & { userId: string }) | null = null
   const store: EmailChangeStore = {
     async getUserEmail(userId) { return users[userId]?.email ?? null },
+    async getUserAuthId(userId) { return users[userId]?.supabaseAuthId ?? null },
     async isEmailTaken(email, except) { return Object.entries(users).some(([id, u]) => id !== except && u.email === email) },
     async getRequest() { return row ? { ...row } : null },
     async putPendingRequest(userId, data) { row = { id: 'r1', userId, ...data, attempts: 0, status: 'PENDING', updatedAt: now() }; return 'stored' },
@@ -147,8 +149,9 @@ describe('merge write never answered (KEEP relay) → user tries PR #59 → late
     w.applyLateWrites()
     expect(w.authUsers['auth-g']!.email).toBe(RELAY)
     expect(w.users.K!.email).toBe(RELAY)
-    // /my doesn't trap the student in a step that can't be completed
+    // /my and /complete-profile don't trap the student in a step that can't be completed
     expect(relayChangeLocked(w.pinRows['auth-g']!)).toBe(true)
+    expect(needsRealEmailStep(w.users.K!.email, relayChangeLocked(w.pinRows['auth-g']!))).toBe(false)
   })
 
   it('a code requested before the pin existed can’t be applied either (checked again at confirm)', async () => {
@@ -222,5 +225,42 @@ describe('makeAuthWriteGuard', () => {
     expect(await g.handle.beforeWrite({ intent: 'KEEP', email: 'a@x.com' })).toBe(true)
     await g.handle.afterWrite(false)
     expect(w.pinRows['auth-k']).toMatchObject({ email: 'a@x.com' }) // still guarding the first write
+  })
+})
+
+describe('Project Audit re-audit 5: a merge between requesting the code and confirming it', () => {
+  it('the confirm from the old login writes nothing (account_changed); the kept login can then finish it', async () => {
+    const w = world()
+    // Code requested by K, signed in with its own Apple login.
+    expect((await requestEmailChange(w.emailDeps, { id: 'K', authId: 'auth-k' }, { email: 'real@x.com' })).ok).toBe(true)
+    // An admin merges G into K, keeping G's Google login (K's login is retired).
+    expect((await runAccountMerge(w.mergeDeps, MERGE, null)).ok).toBe(true)
+    expect(w.users.K).toEqual({ email: RELAY, supabaseAuthId: 'auth-g' })
+    const gBefore = { ...w.authUsers['auth-g']! }
+    const kBefore = { ...w.authUsers['auth-k']! }
+
+    // The old session confirms: nothing is written anywhere.
+    expect(await confirmEmailChange(w.emailDeps, { id: 'K', authId: 'auth-k' }, { code: '123456' })).toEqual({ ok: false, error: 'account_changed' })
+    expect(w.authUsers['auth-g']).toEqual(gBefore)
+    expect(w.authUsers['auth-k']).toEqual(kBefore) // the retired login is not touched
+    expect(w.users.K!.email).toBe(RELAY)
+    expect(w.row()?.status).toBe('PENDING') // recoverable
+
+    // Signed in again with the kept login, the same code completes it: Auth = Prisma.
+    expect(await confirmEmailChange(w.emailDeps, { id: 'K', authId: 'auth-g' }, { code: '123456' })).toEqual({ ok: true, email: 'real@x.com' })
+    expect(w.authUsers['auth-g']!.email).toBe('real@x.com')
+    expect(w.users.K!.email).toBe('real@x.com')
+  })
+
+  it('a merge can’t start while a confirm holds the user', async () => {
+    const w = world()
+    const g = await makeAuthWriteGuard(
+      { acquire: async (ids, a, until) => w.mergeDeps.claims.acquire(ids, a, until), release: async (ids, a) => w.mergeDeps.claims.release(ids, a) },
+      w.mergeDeps.pins,
+    ).begin('K', 'auth-k')
+    expect(g.ok).toBe(true)
+    expect(await runAccountMerge(w.mergeDeps, MERGE, null)).toMatchObject({ ok: false, status: 409 })
+    if (g.ok) await g.handle.release()
+    expect((await runAccountMerge(w.mergeDeps, MERGE, null)).ok).toBe(true)
   })
 })

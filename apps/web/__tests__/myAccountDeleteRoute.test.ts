@@ -12,7 +12,7 @@ const mockTransaction = vi.fn(async (callback: (tx: unknown) => unknown) =>
   callback({ user: { update: mockTxUserUpdate }, lead: { updateMany: mockTxLeadUpdateMany } }),
 )
 vi.mock('@/lib/db', () => ({ prisma: {
-  user: { findUnique: mockUserFindUnique, update: mockUserUpdate },
+  user: { findUnique: mockUserFindUnique, update: mockUserUpdate, updateMany: mockUserUpdate },
   $transaction: mockTransaction,
 } }))
 
@@ -29,7 +29,9 @@ vi.mock('@/lib/supabase/admin', () => ({
 
 // Pins of account-merge writes that never got an answer (lib/authPins.ts)
 const mockPinConflicts = vi.fn(async (...args: [string, unknown]) => !args)
-vi.mock('@/lib/authPins', () => ({ authWriteGuard: { conflicts: mockPinConflicts } }))
+const mockClaimRelease = vi.fn(async () => {})
+const mockBegin = vi.fn(async (...args: [string, string]): Promise<unknown> => args && ({ ok: true, handle: { release: mockClaimRelease } }))
+vi.mock('@/lib/authPins', () => ({ authWriteGuard: { conflicts: mockPinConflicts, begin: mockBegin } }))
 
 const { DELETE } = await import('@/app/api/my/account/route')
 
@@ -45,6 +47,7 @@ beforeEach(() => {
   mockStorageList.mockResolvedValue({ data: [], error: null })
   mockStorageRemove.mockResolvedValue({ error: null })
   mockPinConflicts.mockResolvedValue(false)
+  mockBegin.mockResolvedValue({ ok: true, handle: { release: mockClaimRelease } })
 })
 
 describe('DELETE /api/my/account', () => {
@@ -74,7 +77,8 @@ describe('DELETE /api/my/account', () => {
       }),
     })
     expect(mockDeleteAuthUser).toHaveBeenCalledWith('auth-1')
-    expect(mockUserUpdate).toHaveBeenCalledWith({ where: { id: 'user-1' }, data: { supabaseAuthId: null } })
+    // Only unlinks the login it just deleted
+    expect(mockUserUpdate).toHaveBeenCalledWith({ where: { id: 'user-1', supabaseAuthId: 'auth-1' }, data: { supabaseAuthId: null } })
   })
 
   it('cannot target another user because identity comes only from the session', async () => {
@@ -189,5 +193,19 @@ describe('DELETE /api/my/account', () => {
     const res = await DELETE()
     expect(res.status).toBe(200)
     expect(mockPinConflicts).not.toHaveBeenCalled()
+  })
+
+  it('is refused while an account merge holds the user, and touches nothing', async () => {
+    mockBegin.mockResolvedValue({ ok: false, reason: 'busy' })
+    const res = await DELETE()
+    expect(res.status).toBe(409)
+    expect(mockTransaction).not.toHaveBeenCalled()
+    expect(mockDeleteAuthUser).not.toHaveBeenCalled()
+  })
+
+  it('claims the user, and always releases the claim', async () => {
+    await DELETE()
+    expect(mockBegin).toHaveBeenCalledWith('user-1', 'auth-1')
+    expect(mockClaimRelease).toHaveBeenCalledTimes(1)
   })
 })

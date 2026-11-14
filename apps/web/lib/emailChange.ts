@@ -52,6 +52,9 @@ export type EmailChangeError =
   // An earlier account-merge write to this login never got an answer and
   // would set another email; changing it now could be undone later.
   | 'email_locked'
+  // The account's login changed since this session started (an admin merged
+  // accounts): nothing was written; sign in again and retry.
+  | 'account_changed'
 
 export type ChangeRow = {
   id: string
@@ -68,6 +71,8 @@ export type ChangeRow = {
 // transaction), conditional on the state it expects.
 export interface EmailChangeStore {
   getUserEmail(userId: string): Promise<string | null>
+  // users.supabaseAuthId (null if the row is gone or unlinked)
+  getUserAuthId(userId: string): Promise<string | null>
   isEmailTaken(email: string, exceptUserId: string): Promise<boolean>
   getRequest(userId: string): Promise<ChangeRow | null>
   // Create a row, or replace a PENDING one last written at or before
@@ -245,20 +250,9 @@ export async function confirmEmailChange(
     return { ok: false, error: exhausted ? 'too_many_attempts' : 'busy' }
   }
 
-  // Re-check under the lock.
-  const oldEmail = await deps.store.getUserEmail(user.id)
-  if (!oldEmail || !isApplePrivateRelayEmail(oldEmail)) {
-    await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
-    return { ok: false, error: 'not_relay' }
-  }
-  if (await deps.store.isEmailTaken(row.newEmail, user.id)) {
-    await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
-    return { ok: false, error: 'email_taken' }
-  }
-
-  // Claim the user against a running account merge, and record this write's
-  // intent first (lib/authPins.ts): if its answer is lost, a later merge must
-  // agree with it.
+  // Claim the user against a running account merge BEFORE re-reading
+  // anything (lib/authPins.ts), so what is checked below can't change before
+  // the write.
   let handle: AuthWriteHandle | null = null
   if (deps.guard) {
     const began = await deps.guard.begin(user.id, user.authId)
@@ -269,6 +263,22 @@ export async function confirmEmailChange(
     handle = began.handle
   }
   try {
+    // Re-check under both locks. The login must still be the one this
+    // session signed in with: a merge may have moved the account to another
+    // login (or retired this one) since the code was requested.
+    if ((await deps.store.getUserAuthId(user.id)) !== user.authId) {
+      await deps.store.releaseClaim(row.id, row.codeHash)
+      return { ok: false, error: 'account_changed' }
+    }
+    const oldEmail = await deps.store.getUserEmail(user.id)
+    if (!oldEmail || !isApplePrivateRelayEmail(oldEmail)) {
+      await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
+      return { ok: false, error: 'not_relay' }
+    }
+    if (await deps.store.isEmailTaken(row.newEmail, user.id)) {
+      await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
+      return { ok: false, error: 'email_taken' }
+    }
     return await applyEmailChange(deps, user, row, oldEmail, handle)
   } finally {
     await handle?.release()
