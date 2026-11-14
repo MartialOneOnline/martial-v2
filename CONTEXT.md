@@ -303,12 +303,14 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/users-mobile-az`, Lote X — pendiente de Codex Project Audit; sin migración; sin PR)
+### Sesión — 2026-11-14 (rama `claude/users-mobile-az`, Lote X — `RECHAZADO` en `4e03990` (1 P1, 1 P2) → corrección pendiente de reauditoría; sin migración; sin PR)
 
 - **Tabla de alumnos en móvil (`UsersClient.tsx`) sin paginación**: lista continua en orden A–Z (o Recientes por mes), encabezados de letra fijos bajo la barra superior y barra A–Z fija en el borde derecho con toque y arrastre del dedo (`components/AlphaRail.tsx`, burbuja con la letra). Misma lógica que el panel de desktop del Lote W (`lib/alphaIndex.ts`, `lib/listScrollIntent.ts`) y misma preferencia de orden.
 - En móvil la tabla ya no tiene scroll horizontal (si no, los encabezados no se quedan fijos); en tablet sí, y ahí los encabezados no se fijan.
 - **Barra superior de Users**: todos los controles a 40px y el buscador hasta la campana en móvil. `NotificationBell` y `DashboardLanguageSelector` tienen prop `size` (36 por defecto): el resto de páginas del dashboard siguen con controles de 36px.
 - La casilla de la cabecera ahora selecciona todos los visibles (antes, los 8 de la página).
+- **`globals.css`: `html, body` pasan de `overflow-x: hidden` a `clip`** (con `hidden` de respaldo). `hidden` en `body` anulaba todo `position: sticky` de la web (barras superiores y encabezados fijos en móvil). Cambio global.
+- En móvil la tabla usa anchos fijos para que casilla, miembro, estado y "···" quepan a 375px junto a la barra de letras; el encabezado de letra ocupa solo las columnas visibles.
 - Verificación: `tsc` limpio, 23 tests del lote, `next build` local correcto. No probado en navegador ni en móvil real.
 
 ### Sesión — 2026-11-14 (rama `claude/membership-undo-cancel`, PR #64; sin migración; Project Audit `APROBADO CON PENDIENTES` en `8e0cd9a` (2 P2) → `RECHAZADO` en `a7789d0` (1 P1) → **`APROBADO`** en `d1bed03`; pendiente de merge)

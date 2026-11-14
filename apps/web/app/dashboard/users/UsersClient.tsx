@@ -1762,7 +1762,6 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   )
   const alphabet    = useMemo(() => alphabetFor(locale), [locale])
   const presentKeys = useMemo(() => new Set(sections.map(s => s.key)), [sections])
-  const columnCount = 7 + (gradingEnabled ? 1 : 0)
 
   const handleFilter = (f: FilterType) => { scrollRef.current.requestTopIfChanged(activeFilter, f); setActiveFilter(f) }
   const handleSearch = (v: string) => { scrollRef.current.requestTopIfChanged(search, v); setSearch(v) }
@@ -1775,6 +1774,20 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
     setSort(next)
     try { localStorage.setItem(SORT_STORAGE_KEY, next) } catch { /* ignore */ }
   }
+
+  // Letter headers must span exactly the columns shown at this width: a
+  // hidden (display: none) cell leaves no gap, so a wider colSpan would add
+  // phantom columns that steal the member column's space on mobile.
+  const [visibleColumns, setVisibleColumns] = useState(4)
+  useEffect(() => {
+    const count = () => {
+      const ths = tableRef.current?.querySelectorAll('thead th')
+      if (ths) setVisibleColumns([...ths].filter(th => getComputedStyle(th).display !== 'none').length || 4)
+    }
+    count()
+    window.addEventListener('resize', count)
+    return () => window.removeEventListener('resize', count)
+  }, [gradingEnabled])
 
   // A–Z rail: only while the table is on screen, in A–Z, with enough results.
   const [tableInView, setTableInView] = useState(false)
@@ -2198,21 +2211,24 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
         {/* No horizontal-scroll box on mobile: it would stop the letter
             headers from sticking under the topbar. Tablet keeps it (more columns). */}
         <div ref={tableRef} className="rounded-2xl md:overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-          <table className="w-full">
+          {/* Below md the columns get fixed widths (first row) so checkbox,
+              member, status and the "···" button all fit a 375px screen
+              with room for the A–Z rail; md+ keeps the auto layout. */}
+          <table className="w-full table-fixed md:table-auto">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                <th className="px-3 sm:px-6 py-3 text-left" style={{ width: 32 }}>
+                <th className="w-[34px] md:w-[32px] px-2 md:px-6 py-3 text-left">
                   <input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible}
                     style={{ width: 15, height: 15, cursor: 'pointer' }} />
                 </th>
                 {[
-                  { label: t.common.member,     cls: '',                     pad: 'px-3 sm:px-6' },
+                  { label: t.common.member,     cls: '',                     pad: 'px-2 md:px-6' },
                   ...(gradingEnabled ? [{ label: t.users.belt, cls: 'hidden md:table-cell', pad: 'px-6' }] : []),
                   { label: t.users.membership,  cls: 'hidden lg:table-cell', pad: 'px-6' },
                   { label: t.common.classes,    cls: 'hidden lg:table-cell', pad: 'px-6' },
                   { label: t.users.lastSeen,    cls: 'hidden md:table-cell', pad: 'px-6' },
-                  { label: t.common.status,     cls: '',                     pad: 'px-2 sm:px-6' },
-                  { label: '',                  cls: '',                     pad: 'px-2 sm:px-6' },
+                  { label: t.common.status,     cls: 'w-[86px] md:w-auto',   pad: 'px-1 md:px-6' },
+                  { label: '',                  cls: 'w-9 md:w-auto',        pad: 'px-1 md:px-6' },
                 ].map((h, i) => (
                   <th key={i} className={`${h.pad} py-3 text-left ${h.cls}`}
                     style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -2224,11 +2240,14 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
             {sections.map((section, sIdx) => (
             <tbody key={section.key} data-section-key={section.key}>
               <tr>
-                <th colSpan={columnCount} scope="colgroup" className="text-left"
+                <th colSpan={visibleColumns} scope="colgroup" className="text-left"
                   // Opaque: in a table, passed headers can stay stuck in the same
                   // spot underneath the current one.
                   style={{ position: 'sticky', top: topbarH, zIndex: 5, background: '#F9FAFB', fontSize: 12, fontWeight: 700, color: '#6B7280', letterSpacing: '0.06em',
-                    padding: '6px 16px', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6' }}>
+                    // Lines as inset shadows: borders on a sticky cell of a
+                    // collapsed-border table don't move with it, so rows
+                    // peeked through its top edge.
+                    padding: '6px 16px', boxShadow: 'inset 0 1px 0 #F3F4F6, inset 0 -1px 0 #F3F4F6' }}>
                   {section.label}
                 </th>
               </tr>
@@ -2239,26 +2258,26 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   onClick={() => router.push(`/dashboard/users/${student.id}`)}>
 
                   {/* Select */}
-                  <td className="px-3 sm:px-6 py-4" onClick={e => e.stopPropagation()}>
+                  <td className="px-2 md:px-6 py-4" onClick={e => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedIds.has(student.id)} onChange={() => toggleSelected(student.id)}
                       style={{ width: 15, height: 15, cursor: 'pointer' }} />
                   </td>
 
                   {/* Member */}
-                  <td className="px-3 sm:px-6 py-4">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <td className="px-2 md:px-6 py-4">
+                    <div className="flex items-center gap-2.5 md:gap-3 min-w-0">
                       {student.avatarUrl ? (
                         <img src={student.avatarUrl} alt={student.name} loading="lazy"
-                          className="w-[42px] h-[42px] rounded-full shrink-0 border border-[#E5E7EB] object-cover" />
+                          className="w-9 h-9 md:w-[42px] md:h-[42px] rounded-full shrink-0 border border-[#E5E7EB] object-cover" />
                       ) : (
-                        <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
+                        <div className="w-9 h-9 md:w-[42px] md:h-[42px] rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
                           style={{ background: '#F3F4F6', fontSize: 14, fontWeight: 700, color: '#374151' }}>
                           {student.name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 148 }}>{student.name}</p>
-                        <p className="truncate" style={{ fontSize: 12, color: '#9CA3AF', maxWidth: 148 }}>{student.email}</p>
+                        <p className="truncate md:max-w-[148px]" style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{student.name}</p>
+                        <p className="truncate md:max-w-[148px]" style={{ fontSize: 12, color: '#9CA3AF' }}>{student.email}</p>
                       </div>
                     </div>
                   </td>
@@ -2320,12 +2339,12 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   </td>
 
                   {/* Status */}
-                  <td className="px-2 sm:px-6 py-4">
+                  <td className="px-1 md:px-6 py-4">
                     <StatusBadge status={student.status} />
                   </td>
 
                   {/* Actions */}
-                  <td className="px-2 sm:px-6 py-4" onClick={e => e.stopPropagation()}>
+                  <td className="px-1 md:px-6 py-4" onClick={e => e.stopPropagation()}>
                     <ActionsMenu
                       student={student}
                       onStatusChange={handleStatusChange}

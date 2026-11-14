@@ -340,7 +340,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote X — Tabla de alumnos en móvil: lista A–Z con índice por letras + barra superior a 40px (rama `claude/users-mobile-az`)
 
-- Estado: **pendiente de Project Audit**. Sin migración. Sin PR todavía.
+- Estado: **`RECHAZADO`** en `4e03990` (1 P1, 1 P2) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía.
 - Pedido del usuario: llevar a la tabla de móvil lo mismo que el panel de desktop (Lote W), con maqueta aprobada antes del código. Además, en la barra superior de móvil el buscador debe llegar hasta la campana, y menú, buscador, campana, idioma y filtros deben tener la misma altura.
 - Alcance: `apps/web/app/dashboard/users/UsersClient.tsx` (la vista de lista que se ve en móvil/tablet y en desktop cuando no hay vista dividida). El panel de desktop (Lote W) no cambia.
 - Criterios:
@@ -356,6 +356,12 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Evidencia: `tsc --noEmit` limpio; `alphaIndex` + `listScrollIntent` 23/23; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint: los mismos 6 avisos que `main` en `UsersClient.tsx`; `next build` local correcto.
 - A revisar: rendimiento con 800+ filas en un móvil real (cada fila lleva su menú y su insignia); encabezados fijos con la barra superior a distinta altura; gesto de arrastre en iOS Safari / WebView de la app (que la página no haga scroll a la vez); la barra con el menú lateral, desplegables y modales abiertos; atrás desde un perfil (comportamiento previo: vuelve al principio, igual que antes con la página 1).
 - No verificado: navegador ni dispositivo real (el usuario prueba la UI).
+- Hallazgos de Codex en `4e03990` y corrección:
+  1. P1 — el menú "···" quedaba fuera de pantalla a 375px: las columnas visibles necesitaban ~405px y solo caben 333. Ahora, por debajo de `md`, la tabla usa anchos fijos (`table-fixed`): casilla 34, estado 86, menú 36 y el miembro ocupa el resto, con nombre y email recortados con "…" y avatar de 36px. Además, el encabezado de letra ocupa solo las columnas visibles en cada ancho (`colSpan` medido en vivo): una celda oculta no deja hueco en una tabla, así que un `colSpan` de 7–8 creaba columnas fantasma que se comían el ancho del miembro.
+  2. P2 — los encabezados de letra (y la barra superior) no se quedaban fijos: `html, body { overflow-x: hidden }` en `globals.css` convierte `<body>` en un contenedor de scroll que nunca se desplaza, y anula `position: sticky` en toda la web. Ahora `overflow-x: clip` (con `hidden` delante como respaldo para iOS < 16). Es un cambio global: debería arreglar también la barra superior fija en móvil del resto del dashboard.
+  - Extra visto al comprobarlo: en una tabla de bordes colapsados, los bordes de una celda fija no se mueven con ella y asomaban unos píxeles de filas por encima del encabezado; las líneas pasan a ser sombras interiores.
+  - Comprobado por Claude en Chromium con el componente y el CSS reales (página temporal local con 832 alumnos simulados, ya borrada): a 375px no hay scroll horizontal, la tabla mide 333px, el "···" va de x=318 a 346 y la barra de letras empieza en x=354; tras saltar a M y bajar 200px, la barra superior sigue en y=0 y el encabezado "M" en y=65, con la M resaltada; a 800px el encabezado ocupa 5 columnas, sin scroll horizontal.
+  - Evidencia: `tsc` limpio; 23/23 en los tests del lote; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint: los mismos 6 avisos que `main`.
 
 ## Próxima entrega de Claude
 
