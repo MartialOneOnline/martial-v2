@@ -305,7 +305,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote V — Deshacer una cancelación programada (rama `claude/membership-undo-cancel`)
 
-- Estado: `APROBADO CON PENDIENTES` en `8e0cd9a` (2 P2) → `RECHAZADO` en `a7789d0` (1 P1: el reintento idempotente devolvía la membresía con `school.stripeSecretKey`) → corregido, pendiente de re-audit. Sin migración.
+- Estado: `APROBADO CON PENDIENTES` en `8e0cd9a` (2 P2) → `RECHAZADO` en `a7789d0` (1 P1: el reintento idempotente devolvía la membresía con `school.stripeSecretKey`) → **`APROBADO`** en `d1bed03`, sin hallazgos nuevos (Codex: 10/10; suite 1360 / los mismos 55 de `main`; tsc, ESLint y diff-check limpios). Pendiente de merge. Sin migración.
 - Corrección del P1: el camino idempotente relee la membresía sin `include` (como el camino normal); test HTTP con la ruta y el servicio reales que comprueba que ningún camino (primera vez, reintento, rechazo) lleva la clave en el JSON.
 - Correcciones: (P2) suscripción de Stripe sin clave de la escuela → error claro sin escribir nada local; (P2) fallo de red al deshacer → aviso traducido («recarga para comprobar o reintenta»). Reintentar es seguro: una membresía ya restaurada se devuelve sin cambios ni llamada a Stripe.
 - Pedido del usuario: no se podía añadir un pago a una membresía marcada para cancelarse al final del periodo («Payment» visible pero rechazado por el servidor) y no había forma de deshacer la cancelación.

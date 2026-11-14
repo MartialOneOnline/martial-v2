@@ -303,7 +303,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/membership-undo-cancel`, PR #64; sin migración; Project Audit `APROBADO CON PENDIENTES` en `8e0cd9a` (2 P2) → `RECHAZADO` en `a7789d0` (1 P1) → corregido, pendiente de re-audit)
+### Sesión — 2026-11-14 (rama `claude/membership-undo-cancel`, PR #64; sin migración; Project Audit `APROBADO CON PENDIENTES` en `8e0cd9a` (2 P2) → `RECHAZADO` en `a7789d0` (1 P1) → **`APROBADO`** en `d1bed03`; pendiente de merge)
 
 **Deshacer una cancelación programada + ocultar «Payment» mientras exista.** Detonante: la membresía de un alumno de RGM quedó marcada para cancelarse al final del periodo y el botón «+ Payment» seguía visible, pero el servidor rechaza renovaciones de una membresía con `cancelledAt` («nothing to renew»). Tampoco había forma de deshacer la cancelación desde el panel. Los datos del alumno se corrigieron a mano antes (cancelación quitada y renovación de 65 € en efectivo del 1/11 marcada como pagada, vence el 9/12).
 - `undoCancelMembership()` (`lib/services/membership.ts`): solo para membresías ACTIVE con `cancelledAt`; una ya CANCELLED se recupera asignando plan. Con Stripe, primero quita `cancel_at_period_end` (esperando la respuesta; si falla, no cambia nada local). La escritura local es condicional (ACTIVE y `cancelledAt` no nulo) y añade «Cancellation undone» a las notas. Los pagos pendientes que anuló la cancelación no se recuperan: se vuelve a usar «Payment».
