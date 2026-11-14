@@ -485,10 +485,11 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS, grad
       )}
 
       {/* Topbar */}
-      {/* Below md the period selector (and custom dates) wrap to their own
-          full-width row: in one 375px row they left the search 0px wide and
-          pushed the bell off-screen. */}
-      <div className="flex flex-wrap md:flex-nowrap items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
+      {/* The bar decides from its own width (container queries), not the
+          screen's: with the sidebar open a 768px screen leaves ~470px. Below
+          768px of bar the period selector gets its own full-width row; below
+          1024px so do the custom dates. Otherwise everything stays in one row. */}
+      <div className="@container flex flex-wrap items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
         <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
@@ -501,9 +502,9 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS, grad
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
         <div className="hidden md:block flex-1" />
-        <div className="order-last md:order-none w-full md:w-auto flex items-center gap-1 p-1 h-10 rounded-xl" style={{ background: '#F3F4F6' }}>
+        <div className="order-last @3xl:order-none w-full @3xl:w-auto flex items-center gap-1 p-1 h-10 rounded-xl" style={{ background: '#F3F4F6' }}>
           {(['7d', '30d', '90d', '12m', 'custom'] as const).map(p => (
-            <button key={p} onClick={() => setPeriod(p)} className="flex-1 md:flex-none cursor-pointer"
+            <button key={p} onClick={() => setPeriod(p)} className="flex-1 @3xl:flex-none cursor-pointer"
               style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '0 12px', height: 32, borderRadius: 8, border: 'none',
                 background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
                 boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
@@ -512,11 +513,11 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS, grad
           ))}
         </div>
         {period === 'custom' && (
-          <div className="order-last md:order-none w-full md:w-auto flex items-center gap-1.5">
-            <input type="date" className="flex-1 md:flex-none min-w-0" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
+          <div className="order-last @5xl:order-none w-full @5xl:w-auto flex items-center gap-1.5">
+            <input type="date" className="flex-1 @5xl:flex-none min-w-0" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
               style={{ height: 40, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
             <span style={{ fontSize: 12, color: '#9CA3AF' }}>–</span>
-            <input type="date" className="flex-1 md:flex-none min-w-0" value={customTo} onChange={e => setCustomTo(e.target.value)}
+            <input type="date" className="flex-1 @5xl:flex-none min-w-0" value={customTo} onChange={e => setCustomTo(e.target.value)}
               style={{ height: 40, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
           </div>
         )}

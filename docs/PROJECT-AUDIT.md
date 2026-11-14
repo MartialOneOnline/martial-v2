@@ -365,7 +365,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote Y — Barra superior a 40px en todas las páginas del dashboard (rama `claude/topbar-40`)
 
-- Estado: `APROBADO CON PENDIENTES` en `34976f3` (3 P2: 1 regresión, 2 previos) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía.
+- Estado: `APROBADO CON PENDIENTES` en `34976f3` (3 P2: 1 regresión, 2 previos) → `APROBADO CON PENDIENTES` en `2b7fe64` (los 3 cerrados; 1 P2 nuevo en tablet) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía.
 - Pedido del usuario: aplicar en todas las páginas del dashboard la barra superior de Users (Lote X): todos los controles a 40px y, en móvil, el buscador hasta la campana.
 - Alcance: la barra superior de las 29 páginas del dashboard con menú móvil (no hay barra compartida: cada página tiene su copia) + `NotificationBell` y `DashboardLanguageSelector` (solo se usan en el dashboard). Sin cambios de comportamiento ni de datos.
 - Criterios:
@@ -385,6 +385,10 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   3. P2 (previo) — el desplegable de la campana se salía por la izquierda en móvil (iba alineado al borde derecho de la campana, que no es el último control). Ahora se coloca con `position: fixed` calculando la posición de la campana: alineado a su borde derecho, sin salir nunca de la pantalla (16px de margen) y con ancho máximo 360px; se recoloca al cambiar el tamaño o hacer scroll.
   - Comprobado por Claude en Chromium (página temporal local, ya borrada): Horario a 375px, «Calendar» 153–193 y «List» 193–233 reciben su propio toque y la campana empieza en x=271; Calendario a 375px sin controles tapados; Informe de Usuarios a 375px, buscador de 192px, campana en 319–359, barra de 117px con los periodos en la segunda fila; desplegable en Clases a 375px de x=16 a x=359 (top 60), y a 1280px alineado con la campana (784–1144).
   - Evidencia: `tsc` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint de los 4 ficheros: 24 avisos, los mismos que en `main`.
+- Hallazgo de Codex en `2b7fe64` y corrección:
+  1. P2 — Informe de Usuarios a 768px con el menú lateral abierto (232px) y «Custom»: el buscador volvía a 0px y la segunda fecha salía de la pantalla, porque desde `md` (ancho de pantalla) se forzaba una sola fila aunque la barra solo tuviera ~470px. Ahora la barra decide por su propio ancho con *container queries* de Tailwind 4 (`@container`): con menos de 768px de barra los periodos van a su propia fila a todo el ancho; con menos de 1024px también las fechas personalizadas; con más, todo en una fila. La barra siempre puede hacer salto de línea (`flex-wrap`).
+  - Comprobado por Claude en Chromium (página temporal local con un menú lateral simulado de 232px, ya borrada), con «Custom» activo y sin scroll horizontal en ningún caso: 375 sin menú → buscador 239px, campana 319–359, periodos fila 2, fechas fila 3; 768 + menú → buscador 163px, campana 696–736, fechas 264–736 en fila 3; 1024 + menú → 3 filas, buscador 291px; 1280 + menú → periodos en la fila 1 y fechas en la 2; 1440 + menú → una sola fila de 65px.
+  - Evidencia: `tsc` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint del fichero igual que `main`; `next build` local correcto.
 
 ## Próxima entrega de Claude
 

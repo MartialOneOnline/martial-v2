@@ -303,11 +303,11 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/topbar-40`, Lote Y — `APROBADO CON PENDIENTES` en `34976f3` (3 P2) → corrección pendiente de reauditoría; sin migración; sin PR)
+### Sesión — 2026-11-14 (rama `claude/topbar-40`, Lote Y — `APROBADO CON PENDIENTES` en `34976f3` (3 P2) → `APROBADO CON PENDIENTES` en `2b7fe64` (1 P2 tablet) → corrección pendiente de reauditoría; sin migración; sin PR)
 
 - **Barra superior a 40px en todo el dashboard**: en las 29 páginas con menú móvil, menú, buscador, fecha, campana, idioma, filtros, botones de acción y selectores de periodo/calendario miden 40px; en móvil el buscador llega hasta la campana en las 12 páginas que lo tienen. `NotificationBell` y `DashboardLanguageSelector` pasan a 40px por defecto.
 - Notificaciones y Soporte usan ya el mismo patrón de barra que el resto.
-- En móvil: Horario y Calendario muestran el selector de vista solo con iconos; el Informe de Usuarios pasa los periodos a una segunda fila; el desplegable de la campana (`NotificationsPopup`) se coloca fijo sin salirse de la pantalla.
+- En móvil: Horario y Calendario muestran el selector de vista solo con iconos; el Informe de Usuarios reparte la barra según su propio ancho (primer uso de *container queries* `@container` de Tailwind 4 en el repo: periodos y fechas a filas propias cuando no caben, también en tablet con el menú lateral abierto); el desplegable de la campana (`NotificationsPopup`) se coloca fijo sin salirse de la pantalla.
 - Sigue sin existir una barra compartida: cada página tiene su copia. Un cambio de barra futuro hay que repetirlo en las 29 (o extraer un componente).
 - Verificación: `tsc`, `next build`, lint igual que `main`; medido en Chromium a 375 y 1280 px con una página temporal local.
 
