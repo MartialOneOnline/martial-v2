@@ -84,9 +84,10 @@ describe('undoCancelMembership', () => {
   })
 
   it('a retry after the cancellation was already undone succeeds without writing or calling Stripe', async () => {
-    const done = scheduled({ cancelledAt: null, stripeSubId: 'sub_1', school: { stripeSecretKey: 'sk_test' } })
-    mockFindFirst.mockResolvedValue(done)
-    await expect(undoCancelMembership(input)).resolves.toBe(done)
+    mockFindFirst.mockResolvedValue(scheduled({ cancelledAt: null, stripeSubId: 'sub_1', school: { stripeSecretKey: 'sk_test' } }))
+    const r = await undoCancelMembership(input)
+    expect(r).toEqual({ id: 'm1', status: 'ACTIVE', cancelledAt: null }) // re-read, no school/secret
+    expect(mockFindUnique).toHaveBeenCalledWith({ where: { id: 'm1' } })
     expect(mockUpdateMany).not.toHaveBeenCalled()
     expect(mockSubUpdate).not.toHaveBeenCalled()
   })

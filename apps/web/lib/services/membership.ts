@@ -762,7 +762,9 @@ export async function undoCancelMembership(input: UndoCancelMembershipInput) {
     throw new Error('Only an active membership can have its cancellation undone — assign a plan instead')
   }
   // Already undone (e.g. a retry after the first answer was lost): nothing to do.
-  if (!membership.cancelledAt) return membership
+  // Re-read without the school include: `membership` carries the school's
+  // Stripe secret key and this goes straight to the browser.
+  if (!membership.cancelledAt) return prisma.membership.findUnique({ where: { id: membershipId } })
 
   if (membership.stripeSubId) {
     // Without the school's key Stripe would keep the cancellation scheduled

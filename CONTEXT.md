@@ -303,7 +303,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/membership-undo-cancel`, PR #64; sin migración; Project Audit `APROBADO CON PENDIENTES` en `8e0cd9a` (2 P2) → corregido, pendiente de re-audit)
+### Sesión — 2026-11-14 (rama `claude/membership-undo-cancel`, PR #64; sin migración; Project Audit `APROBADO CON PENDIENTES` en `8e0cd9a` (2 P2) → `RECHAZADO` en `a7789d0` (1 P1) → corregido, pendiente de re-audit)
 
 **Deshacer una cancelación programada + ocultar «Payment» mientras exista.** Detonante: la membresía de un alumno de RGM quedó marcada para cancelarse al final del periodo y el botón «+ Payment» seguía visible, pero el servidor rechaza renovaciones de una membresía con `cancelledAt` («nothing to renew»). Tampoco había forma de deshacer la cancelación desde el panel. Los datos del alumno se corrigieron a mano antes (cancelación quitada y renovación de 65 € en efectivo del 1/11 marcada como pagada, vence el 9/12).
 - `undoCancelMembership()` (`lib/services/membership.ts`): solo para membresías ACTIVE con `cancelledAt`; una ya CANCELLED se recupera asignando plan. Con Stripe, primero quita `cancel_at_period_end` (esperando la respuesta; si falla, no cambia nada local). La escritura local es condicional (ACTIVE y `cancelledAt` no nulo) y añade «Cancellation undone» a las notas. Los pagos pendientes que anuló la cancelación no se recuperan: se vuelve a usar «Payment».
@@ -312,6 +312,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 - Tests: `__tests__/undoCancelMembership.test.ts` (5). Suite: los mismos 55 fallos por nombre que `main`; tsc limpio; los avisos de lint están en líneas no tocadas.
 - Fuera de alcance: el portal `/my` (el alumno no puede deshacer su propia cancelación).
 - Tras la auditoría: con `stripeSubId` pero sin clave de Stripe en la escuela → error, nada local. Un fallo de red al deshacer muestra un aviso traducido. Reintentar es seguro (idempotente). Tests: 7.
+- P1 de `a7789d0`: el reintento devolvía la membresía cargada con `school.stripeSecretKey` y la ruta la serializaba. Ahora se relee sin relaciones. `__tests__/undoCancelMembershipRoute.test.ts` (3, ruta y servicio reales) comprueba que la clave no sale en ningún camino; falla sin el arreglo.
 
 ### Sesión — 2026-11-10 (rama `claude/merge-accounts`, PR [#62](https://github.com/MartialOneOnline/martial-v2/pull/62); migración `20261110120000_account_merges` **aplicada 2026-11-14**; Project Audit `RECHAZADO` en `0c3b851` (5 P1, 2 P2) → `RECHAZADO` en `77bb81c` (2 P1, 2 P2) → `RECHAZADO` en `9cba507` (2 P1) → `RECHAZADO` en `3378f12` (1 P1, 1 P2) → `RECHAZADO` en `d8f9eec` (2 P1, 1 P2) → `RECHAZADO` en `0f88fae` (1 P1) → **`APROBADO`** en `b499d06`; migración aplicada en Supabase el 2026-11-14 con `prisma migrate deploy` (única pendiente; 3 tablas verificadas); PR mergeado el 2026-11-14)
 
