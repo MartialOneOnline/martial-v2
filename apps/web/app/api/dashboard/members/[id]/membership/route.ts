@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 import { memberHasPermission } from '@/lib/auth/customRoles'
-import { assignPlan, cancelMembership, createRenewalPayment, markRenewalPaid } from '@/lib/services/membership'
+import { assignPlan, cancelMembership, createRenewalPayment, markRenewalPaid, undoCancelMembership } from '@/lib/services/membership'
 import { PaymentMethod } from '@/lib/prisma-client/enums'
 
 async function authorise() {
@@ -70,6 +70,12 @@ export async function PATCH(
     if (action === 'cancel') {
       if (!membershipId) return NextResponse.json({ error: 'membershipId required' }, { status: 400 })
       const membership = await cancelMembership({ membershipId, schoolId: auth.schoolId, reason })
+      return NextResponse.json(membership)
+    }
+
+    if (action === 'undoCancel') {
+      if (!membershipId) return NextResponse.json({ error: 'membershipId required' }, { status: 400 })
+      const membership = await undoCancelMembership({ membershipId, schoolId: auth.schoolId })
       return NextResponse.json(membership)
     }
 

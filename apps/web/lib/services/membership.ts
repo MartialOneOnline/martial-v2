@@ -735,6 +735,59 @@ export async function createRenewalPayment(input: CreateRenewalPaymentInput) {
   })
 }
 
+export interface UndoCancelMembershipInput {
+  membershipId: string
+  schoolId: string
+}
+
+/**
+ * Undoes a scheduled (end-of-period) cancellation: the membership stays
+ * ACTIVE and renews as usual again. Only for that case — a membership already
+ * CANCELLED has ended, and getting it back means assigning a plan.
+ *
+ * With a Stripe subscription, Stripe's cancel_at_period_end is cleared first,
+ * awaited, same order as cancelMembership: if Stripe fails nothing local
+ * changes. Pending payments the cancellation cancelled are not brought back —
+ * staff add the next payment again with "Payment". Safe to retry: a
+ * membership already back to normal is returned unchanged.
+ */
+export async function undoCancelMembership(input: UndoCancelMembershipInput) {
+  const { membershipId, schoolId } = input
+  const membership = await prisma.membership.findFirst({
+    where: { id: membershipId, schoolId },
+    include: { school: { select: { stripeSecretKey: true } } },
+  })
+  if (!membership) throw new Error('Membership not found')
+  if (membership.status !== MembershipStatus.ACTIVE) {
+    throw new Error('Only an active membership can have its cancellation undone — assign a plan instead')
+  }
+  // Already undone (e.g. a retry after the first answer was lost): nothing to do.
+  // Re-read without the school include: `membership` carries the school's
+  // Stripe secret key and this goes straight to the browser.
+  if (!membership.cancelledAt) return prisma.membership.findUnique({ where: { id: membershipId } })
+
+  if (membership.stripeSubId) {
+    // Without the school's key Stripe would keep the cancellation scheduled
+    // while the dashboard says the membership continues.
+    if (!membership.school?.stripeSecretKey) {
+      throw new Error('This membership is billed through Stripe, but the school has no Stripe key configured — the cancellation can’t be undone in Stripe')
+    }
+    try {
+      await getStripe(membership.school.stripeSecretKey).subscriptions.update(membership.stripeSubId, { cancel_at_period_end: false })
+    } catch (err) {
+      throw new Error(`Stripe subscription update failed: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  // Conditional: never revives a membership that ended meanwhile.
+  const { count } = await prisma.membership.updateMany({
+    where: { id: membershipId, schoolId, status: MembershipStatus.ACTIVE, cancelledAt: { not: null } },
+    data: { cancelledAt: null, notes: [membership.notes, 'Cancellation undone'].filter(Boolean).join(' | ') },
+  })
+  if (count === 0) throw new Error('Membership changed meanwhile — reload and try again')
+  return prisma.membership.findUnique({ where: { id: membershipId } })
+}
+
 /**
  * Daily sweep (see app/api/cron/expire-memberships): generates a PENDING
  * renewal payment for every ACTIVE cash membership whose endDate has just
