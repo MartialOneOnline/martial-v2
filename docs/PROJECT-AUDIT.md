@@ -296,6 +296,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   - Sin tocar (fuera de alcance, ya listado o etiqueta): "Monthly Salary (€)" en staff y la tasa de graduación "€" en Settings.
   - Evidencia: `tsc` limpio; `currency.test.ts` 13/13; suite 1229 pasan / los mismos 55 fallan / 1 pendiente; avisos de lint iguales a `main` en los 8 ficheros tocados.
 
+### Lote U — Fusionar cuentas duplicadas (rama `claude/merge-accounts`, PR #62)
+
+- Estado: `RECHAZADO` en `0c3b851` (5 P1, 2 P2) → `RECHAZADO` en `77bb81c` (2 P1, 2 P2) → `RECHAZADO` en `9cba507` (2 P1) → `RECHAZADO` en `3378f12` (1 P1, 1 P2) → `RECHAZADO` en `d8f9eec` (2 P1, 1 P2) → `RECHAZADO` en `0f88fae` (1 P1) → **`APROBADO`** en `b499d06`, sin hallazgos nuevos (Codex: 146/146 dirigidos; suite 1350 pasan / los mismos 55 de `main` / 1 pendiente; tsc, ESLint y `git diff --check` limpios). Migración `20261110120000_account_merges` (3 tablas, aditiva) **sin aplicar**. Pendiente de merge.
+- Pedido del usuario: un alumno aparecía dos veces en la búsqueda del dashboard (Apple «Ocultar mi email» + su email real), con el historial en una cuenta y la membresía activa en otra.
+- Diseño: acción de super admin «Merge with…» y página «Possible duplicates». La fusión mueve todas las referencias al usuario conservado y resuelve los conflictos únicos. La fila fusionada se borra de verdad y queda registrada en `AccountMerge`. Solo sobrevive un login: el otro se banea y se renombra. Reservas (`account_merge_claims`) y pins permanentes (`account_merge_auth_pins`) compartidos por todo lo que escribe en Supabase Auth: la fusión, el cambio de email del PR #59, su reconciliación y el auto-borrado. `lockSurvivingUser` y `resolveSurvivingUserId` protegen webhooks, crons y el QR de check-in.
+- No verificado: navegador, Supabase Auth real.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
