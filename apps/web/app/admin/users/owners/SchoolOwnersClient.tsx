@@ -9,6 +9,7 @@ import {
 import { adminFetch } from '@/lib/api/adminFetch'
 import { AdminUser, UserActionsMenu, EditUserModal, ContactUserModal, DeleteUserModal } from '../UserActions'
 import { useAdminShell } from '../../AdminLayoutClient'
+import MergeAccountsModal from '../MergeAccountsModal'
 
 const SCH_STATUS: Record<string, { label: string; cls: string }> = {
   VERIFIED:     { label: 'Verified',     cls: 'bg-emerald-50 text-emerald-700 border border-emerald-100' },
@@ -36,6 +37,7 @@ export default function SchoolOwnersClient() {
   const [editUserId, setEditUserId] = useState<string | null>(null)
   const [contactUser, setContactUser] = useState<AdminUser | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
+  const [mergeFrom, setMergeFrom] = useState<AdminUser | null>(null)
   const [banner, setBanner] = useState<{ type: 'error' | 'success'; message: string } | null>(null)
 
   const load = useCallback(() => {
@@ -72,6 +74,13 @@ export default function SchoolOwnersClient() {
       )}
       {contactUser && (
         <ContactUserModal user={contactUser} onClose={() => setContactUser(null)} />
+      )}
+      {mergeFrom && (
+        <MergeAccountsModal
+          firstId={mergeFrom.id}
+          onClose={() => { setMergeFrom(null); load() }}
+          onMerged={message => setBanner({ type: 'success', message })}
+        />
       )}
       {deleteTarget && (
         <DeleteUserModal
@@ -194,6 +203,7 @@ export default function SchoolOwnersClient() {
                         user={user}
                         onEdit={() => setEditUserId(user.id)}
                         onContact={() => setContactUser(user)}
+                        onMerge={() => setMergeFrom(user)}
                         onDelete={() => setDeleteTarget(user)}
                       />
                     </td>

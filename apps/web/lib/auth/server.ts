@@ -34,6 +34,11 @@ export async function resolveDbUser(supabaseUser: SupabaseAuthUser) {
     select: DB_USER_SELECT,
   })
 
+  // A login retired by an account merge or self-delete carries a placeholder
+  // address (…@merged/deleted.martialapp.invalid) and is banned. If a session
+  // of it is still alive, it must not be relinked or provisioned a new row.
+  if (!dbUser && supabaseUser.email?.toLowerCase().endsWith('.martialapp.invalid')) return null
+
   // Fallback: link by email if supabaseAuthId not set yet
   if (!dbUser && supabaseUser.email) {
     const byEmail = await prisma.user.findUnique({

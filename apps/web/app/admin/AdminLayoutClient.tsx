@@ -54,6 +54,7 @@ const NAV = [
     children: [
       { label: 'All Users',      href: '/admin/users' },
       { label: 'School Owners',  href: '/admin/users/owners' },
+      { label: 'Possible duplicates', href: '/admin/users/duplicates' },
     ],
   },
   {

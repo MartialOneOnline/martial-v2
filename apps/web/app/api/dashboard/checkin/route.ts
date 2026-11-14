@@ -3,6 +3,7 @@ import { syncTrials, trialExpiredFor } from '@/lib/services/trial'
 import { prisma } from '@/lib/db'
 import { Prisma } from '@/lib/prisma-client/client'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
+import { resolveSurvivingUserId } from '@/lib/mergedUsers'
 import { requireSchoolAccess } from '@/lib/auth/contexts'
 
 // POST /api/dashboard/checkin
@@ -29,10 +30,15 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}))
-  const { classId, userId, date } = body as { classId?: string; userId?: string; date?: string }
+  const { classId, userId: scannedUserId, date } = body as { classId?: string; userId?: string; date?: string }
 
-  if (!classId || !userId || !date)
+  if (!classId || !scannedUserId || !date)
     return NextResponse.json({ error: 'classId, userId and date are required' }, { status: 400 })
+
+  // A QR printed/saved before an account merge still carries the retired
+  // id: follow it to the surviving account. The school-membership check
+  // below still applies to that account, so this can't cross schools.
+  const userId = await resolveSurvivingUserId(scannedUserId)
 
   // Verify class belongs to this school
   const cls = await prisma.class.findFirst({

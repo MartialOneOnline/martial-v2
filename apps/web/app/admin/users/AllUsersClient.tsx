@@ -8,6 +8,7 @@ import {
 import { adminFetch } from '@/lib/api/adminFetch'
 import { AdminUser, UserActionsMenu, EditUserModal, ContactUserModal, DeleteUserModal } from './UserActions'
 import { useAdminShell } from '../AdminLayoutClient'
+import MergeAccountsModal from './MergeAccountsModal'
 
 const ROLE_BADGE: Record<string, { label: string; cls: string }> = {
   SUPERADMIN:   { label: 'Super Admin',    cls: 'bg-violet-50 text-violet-700 border border-violet-100' },
@@ -46,6 +47,7 @@ export default function AllUsersClient() {
   const [editUserId, setEditUserId] = useState<string | null>(null)
   const [contactUser, setContactUser] = useState<AdminUser | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
+  const [mergeFrom, setMergeFrom] = useState<AdminUser | null>(null)
   const [banner, setBanner] = useState<{ type: 'error' | 'success'; message: string } | null>(null)
 
   const load = useCallback(() => {
@@ -82,6 +84,13 @@ export default function AllUsersClient() {
       )}
       {contactUser && (
         <ContactUserModal user={contactUser} onClose={() => setContactUser(null)} />
+      )}
+      {mergeFrom && (
+        <MergeAccountsModal
+          firstId={mergeFrom.id}
+          onClose={() => { setMergeFrom(null); load() }}
+          onMerged={message => setBanner({ type: 'success', message })}
+        />
       )}
       {deleteTarget && (
         <DeleteUserModal
@@ -207,6 +216,7 @@ export default function AllUsersClient() {
                         user={user}
                         onEdit={() => setEditUserId(user.id)}
                         onContact={() => setContactUser(user)}
+                        onMerge={() => setMergeFrom(user)}
                         onDelete={() => setDeleteTarget(user)}
                       />
                     </td>

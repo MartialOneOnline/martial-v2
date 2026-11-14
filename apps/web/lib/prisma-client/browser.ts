@@ -322,3 +322,18 @@ export type InviteToken = Prisma.InviteTokenModel
  * 
  */
 export type EmailChangeRequest = Prisma.EmailChangeRequestModel
+/**
+ * Model AccountMerge
+ * 
+ */
+export type AccountMerge = Prisma.AccountMergeModel
+/**
+ * Model AccountMergeClaim
+ * 
+ */
+export type AccountMergeClaim = Prisma.AccountMergeClaimModel
+/**
+ * Model AccountMergeAuthPin
+ * 
+ */
+export type AccountMergeAuthPin = Prisma.AccountMergeAuthPinModel

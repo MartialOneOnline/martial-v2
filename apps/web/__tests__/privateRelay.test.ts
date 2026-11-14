@@ -20,3 +20,15 @@ describe('isApplePrivateRelayEmail()', () => {
     expect(isApplePrivateRelayEmail(null)).toBe(false)
   })
 })
+
+describe('needsRealEmailStep', () => {
+  it('asks for a real email only for a relay address that can be changed', async () => {
+    const { needsRealEmailStep } = await import('@/lib/privateRelay')
+    expect(needsRealEmailStep('x@privaterelay.appleid.com', false)).toBe(true)
+    // Blocked by a pending merge write: the step can't be completed, so /my and
+    // /complete-profile must let the student continue with the other fields.
+    expect(needsRealEmailStep('x@privaterelay.appleid.com', true)).toBe(false)
+    expect(needsRealEmailStep('x@gmail.com', false)).toBe(false)
+    expect(needsRealEmailStep(null, false)).toBe(false)
+  })
+})

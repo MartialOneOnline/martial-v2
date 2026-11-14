@@ -7,6 +7,7 @@ import { notifyPaymentReceived } from '@/lib/notifications/create'
 import { sendCollectibleReceiptEmail } from '@/lib/email/sendEmails'
 import { fmtPrice } from '@/lib/format'
 import { confirmSale } from './reservation'
+import { lockSurvivingUser } from '@/lib/mergedUsers'
 import { formatDisplayNumber } from './verification'
 
 export interface FulfillCollectibleCheckoutParams {
@@ -25,11 +26,14 @@ export interface FulfillCollectibleCheckoutParams {
 // payment. Idempotent via confirmSale (see reservation.ts) — a redelivered
 // webhook for a unit already SOLD just no-ops.
 export async function fulfillCollectibleCheckout(params: FulfillCollectibleCheckoutParams) {
-  const { collectibleUnitId, userId, amountTotalCents, currency, stripePaymentIntentId } = params
+  const { collectibleUnitId, amountTotalCents, currency, stripePaymentIntentId } = params
+  let userId = params.userId
   const amount = (amountTotalCents ?? 0) / 100
   const upperCurrency = (currency ?? 'eur').toUpperCase()
 
   const outcome = await prisma.$transaction(async tx => {
+    // Lock + re-resolve: a merge may have moved this account meanwhile.
+    userId = await lockSurvivingUser(tx, userId)
     const unit = await tx.collectibleUnit.findUnique({
       where: { id: collectibleUnitId },
       select: {
