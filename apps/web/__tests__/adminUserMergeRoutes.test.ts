@@ -11,12 +11,12 @@ const guardSuperadminUser = vi.fn()
 vi.mock('@/lib/auth/server', () => ({ guardSuperadmin, guardSuperadminUser }))
 
 const buildMergePreview = vi.fn()
-const findCompletedMerge = vi.fn(async (_ids: string[]): Promise<unknown> => null)
+const resolveMergedPair = vi.fn(async (...args: [string, string]): Promise<unknown> => args && null)
 const findDuplicateCandidates = vi.fn(async () => [])
 const runTx = vi.fn()
 vi.mock('@/lib/accountMergeServer', () => ({
   buildMergePreview,
-  findCompletedMerge,
+  resolveMergedPair,
   findDuplicateCandidates,
   supabaseAuthAdmin: () => ({}),
   prismaMergeDeps: () => ({ runTx }),
@@ -63,13 +63,20 @@ describe('GET preview', () => {
     buildMergePreview.mockResolvedValue(null)
     expect((await merge.GET(req('/api/admin/users/merge?keepId=K&mergeId=S'))).status).toBe(404)
   })
-  it('says so when one of the two was already merged (its row is gone)', async () => {
+  it('"already merged" only when both ids lead to the same account', async () => {
     buildMergePreview.mockResolvedValue(null)
-    findCompletedMerge.mockResolvedValueOnce({ mergedUserId: 'S', keptUserId: 'K', createdAt: new Date('2026-11-14') })
+    resolveMergedPair.mockResolvedValueOnce({ status: 'same', survivorId: 'K' })
     const res = await merge.GET(req('/api/admin/users/merge?keepId=K&mergeId=S'))
     expect(res.status).toBe(200)
-    expect((await res.json()).alreadyMerged).toMatchObject({ mergedUserId: 'S', keptUserId: 'K' })
-    expect(findCompletedMerge).toHaveBeenCalledWith(['K', 'S'])
+    expect(await res.json()).toEqual({ alreadyMerged: { survivorId: 'K' } })
+    expect(resolveMergedPair).toHaveBeenCalledWith('K', 'S')
+  })
+  it('S merged into another account C: says where it went, never "already merged"', async () => {
+    buildMergePreview.mockResolvedValue(null)
+    resolveMergedPair.mockResolvedValueOnce({ status: 'elsewhere', moves: [{ fromId: 'S', intoId: 'C', intoName: 'Carla', intoEmail: 'c@x.com' }] })
+    const body = await (await merge.GET(req('/api/admin/users/merge?keepId=K&mergeId=S'))).json()
+    expect(body.alreadyMerged).toBeUndefined()
+    expect(body.mergedElsewhere).toEqual([{ fromId: 'S', intoId: 'C', intoName: 'Carla', intoEmail: 'c@x.com' }])
   })
 })
 

@@ -21,6 +21,7 @@ const STATUS: Record<EmailChangeError | 'unauthorized' | 'rate_limited' | 'bad_r
   too_many_attempts: 429,
   busy: 409,
   update_failed: 500,
+  email_locked: 423,
 }
 
 export function emailChangeError(code: keyof typeof STATUS) {

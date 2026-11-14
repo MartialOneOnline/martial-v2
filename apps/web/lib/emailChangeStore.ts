@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { prisma } from './db'
 import { sendEmailChangeCode } from './email/sendEmailChangeCode'
+import { authWriteGuard } from './authPins'
 import { AUTH_TIMEOUT_MS, type AuthEmailApi, type EmailChangeDeps, type EmailChangeStore } from './emailChange'
 
 // Prisma implementation of EmailChangeStore. Every method is one atomic
@@ -127,6 +128,7 @@ export function emailChangeDeps(): EmailChangeDeps {
   return {
     store: prismaEmailChangeStore,
     auth: supabaseAuthEmailApi(),
+    guard: authWriteGuard,
     sendCode: async (to, code, lang) => (await sendEmailChangeCode({ recipientEmail: to, code, lang })).success,
     secret: process.env.SUPABASE_SECRET_KEY!,
     log: (msg, err) => console.error(msg, err ?? ''),

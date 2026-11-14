@@ -1,4 +1,5 @@
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto'
+import type { AuthWriteGuard, AuthWriteHandle } from './authPins'
 import { isApplePrivateRelayEmail } from './privateRelay'
 
 // Swapping an Apple "Hide My Email" relay address for a real one, verified
@@ -48,6 +49,9 @@ export type EmailChangeError =
   | 'too_many_attempts'
   | 'busy'
   | 'update_failed'
+  // An earlier account-merge write to this login never got an answer and
+  // would set another email; changing it now could be undone later.
+  | 'email_locked'
 
 export type ChangeRow = {
   id: string
@@ -104,6 +108,9 @@ export interface AuthEmailApi {
 export type EmailChangeDeps = {
   store: EmailChangeStore
   auth: AuthEmailApi
+  // Claims + pins shared with the account-merge tool (lib/authPins.ts).
+  // Always set in production (emailChangeDeps()).
+  guard?: AuthWriteGuard
   sendCode: (to: string, code: string, lang: string | null) => Promise<boolean>
   secret: string
   now?: () => Date
@@ -180,6 +187,8 @@ export async function requestEmailChange(
   const current = await deps.store.getUserEmail(user.id)
   if (!isApplePrivateRelayEmail(current)) return { ok: false, error: 'not_relay' }
   if (await deps.store.isEmailTaken(newEmail, user.id)) return { ok: false, error: 'email_taken' }
+  // Don't send a code that could never be applied.
+  if (await deps.guard?.conflicts(user.authId, { intent: 'KEEP', email: newEmail })) return { ok: false, error: 'email_locked' }
 
   // The cooldown is checked by the replacing update itself, so of two
   // concurrent resends only one stores (and sends) a code.
@@ -247,7 +256,38 @@ export async function confirmEmailChange(
     return { ok: false, error: 'email_taken' }
   }
 
+  // Claim the user against a running account merge, and record this write's
+  // intent first (lib/authPins.ts): if its answer is lost, a later merge must
+  // agree with it.
+  let handle: AuthWriteHandle | null = null
+  if (deps.guard) {
+    const began = await deps.guard.begin(user.id, user.authId)
+    if (!began.ok) {
+      await deps.store.releaseClaim(row.id, row.codeHash)
+      return { ok: false, error: 'busy' }
+    }
+    handle = began.handle
+  }
+  try {
+    return await applyEmailChange(deps, user, row, oldEmail, handle)
+  } finally {
+    await handle?.release()
+  }
+}
+
+async function applyEmailChange(
+  deps: EmailChangeDeps,
+  user: { id: string; authId: string },
+  row: ChangeRow,
+  oldEmail: string,
+  handle: AuthWriteHandle | null,
+): Promise<Result<{ email: string }>> {
+  if (handle && !(await handle.beforeWrite({ intent: 'KEEP', email: row.newEmail }))) {
+    await deps.store.deleteRequest(row.id, 'APPLYING', row.codeHash)
+    return { ok: false, error: 'email_locked' }
+  }
   const authOutcome = await setAuthEmail(deps, user.authId, row.newEmail)
+  await handle?.afterWrite(authOutcome === 'unknown')
   if (authOutcome === 'unknown') {
     // Can't tell whether Auth changed: keep the lock; reconcile settles it.
     return { ok: false, error: 'update_failed' }
@@ -267,7 +307,14 @@ export async function confirmEmailChange(
     deps.log?.('[emailChange] db update failed, reverting auth email', err)
   }
 
+  if (handle && !(await handle.beforeWrite({ intent: 'KEEP', email: oldEmail }))) {
+    // Can't safely write it back: leave the row APPLYING; reconcileEmailChange()
+    // aligns the DB with Auth.
+    deps.log?.('[emailChange] auth revert blocked by a pending merge write; left for reconciliation', { userId: user.id })
+    return { ok: false, error: 'update_failed' }
+  }
   const revert = await setAuthEmail(deps, user.authId, oldEmail)
+  await handle?.afterWrite(revert === 'unknown')
   if (revert === 'applied') {
     await deps.store.releaseClaim(row.id, row.codeHash).catch(err => deps.log?.('[emailChange] release failed', err))
   } else {

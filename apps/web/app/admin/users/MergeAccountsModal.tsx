@@ -186,6 +186,7 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
   const [done, setDone] = useState<{ moved: Record<string, number>; keptEmail: string } | null>(null)
   const [uncertain, setUncertain] = useState(false)
   const [alreadyMerged, setAlreadyMerged] = useState(false)
+  const [mergedElsewhere, setMergedElsewhere] = useState<{ fromId: string; intoId: string; intoName: string | null; intoEmail: string | null }[] | null>(null)
 
   // Resolves true only when a fresh preview arrived.
   const load = useCallback((params: Record<string, string>): Promise<boolean> => {
@@ -198,6 +199,8 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
         // One of the two no longer exists because it was merged — e.g. the
         // POST went through but its answer was lost.
         if (d.alreadyMerged) { setAlreadyMerged(true); return true }
+        // …or one of them went into a different account: this pair was not merged.
+        if (d.mergedElsewhere) { setMergedElsewhere(d.mergedElsewhere); return true }
         setPreview(d)
         return true
       })
@@ -269,11 +272,29 @@ export default function MergeAccountsModal({ firstId, secondId, onClose, onMerge
           </button>
         </div>
 
-        {alreadyMerged && !done ? (
+        {mergedElsewhere && !done ? (
+          <div className="py-6 flex flex-col items-center gap-3 text-center">
+            <AlertTriangle className="w-9 h-9 text-amber-500" />
+            <p className="text-sm font-semibold text-gray-900">These two accounts were not merged together</p>
+            <div className="text-xs text-gray-500 max-w-md space-y-1">
+              {mergedElsewhere.map(m => {
+                const from = [preview?.keep, preview?.merge].find(a => a?.id === m.fromId)
+                return (
+                  <p key={m.fromId}>
+                    <strong>{from?.name || from?.email || 'One of them'}</strong> was merged into{' '}
+                    <strong>{m.intoName || m.intoEmail || 'another account'}</strong>{m.intoEmail ? ` (${m.intoEmail})` : ''}.
+                  </p>
+                )
+              })}
+              <p>Close this and start again from the account it went into.</p>
+            </div>
+            <button onClick={onClose} className="mt-2 h-10 px-6 rounded-xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0660c8]">Close</button>
+          </div>
+        ) : alreadyMerged && !done ? (
           <div className="py-6 flex flex-col items-center gap-3 text-center">
             <CheckCircle2 className="w-9 h-9 text-emerald-500" />
             <p className="text-sm font-semibold text-gray-900">These accounts are already merged</p>
-            <p className="text-xs text-gray-500 max-w-md">One of them was merged into the other, so there’s nothing left to do.</p>
+            <p className="text-xs text-gray-500 max-w-md">Both now lead to the same account, so there’s nothing left to do.</p>
             <button onClick={onClose} className="mt-2 h-10 px-6 rounded-xl bg-[#0870E2] text-white text-sm font-semibold hover:bg-[#0660c8]">Done</button>
           </div>
         ) : done ? (

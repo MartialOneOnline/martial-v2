@@ -6,6 +6,7 @@ const updateUserById = vi.fn()
 const createClient = vi.fn((...args: unknown[]) => args && ({ auth: { admin: { getUserById, updateUserById } } }))
 vi.mock('@supabase/supabase-js', () => ({ createClient: (...a: unknown[]) => createClient(...a) }))
 
+let mergeMap: Record<string, string> = {}
 const claimQuery = vi.fn()
 const claimFindUnique = vi.fn()
 const pinFindMany = vi.fn()
@@ -15,10 +16,12 @@ vi.mock('@/lib/db', () => ({
   prisma: {
     $transaction: (fn: (tx: unknown) => unknown) => fn({ $queryRaw: claimQuery, accountMergeClaim: { findUnique: claimFindUnique } }),
     accountMergeAuthPin: { findMany: pinFindMany, createMany: pinCreateMany, deleteMany: pinDeleteMany },
+    accountMerge: { findFirst: vi.fn(async ({ where }: any) => (mergeMap[where.mergedUserId] ? { keptUserId: mergeMap[where.mergedUserId] } : null)) },
+    user: { findMany: vi.fn(async ({ where }: any) => where.id.in.map((id: string) => ({ id, name: `Name ${id}`, email: `${id}@x.com` }))) },
   },
 }))
 
-const { supabaseAuthAdmin, isUserNotFound, isUncertainWriteError, abortingFetch, prismaClaimStore, prismaPinStore } = await import('@/lib/accountMergeServer')
+const { supabaseAuthAdmin, isUserNotFound, isUncertainWriteError, abortingFetch, prismaClaimStore, prismaPinStore, resolveMergedPair } = await import('@/lib/accountMergeServer')
 const { resolveSurvivingUserId, lockSurvivingUser } = await import('@/lib/mergedUsers')
 
 beforeEach(() => vi.clearAllMocks())
@@ -162,5 +165,25 @@ describe('prismaPinStore', () => {
       { authId: 'b', attemptId: 't2', intent: 'KEEP', email: 'b@x.com' },
     ])
     expect(await prismaPinStore.get([])).toEqual([])
+  })
+})
+
+describe('resolveMergedPair', () => {
+  it('both ids in the same account → same', async () => {
+    mergeMap = { S: 'K' }
+    expect(await resolveMergedPair('K', 'S')).toEqual({ status: 'same', survivorId: 'K' })
+    mergeMap = { S: 'K', K: 'Z' }
+    expect(await resolveMergedPair('K', 'S')).toEqual({ status: 'same', survivorId: 'Z' })
+  })
+  it('S went into another account C while K is independent → elsewhere, with the destination', async () => {
+    mergeMap = { S: 'C' }
+    expect(await resolveMergedPair('K', 'S')).toEqual({
+      status: 'elsewhere',
+      moves: [{ fromId: 'S', intoId: 'C', intoName: 'Name C', intoEmail: 'C@x.com' }],
+    })
+  })
+  it('neither id was merged → null', async () => {
+    mergeMap = {}
+    expect(await resolveMergedPair('K', 'S')).toBeNull()
   })
 })

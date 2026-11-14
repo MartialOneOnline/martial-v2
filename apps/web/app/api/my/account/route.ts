@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/db'
+import { authWriteGuard } from '@/lib/authPins'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const ANONYMIZED_EMAIL_DOMAIN = 'deleted.martialapp.invalid'
@@ -109,6 +110,14 @@ export async function DELETE() {
   }
 
   console.error('[delete-account] Failed to delete Supabase auth user, falling back to ban:', error)
+
+  // Deleting the login is always safe, but the ban fallback is a write that
+  // an account-merge write still in flight could undo (lib/authPins.ts). The
+  // row is already anonymized and deletedAt blocks it in resolveDbUser().
+  if (await authWriteGuard.conflicts(dbUser.supabaseAuthId, { intent: 'RETIRE' })) {
+    console.error('[delete-account] Ban fallback skipped: a pending account-merge write keeps this login')
+    return NextResponse.json({ error: 'Account anonymized, but login removal failed. Contact support.' }, { status: 502 })
+  }
 
   // deleteUser can fail (e.g. transient API error) and would otherwise leave
   // a fully anonymized row still reachable through a live Supabase session —

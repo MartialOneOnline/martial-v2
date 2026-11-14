@@ -27,6 +27,10 @@ vi.mock('@/lib/supabase/admin', () => ({
   }),
 }))
 
+// Pins of account-merge writes that never got an answer (lib/authPins.ts)
+const mockPinConflicts = vi.fn(async (...args: [string, unknown]) => !args)
+vi.mock('@/lib/authPins', () => ({ authWriteGuard: { conflicts: mockPinConflicts } }))
+
 const { DELETE } = await import('@/app/api/my/account/route')
 
 beforeEach(() => {
@@ -40,6 +44,7 @@ beforeEach(() => {
   mockUpdateUserById.mockResolvedValue({ error: null })
   mockStorageList.mockResolvedValue({ data: [], error: null })
   mockStorageRemove.mockResolvedValue({ error: null })
+  mockPinConflicts.mockResolvedValue(false)
 })
 
 describe('DELETE /api/my/account', () => {
@@ -168,5 +173,21 @@ describe('DELETE /api/my/account', () => {
     const res = await DELETE()
     expect(res.status).toBe(502)
     expect(mockUserUpdate).not.toHaveBeenCalled()
+  })
+
+  it('skips the ban fallback when a pending account-merge write keeps this login (it could undo the ban)', async () => {
+    mockDeleteAuthUser.mockResolvedValue({ error: { message: 'transient failure' } })
+    mockPinConflicts.mockResolvedValue(true)
+    const res = await DELETE()
+    expect(res.status).toBe(502)
+    expect(mockPinConflicts).toHaveBeenCalledWith('auth-1', { intent: 'RETIRE' })
+    expect(mockUpdateUserById).not.toHaveBeenCalled()
+    expect(mockTxUserUpdate).toHaveBeenCalled() // still anonymized; deletedAt blocks the login
+  })
+
+  it('deleting the login never needs the pins (a late write can’t revive a deleted user)', async () => {
+    const res = await DELETE()
+    expect(res.status).toBe(200)
+    expect(mockPinConflicts).not.toHaveBeenCalled()
   })
 })

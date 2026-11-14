@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { normalizeForSearch } from '@/lib/search'
+import { prismaClaimStore, prismaPinStore } from '@/lib/authPins'
+import { resolveSurvivingUserId } from '@/lib/mergedUsers'
 import {
-  type AuthAdmin, type ClaimStore, type LoginInfo, type PinStore, type MergeChoice, type MergeDeps, type Side,
+  type AuthAdmin, type LoginInfo, type MergeChoice, type MergeDeps, type Side,
   defaultSides, loadSideDetail, loadSummary, mergeBlockers, mergeUsersInTx, mergeWarnings, pinClash, signedWaiverConflicts, suggestDefaults,
 } from '@/lib/accountMerge'
 
@@ -89,58 +91,8 @@ export function supabaseAuthAdmin(): AuthAdmin {
   }
 }
 
-// account_merge_claims: one row per user. acquire() takes every row or none
-// (one transaction; ids in a fixed order so two acquirers can't deadlock).
-// An expired claim is taken over in place.
-export const prismaClaimStore: ClaimStore = {
-  async acquire(userIds, attemptId, holdUntil) {
-    class Busy extends Error { constructor(public holdUntil: Date) { super('busy') } }
-    try {
-      await prisma.$transaction(async tx => {
-        for (const userId of [...userIds].sort()) {
-          const taken = await tx.$queryRaw<{ userId: string }[]>`
-            INSERT INTO account_merge_claims ("userId", "attemptId", "holdUntil")
-            VALUES (${userId}, ${attemptId}, ${holdUntil})
-            ON CONFLICT ("userId") DO UPDATE
-              SET "attemptId" = EXCLUDED."attemptId", "holdUntil" = EXCLUDED."holdUntil", "createdAt" = now()
-              WHERE account_merge_claims."holdUntil" <= now()
-            RETURNING "userId"`
-          if (taken.length === 0) {
-            const row = await tx.accountMergeClaim.findUnique({ where: { userId }, select: { holdUntil: true } })
-            throw new Busy(row?.holdUntil ?? holdUntil)
-          }
-        }
-      })
-      return { ok: true }
-    } catch (err) {
-      if (err instanceof Busy) return { ok: false, holdUntil: err.holdUntil }
-      throw err
-    }
-  },
-  async release(userIds, attemptId) {
-    await prisma.accountMergeClaim.deleteMany({ where: { userId: { in: userIds }, attemptId } })
-  },
-}
-
-// account_merge_auth_pins: see PinStore in lib/accountMerge.ts.
-export const prismaPinStore: PinStore = {
-  async get(authIds) {
-    if (authIds.length === 0) return []
-    const rows = await prisma.accountMergeAuthPin.findMany({ where: { authId: { in: authIds } } })
-    return rows.map(r => (r.intent === 'KEEP'
-      ? { authId: r.authId, attemptId: r.attemptId, intent: 'KEEP' as const, email: r.email }
-      : { authId: r.authId, attemptId: r.attemptId, intent: 'RETIRE' as const }))
-  },
-  async put(pin) {
-    await prisma.accountMergeAuthPin.createMany({
-      data: [{ authId: pin.authId, attemptId: pin.attemptId, intent: pin.intent, email: pin.intent === 'KEEP' ? pin.email : '' }],
-      skipDuplicates: true,
-    })
-  },
-  async remove(authId, attemptId) {
-    await prisma.accountMergeAuthPin.deleteMany({ where: { authId, attemptId } })
-  },
-}
+// Claims + pins live in lib/authPins.ts (shared with the email-change flow).
+export { prismaClaimStore, prismaPinStore }
 
 export function prismaMergeDeps(auth: AuthAdmin): MergeDeps {
   return {
@@ -224,15 +176,28 @@ export async function buildMergePreview(
 
 export type MergePreview = NonNullable<Awaited<ReturnType<typeof buildMergePreview>>>
 
-// When one of the two ids no longer exists because it was merged (the
-// merge deletes that row): which account it went into. Lets the admin modal
-// tell "already merged" apart from a failure after a lost answer.
-export async function findCompletedMerge(ids: string[]) {
-  return prisma.accountMerge.findFirst({
-    where: { mergedUserId: { in: ids } },
-    orderBy: { createdAt: 'desc' },
-    select: { mergedUserId: true, keptUserId: true, createdAt: true },
+// When the preview can't load because one of the two ids was merged away
+// (the merge deletes that row): follow both through the merge chain.
+//   'same'      — both end in the same account: this pair is merged.
+//   'elsewhere' — at least one went into a different account: this pair was
+//                 NOT merged; says where each id ended up.
+// null when neither id was ever merged (a plain unknown id).
+export async function resolveMergedPair(keepId: string, mergeId: string) {
+  const [k, m] = await Promise.all([resolveSurvivingUserId(keepId), resolveSurvivingUserId(mergeId)])
+  if (k === keepId && m === mergeId) return null
+  if (k === m) return { status: 'same' as const, survivorId: k }
+  const moved = [[keepId, k], [mergeId, m]].filter(([from, to]) => from !== to) as [string, string][]
+  const survivors = await prisma.user.findMany({
+    where: { id: { in: moved.map(([, to]) => to) } },
+    select: { id: true, name: true, email: true },
   })
+  return {
+    status: 'elsewhere' as const,
+    moves: moved.map(([from, to]) => {
+      const u = survivors.find(x => x.id === to)
+      return { fromId: from, intoId: to, intoName: u?.name ?? null, intoEmail: u?.email ?? null }
+    }),
+  }
 }
 
 // Likely duplicates: same normalized name, or same phone (last 9 digits).
