@@ -312,6 +312,32 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Criterios: (1) «Payment» no aparece mientras haya `cancelledAt`; (2) «Deshacer cancelación» solo para ACTIVE + `cancelledAt`, en los 4 idiomas; (3) con Stripe, primero `cancel_at_period_end: false` y, si falla, nada local; (4) escritura condicional, que no revive una membresía terminada; (5) mismo permiso que cancelar.
 - No verificado: navegador (el usuario prueba la UI), Stripe real.
 
+### Lote W — Lista de alumnos continua en orden A–Z con índice por letras (rama `claude/users-list-az`)
+
+- Estado (auditado como "Lote U" antes de que `main` usara esa letra para fusionar cuentas): `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → `APROBADO CON PENDIENTES` en `ea527c2` (1 P2 nuevo) → **`APROBADO`** en `6eb1282`, sin hallazgos P0–P3 (Codex: componente real en Chromium con 260 alumnos simulados; 19/19 tests; sin sesión real ni dashboard completo). Sin migración. Rama `origin/claude/users-list-az`; PR pendiente de merge.
+- Pedido del usuario: el panel lateral de Users en desktop mostraba 8 alumnos por página ("1–8 of 59"), con más de un tercio del panel vacío. Quiere scroll continuo, orden alfabético y un marcador por letras tipo agenda. Maqueta aprobada antes de tocar código.
+- Alcance: solo `apps/web/app/dashboard/users/StudentListPanel.tsx` (vista dividida de desktop, montada desde `layout.tsx` vía `UsersSplitShell`). La tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8 a propósito.
+- Criterios:
+  1. Sin paginación: todos los alumnos del filtro/búsqueda en una lista con scroll; contador "N alumnos" (singular con 1).
+  2. Orden A–Z por defecto, insensible a mayúsculas y acentos (Álvaro → A, "ana" junto a "Ana"); Ñ como letra propia entre N y O solo con idioma `es` (en EN/PT/FR va con la N); lo que no empieza por letra (número, emoji, vacío) va a `#` al final.
+  3. Encabezados de sección fijos (sticky) al hacer scroll.
+  4. Barra A–Z a la derecha: clic salta a la sección; letras sin alumnos deshabilitadas; letra actual resaltada; oculta con menos de 20 resultados y en modo Recientes.
+  5. Selector A–Z / Recientes (Recientes = `joinedAt` desc, agrupado por mes en el idioma activo, sin fecha al final bajo "—"); la preferencia se guarda en `localStorage` (`martial_users_list_sort`) con try/catch.
+  6. Cambiar filtro, búsqueda u orden vuelve la lista arriba; abrir un alumno por enlace directo (o búsqueda global `?search=`) trae su fila a la vista.
+  7. Textos nuevos en EN/ES/PT/FR (`users.student`, `sortAz`, `sortRecent`, `sortLabel`, `alphaIndex`, `jumpToLetter`).
+- Archivos: `StudentListPanel.tsx`, `lib/alphaIndex.ts` (nuevo, lógica pura), `__tests__/alphaIndex.test.ts` (nuevo), `lib/i18n/translations.ts`, `CONTEXT.md`.
+- Evidencia: `tsc --noEmit` limpio; `alphaIndex.test.ts` 9/9; suite completa 12 ficheros / 55 tests fallando, los mismos que en `main` (mocks de Prisma de rutas API, sin relación); lint del panel: solo el aviso `no-img-element` que ya existía.
+- A revisar: rendimiento con escuelas grandes (todo se pinta sin virtualizar; avatares con `loading="lazy"`); `offsetTop` de secciones con el contenedor `position: relative`; scroll al seleccionado en el primer render junto con el reset a arriba; cambio de idioma con la lista abierta; nombres que son el email (fallback de `name`); estado `PENDING` que aparece en "Pending" e "Invited" (comportamiento previo, sin cambiar).
+- No verificado: navegador (el usuario prueba la UI) ni datos reales.
+- Hallazgo de Codex en `24f813b` y corrección:
+  1. P2 — los dos efectos de scroll se pisaban: con `?search=` el reset a arriba dejaba fuera de vista al alumno abierto por enlace, y al pasar a Recientes con un alumno seleccionado `scrollIntoView` anulaba la vuelta arriba. Ahora un único controlador (`lib/listScrollIntent.ts`) decide el scroll tras cada render: los cambios explícitos de filtro, búsqueda u orden piden "arriba" desde sus handlers; un cambio del alumno seleccionado pide "mostrar fila"; gana la última petición; y nada se aplica hasta que el panel ha cargado la búsqueda de la URL y el orden guardado, así que un enlace directo muestra la fila en la lista ya filtrada. Se aplica en `useLayoutEffect` (antes de pintar).
+  - Pruebas: `__tests__/listScrollIntent.test.ts` (6) reproduce las secuencias del panel: enlace con `?search=` → mostrar fila tras aplicar la búsqueda; cambiar a Recientes con seleccionado → arriba; filtro/búsqueda → arriba; abrir otro alumno → mostrar fila; cambio antes de estar listo; la última petición gana. El repo no tiene jsdom ni Testing Library; no se han añadido para no cambiar dependencias en este lote, así que las pruebas cubren la decisión, no el DOM.
+  - Evidencia: `tsc` limpio; 15/15 en los tests del lote; suite 1244 pasan / los mismos 55 fallan / 1 pendiente; lint: solo el aviso `no-img-element` previo.
+- Hallazgo de Codex en `ea527c2` y corrección:
+  1. P2 — una petición "arriba" pendiente deshacía el salto por letras: pulsar un control ya activo (A–Z estando en A–Z, o el filtro activo) pedía "arriba", React no re-renderizaba (mismo valor) y la petición se consumía en el render siguiente, el del resaltado de la letra tras el salto. Ahora (a) filtro, búsqueda y orden solo piden "arriba" si el valor cambia (`requestTopIfChanged`), y (b) el salto por letra borra cualquier petición pendiente (`clear()`) antes de mover el scroll, porque es un scroll del propio usuario.
+  - Pruebas: 4 tests nuevos en `listScrollIntent.test.ts` (A–Z→A–Z→M, filtro activo otra vez, un cambio real sigue yendo arriba, el salto anula lo pendiente). Siguen siendo pruebas de la lógica sin DOM: Codex las acepta para el controlador, pero no validan la integración con React (este fallo dependía de que no hubiera render). Añadir jsdom + Testing Library queda como decisión aparte del usuario.
+  - Evidencia: `tsc` limpio; 19/19 en los tests del lote; suite 1248 pasan / los mismos 55 fallan / 1 pendiente; lint: solo el aviso `no-img-element` previo.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

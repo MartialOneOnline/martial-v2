@@ -411,6 +411,17 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 - Durante la sesión el árbol de `martial-v2` tenía cambios ajenos sin commitear (tokens de invitación, cliente Prisma regenerado…); no entraron en los commits de esta sesión y después los commiteó otra sesión (p. ej. `04e5c7c`).
 - Sin tests automáticos nuevos: no hay suite en el repo Flutter y las páginas `/android` y `/ios` se comprobaron con `curl` (200 + og:tags) en local y en producción.
 
+### Sesión — 2026-11-08 → 2026-11-14 (rama `claude/users-list-az`, Lote W (auditado como "Lote U") — `APROBADO CON PENDIENTES` en `24f813b` → `APROBADO CON PENDIENTES` en `ea527c2` → **`APROBADO`** en `6eb1282`; sin migración; pendiente: prueba del usuario y merge)
+
+- **Panel lateral de Users (desktop, `StudentListPanel.tsx`) sin paginación**: antes mostraba 8 alumnos por página aunque los cargaba todos; ahora es una lista continua con scroll. El contador "N alumnos" sustituye a "1–8 of 59".
+- **Orden A–Z por defecto** con encabezados de letra fijos y barra A–Z a la derecha (clic = salto; letras sin alumnos en gris; letra actual en azul). La barra se oculta con menos de 20 resultados. Selector **A–Z / Recientes** (Recientes = fecha de alta, agrupado por mes, sin barra); la elección se guarda en `localStorage` (`martial_users_list_sort`).
+- Lógica pura en `apps/web/lib/alphaIndex.ts` (+ `__tests__/alphaIndex.test.ts`): acentos y mayúsculas agrupados (Álvaro → A), Ñ como letra propia solo en español, números/emoji → `#`. Se ordena por `name` tal cual (normalmente el nombre de pila; no hay campo apellido).
+- Al cambiar filtro, búsqueda u orden la lista vuelve arriba; si se abre un alumno por enlace directo, su fila se trae a la vista.
+- i18n: claves nuevas en `users` (`student`, `sortAz`, `sortRecent`, `sortLabel`, `alphaIndex`, `jumpToLetter`) en EN/ES/PT/FR. Los chips de filtro siguen en inglés fijo (ya lo estaban).
+- No cambia: la tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8.
+- Correcciones de auditoría: el scroll lo decide un único controlador (`lib/listScrollIntent.ts`): filtro/búsqueda/orden van arriba solo si el valor cambia; abrir un alumno (enlace, `?search=`, atrás/adelante) muestra su fila tras aplicar la búsqueda; el salto por letra anula lo pendiente.
+- Verificación: `tsc` limpio, 19 tests del lote pasan (`alphaIndex`, `listScrollIntent`). La suite completa tiene 55 fallos en tests de API (`bookingRace`, `cancelMembership`, …) que también fallan sin este cambio. No probado en navegador por Claude (lo prueba el usuario).
+
 ### Sesión — 2026-11-02 (o) (rama `claude/bookings-report`, PR [#53](https://github.com/MartialOneOnline/martial-v2/pull/53) — `APROBADO CON PENDIENTES` en `6e7f31d` (5 P2) → `APROBADO CON PENDIENTES` en `6eb7dd1` (3 P2) → **`APROBADO`** en `106331a`; sin migración)
 
 **Informe de Reservas rehecho: ocupación del horario.** Diagnóstico con datos de RGM (lectura autorizada por el usuario, solo RGM, 90 días): 2.005 asistencias de 147 alumnos, de ~55 a ~200 reservas/semana entre agosto y octubre; 113 canceladas, 59 no presentados, 93 reservas pasadas sin marcar; la mitad de las reservas las añade el staff. Todas las clases tienen 30 plazas y ninguna pasa de ~20 de media. Iniciación del jueves 19:00 tiene 2,8 de media a la misma hora que Jiu Jitsu Todos (19,5). El informe anterior llamaba "asistencia" a confirmadas/total (casi siempre ~100 %), no conocía NO_SHOW ni PENDING y agrupaba en la zona del servidor. Propuesta aprobada ("Sí, así").
