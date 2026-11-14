@@ -303,7 +303,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/alpha-rail-bubble`, Lote Z — pendiente de Codex Project Audit; sin migración; sin PR)
+### Sesión — 2026-11-14 (rama `claude/alpha-rail-bubble`, Lote Z — **`APROBADO`** en `f9c64b8`; sin migración; pendiente: merge y prueba en iPhone real)
 
 - **Burbuja de la barra A–Z pegada en iPhone**: `components/AlphaRail.tsx` ahora la oculta con cualquier final de toque en la página (no solo en el carril) y, como red de seguridad, 800 ms después del último salto. Durante el arrastre sigue visible.
 - Comprobado en Chromium con eventos táctiles sintéticos; falta probar en iPhone real.

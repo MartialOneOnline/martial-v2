@@ -392,7 +392,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote Z — La burbuja de la barra de letras se quedaba pegada en iPhone (rama `claude/alpha-rail-bubble`)
 
-- Estado: **pendiente de Project Audit**. Sin migración. Sin PR todavía.
+- Estado: **`APROBADO`** en `f9c64b8`, sin hallazgos P0–P3 (Codex: Chromium a 375px con la tabla real y 832 alumnos simulados; fin de toque en el carril, fuera de él y solo `touchend`; sin evento de fin se oculta a 800 ms; arrastre >1,5 s visible; cero listeners y temporizadores tras ocultar o desmontar). Sin migración. Falta validar en iPhone real.
 - Pedido del usuario (captura en iPhone, en producción tras el Lote X): al tocar una letra de la barra A–Z, la burbuja grande con la letra se quedaba en pantalla, incluso al seguir haciendo scroll hacia otras letras. Debe verse solo mientras se toca/arrastra y desaparecer después. El recuadro azul pequeño de la letra actual en la barra es correcto y se mantiene.
 - Causa probable: la burbuja solo se ocultaba con `pointerup`/`pointercancel` del propio carril. En iOS Safari esos eventos no siempre llegan al carril cuando la página se desplaza bajo el dedo, que es justo lo que hace el salto.
 - Corrección (`apps/web/components/AlphaRail.tsx`): (a) mientras la burbuja está visible se escucha el final del toque en toda la página (`pointerup`, `pointercancel`, `touchend`, `touchcancel`, en fase de captura); (b) red de seguridad: la burbuja se oculta sola 800 ms después del último salto si no llega ningún aviso; cada salto mientras se arrastra reinicia esa cuenta, así que sigue visible durante el arrastre.
