@@ -143,15 +143,15 @@ export default function BalanceReportClient() {
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0" aria-label="Menu"
+        <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0" aria-label="Menu"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
         <div className="flex-1" />
-        <div className="flex items-center gap-1 p-1 rounded-xl" role="group" aria-label={r.title} style={{ background: '#F3F4F6' }}>
+        <div className="flex items-center gap-1 p-1 h-10 rounded-xl" role="group" aria-label={r.title} style={{ background: '#F3F4F6' }}>
           {(['month', '3m', '12m', 'year'] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} aria-pressed={period === p} className="cursor-pointer"
-              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
+              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '0 12px', height: 32, borderRadius: 8, border: 'none',
                 background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#4B5563', boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
               {periodLabel[p]}
             </button>

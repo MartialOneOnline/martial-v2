@@ -125,16 +125,19 @@ export default function NotificationsClient() {
 
   return (
     <main style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ background: '#fff', borderBottom: '1px solid #E5E7EB', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button className="md:hidden" onClick={() => setMenuOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-          <Menu size={20} style={{ color: '#374151' }} />
+      <div className="flex items-center gap-3 px-4 md:px-8 py-3"
+        style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
+        <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
+          <Menu size={16} style={{ color: '#374151' }} />
         </button>
         <span style={{ fontWeight: 600, fontSize: 15, color: '#111827' }}>{t.notifications.title}</span>
         <div style={{ flex: 1 }} />
-        <Link href="/dashboard/notifications" style={{ position: 'relative', color: '#374151', display: 'flex', alignItems: 'center' }}>
-          <Bell size={18} style={{ color: '#6B7280' }} />
+        <Link href="/dashboard/notifications" className="relative flex items-center justify-center w-10 h-10 rounded-xl shrink-0"
+          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', color: '#374151' }}>
+          <Bell size={15} strokeWidth={1.5} style={{ color: '#374151' }} />
           {unread > 0 && (
-            <span style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, borderRadius: '50%', background: '#DC2626', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: '#DC2626', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {unread}
             </span>
           )}

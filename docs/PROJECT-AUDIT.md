@@ -340,7 +340,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote X — Tabla de alumnos en móvil: lista A–Z con índice por letras + barra superior a 40px (rama `claude/users-mobile-az`)
 
-- Estado: **`RECHAZADO`** en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados a 375/800/1280 px; sin regresiones en `/`, `/explore`, `/my` y Clases; sin sesión real ni Safari/iOS). Sin migración.
+- Estado: **`RECHAZADO`** en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados a 375/800/1280 px; sin regresiones en `/`, `/explore`, `/my` y Clases; sin sesión real ni Safari/iOS). Sin migración. PR [#66](https://github.com/MartialOneOnline/martial-v2/pull/66) **mergeado** (`75b651d`) y en producción el 2026-11-14.
 - Pedido del usuario: llevar a la tabla de móvil lo mismo que el panel de desktop (Lote W), con maqueta aprobada antes del código. Además, en la barra superior de móvil el buscador debe llegar hasta la campana, y menú, buscador, campana, idioma y filtros deben tener la misma altura.
 - Alcance: `apps/web/app/dashboard/users/UsersClient.tsx` (la vista de lista que se ve en móvil/tablet y en desktop cuando no hay vista dividida). El panel de desktop (Lote W) no cambia.
 - Criterios:
@@ -362,6 +362,23 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   - Extra visto al comprobarlo: en una tabla de bordes colapsados, los bordes de una celda fija no se mueven con ella y asomaban unos píxeles de filas por encima del encabezado; las líneas pasan a ser sombras interiores.
   - Comprobado por Claude en Chromium con el componente y el CSS reales (página temporal local con 832 alumnos simulados, ya borrada): a 375px no hay scroll horizontal, la tabla mide 333px, el "···" va de x=318 a 346 y la barra de letras empieza en x=354; tras saltar a M y bajar 200px, la barra superior sigue en y=0 y el encabezado "M" en y=65, con la M resaltada; a 800px el encabezado ocupa 5 columnas, sin scroll horizontal.
   - Evidencia: `tsc` limpio; 23/23 en los tests del lote; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint: los mismos 6 avisos que `main`.
+
+### Lote Y — Barra superior a 40px en todas las páginas del dashboard (rama `claude/topbar-40`)
+
+- Estado: **pendiente de Project Audit**. Sin migración. Sin PR todavía.
+- Pedido del usuario: aplicar en todas las páginas del dashboard la barra superior de Users (Lote X): todos los controles a 40px y, en móvil, el buscador hasta la campana.
+- Alcance: la barra superior de las 29 páginas del dashboard con menú móvil (no hay barra compartida: cada página tiene su copia) + `NotificationBell` y `DashboardLanguageSelector` (solo se usan en el dashboard). Sin cambios de comportamiento ni de datos.
+- Criterios:
+  1. Menú, buscador, fecha, campana, idioma, filtros y botones de acción ("+", Exportar, Añadir…) miden 40px de alto en todas las barras; la barra mide 65px (40 + 12 + 12 + borde).
+  2. Campana e idioma: `size` por defecto 40 (antes 36); Users deja de pasarlo.
+  3. En móvil el buscador ocupa el hueco hasta la campana en las 12 páginas con buscador (el espaciador solo existe desde `md`; `max-w-xs`/`max-w-sm` solo desde `md`). La home mantiene el buscador oculto en móvil, como antes.
+  4. Selectores de periodo (informes de Balance, Leads y Usuarios; pestañas de Membresías) y controles del Calendario/Horario (vista Mes/Semana, flechas, fecha, Hoy) también a 40px; los botones internos de un selector miden 32px dentro de su caja de 40.
+  5. Notificaciones y Soporte tenían otra barra (60px, menú sin caja): ahora usan el mismo patrón que el resto; la campana de Notificaciones sigue siendo un enlace a la propia página, con caja de 40px.
+  6. Suscripciones: el botón "Filters" de la barra pasa de 34 a 40px.
+- Archivos: 27 clientes de páginas en `app/dashboard/**`, `components/NotificationBell.tsx`, `components/DashboardLanguageSelector.tsx`, `components/grading/GradingModuleGate.tsx`, `CONTEXT.md`.
+- Evidencia: `tsc --noEmit` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint de los 32 ficheros: 63 avisos, los mismos que en `main`; `next build` local correcto. Medido por Claude en Chromium con una página temporal local (ya borrada) que monta cada página real: a 375px las 29 barras miden 65px con todos sus controles a 40px y sin scroll horizontal; a 1280px igual en las 19 páginas que cargan con la API simulada (las otras 10 fallan por la simulación, no por el cambio; a 375px sí se midieron).
+- Visto y no cambiado: en móvil, las barras de los informes de Balance (3 líneas) y Leads (2 líneas) saltan de línea porque ya tenían `flex-wrap`; no he cambiado anchos, así que el salto ya existía. Las barras de Notificaciones y Soporte no son fijas al hacer scroll (como antes).
+- No verificado: sesión real ni dispositivo iOS.
 
 ## Próxima entrega de Claude
 

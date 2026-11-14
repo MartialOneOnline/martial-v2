@@ -487,21 +487,21 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS, grad
       {/* Topbar */}
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+        <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
+        <div className="flex items-center gap-2 px-3 h-10 rounded-xl flex-1 min-w-0 md:max-w-xs"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
           <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
           <input type="text" placeholder="Search members…" value={search} onChange={e => setSearch(e.target.value)}
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
-        <div className="flex-1" />
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
+        <div className="hidden md:block flex-1" />
+        <div className="flex items-center gap-1 p-1 h-10 rounded-xl" style={{ background: '#F3F4F6' }}>
           {(['7d', '30d', '90d', '12m', 'custom'] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
-              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
+              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '0 12px', height: 32, borderRadius: 8, border: 'none',
                 background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
                 boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
               {p === 'custom' ? 'Custom' : p.toUpperCase()}
@@ -511,14 +511,14 @@ export default function UsersReportClient({ initialFilters = EMPTY_FILTERS, grad
         {period === 'custom' && (
           <div className="flex items-center gap-1.5">
             <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
+              style={{ height: 40, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
             <span style={{ fontSize: 12, color: '#9CA3AF' }}>–</span>
             <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-              style={{ height: 30, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
+              style={{ height: 40, padding: '0 8px', borderRadius: 8, border: '1px solid #E5E7EB', background: '#fff', fontSize: 12, color: '#111827', outline: 'none' }} />
           </div>
         )}
         <button onClick={handleExport} disabled={exportingMembers || gradingState === null}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          className="hidden sm:flex items-center gap-2 px-4 h-10 rounded-xl cursor-pointer"
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
         </button>

@@ -1242,7 +1242,7 @@ export default function MembershipsClient() {
       {/* Topbar */}
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+        <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ border: '1px solid #E5E7EB', background: '#F9FAFB' }}
           onClick={() => setMenuOpen(!menuOpen)}>
           <Menu size={16} style={{ color: '#374151' }} />
@@ -1250,10 +1250,10 @@ export default function MembershipsClient() {
 
         {/* Tab pills */}
         <div className="flex-1 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
-          <div className="flex gap-1 w-max" style={{ background: '#F3F4F6', borderRadius: 10, padding: 4 }}>
+          <div className="flex items-center gap-1 w-max" style={{ background: '#F3F4F6', borderRadius: 10, padding: 4, height: 40 }}>
             {(['subscriptions', 'single-passes', 'trials'] as TabId[]).map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)}
-                style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                style={{ padding: '0 14px', height: 32, borderRadius: 8, border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
                   background: activeTab === tab ? '#fff' : 'transparent',
                   color: activeTab === tab ? '#111827' : '#6B7280',
@@ -1275,13 +1275,13 @@ export default function MembershipsClient() {
 
         <button onClick={handleExport}
           className="hidden sm:flex items-center gap-2 cursor-pointer shrink-0"
-          style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid #E5E7EB',
+          style={{ padding: '0 16px', height: 40, borderRadius: 10, border: '1px solid #E5E7EB',
             background: '#fff', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
         </button>
         <button onClick={openCreate}
           className="flex items-center gap-2 cursor-pointer shrink-0"
-          style={{ padding: '9px 18px', borderRadius: 10, border: 'none',
+          style={{ padding: '0 18px', height: 40, borderRadius: 10, border: 'none',
             background: '#0071E3', color: '#fff', fontSize: 13, fontWeight: 600 }}>
           <Plus size={15} />
           <span className="hidden sm:inline">Add Plan</span>

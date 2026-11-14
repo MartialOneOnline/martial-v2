@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react'
 import { Bell } from 'lucide-react'
 import NotificationsPopup from './popups/NotificationsPopup'
 
-// `size` is the square button's side in px (36 everywhere except pages whose
-// topbar uses 40px controls, e.g. Users).
-export default function NotificationBell({ size = 36 }: { size?: number } = {}) {
+// `size` is the square button's side in px; 40 matches every dashboard topbar control.
+export default function NotificationBell({ size = 40 }: { size?: number } = {}) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 

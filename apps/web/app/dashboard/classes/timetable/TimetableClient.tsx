@@ -609,7 +609,7 @@ export default function TimetableClient() {
         <div className="flex items-center justify-between px-4 md:px-6 py-3 shrink-0 gap-3"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
           <div className="flex items-center gap-3 min-w-0">
-            <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
               <Menu size={16} style={{ color: '#374151' }} />
             </button>
@@ -617,11 +617,11 @@ export default function TimetableClient() {
               Timetable
             </h1>
             {/* View toggle */}
-            <div className="flex items-center rounded-lg overflow-hidden shrink-0"
+            <div className="flex items-center h-10 rounded-lg overflow-hidden shrink-0"
               style={{ border: '1px solid #E5E7EB', background: '#F9FAFB' }}>
               {(['calendar', 'list'] as const).map(v => (
                 <button key={v} onClick={() => setView(v)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 h-full cursor-pointer"
                   style={{ fontSize: 12, fontWeight: 500, border: 'none',
                     background: view === v ? '#fff' : 'transparent',
                     color: view === v ? '#111827' : '#9CA3AF',
@@ -635,26 +635,26 @@ export default function TimetableClient() {
             {view === 'calendar' && (
               <div className="hidden sm:flex items-center gap-1">
                 <button onClick={() => setWeekOffset(o => o - 1)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer"
                   style={{ border: '1px solid #E5E7EB', background: '#fff' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
                   <ChevronLeft size={13} style={{ color: '#374151' }} />
                 </button>
-                <span className="px-3 py-1.5 rounded-lg select-none"
+                <span className="flex items-center px-3 h-10 rounded-lg select-none"
                   style={{ border: '1px solid #E5E7EB', background: '#fff', fontSize: 12,
                     fontWeight: 500, color: '#374151', whiteSpace: 'nowrap' }}>
                   {weekLabel}
                 </span>
                 <button onClick={() => setWeekOffset(o => o + 1)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg cursor-pointer"
                   style={{ border: '1px solid #E5E7EB', background: '#fff' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#F9FAFB'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
                   <ChevronRight size={13} style={{ color: '#374151' }} />
                 </button>
                 <button onClick={() => setWeekOffset(0)}
-                  className="px-3 py-1.5 rounded-lg cursor-pointer"
+                  className="px-3 h-10 rounded-lg cursor-pointer"
                   style={{ border: '1px solid #E5E7EB',
                     background: weekOffset === 0 ? '#EFF6FF' : '#fff',
                     fontSize: 12, fontWeight: 500,
@@ -679,14 +679,14 @@ export default function TimetableClient() {
                 ))}
               </div>
             )}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl"
+            <div className="hidden lg:flex items-center gap-2 px-3 h-10 rounded-xl"
               style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 12, color: '#374151', whiteSpace: 'nowrap' }}>
               <Clock size={12} style={{ color: '#9CA3AF' }} />
               {TODAY.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
             </div>
             <NotificationBell />
             <button onClick={() => setDrawerOpen(true)}
-              className="flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer"
+              className="flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer"
               style={{ background: '#0071E3', border: 'none', color: '#fff' }}>
               <Plus size={16} />
             </button>

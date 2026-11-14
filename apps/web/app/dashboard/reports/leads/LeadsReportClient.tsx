@@ -114,7 +114,7 @@ export default function LeadsReportClient() {
   return (
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 flex-wrap" style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+        <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
@@ -123,10 +123,10 @@ export default function LeadsReportClient() {
           {r.includeInvites}
         </label>
         <div className="flex-1" />
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: '#F3F4F6' }}>
+        <div className="flex items-center gap-1 p-1 h-10 rounded-xl" style={{ background: '#F3F4F6' }}>
           {(['30d', '90d', '12m', 'all'] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} className="cursor-pointer"
-              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '5px 12px', borderRadius: 8, border: 'none',
+              style={{ fontSize: 12, fontWeight: period === p ? 600 : 400, padding: '0 12px', height: 32, borderRadius: 8, border: 'none',
                 background: period === p ? '#fff' : 'transparent', color: period === p ? '#111827' : '#6B7280',
                 boxShadow: period === p ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
               {{ '30d': r.period30, '90d': r.period90, '12m': r.period12, all: r.periodAll }[p]}

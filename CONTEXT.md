@@ -303,7 +303,14 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/users-mobile-az`, Lote X — `RECHAZADO` en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`; sin migración; pendiente: prueba en iPhone real)
+### Sesión — 2026-11-14 (rama `claude/topbar-40`, Lote Y — pendiente de Codex Project Audit; sin migración; sin PR)
+
+- **Barra superior a 40px en todo el dashboard**: en las 29 páginas con menú móvil, menú, buscador, fecha, campana, idioma, filtros, botones de acción y selectores de periodo/calendario miden 40px; en móvil el buscador llega hasta la campana en las 12 páginas que lo tienen. `NotificationBell` y `DashboardLanguageSelector` pasan a 40px por defecto.
+- Notificaciones y Soporte usan ya el mismo patrón de barra que el resto.
+- Sigue sin existir una barra compartida: cada página tiene su copia. Un cambio de barra futuro hay que repetirlo en las 29 (o extraer un componente).
+- Verificación: `tsc`, `next build`, lint igual que `main`; medido en Chromium a 375 y 1280 px con una página temporal local.
+
+### Sesión — 2026-11-14 (rama `claude/users-mobile-az`, Lote X — `RECHAZADO` en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`; PR #66 mergeado `75b651d` y en producción el 2026-11-14; pendiente: prueba en iPhone real)
 
 - **Tabla de alumnos en móvil (`UsersClient.tsx`) sin paginación**: lista continua en orden A–Z (o Recientes por mes), encabezados de letra fijos bajo la barra superior y barra A–Z fija en el borde derecho con toque y arrastre del dedo (`components/AlphaRail.tsx`, burbuja con la letra). Misma lógica que el panel de desktop del Lote W (`lib/alphaIndex.ts`, `lib/listScrollIntent.ts`) y misma preferencia de orden.
 - En móvil la tabla ya no tiene scroll horizontal (si no, los encabezados no se quedan fijos); en tablet sí, y ahí los encabezados no se fijan.
