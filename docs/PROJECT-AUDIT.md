@@ -365,7 +365,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote Y — Barra superior a 40px en todas las páginas del dashboard (rama `claude/topbar-40`)
 
-- Estado: `APROBADO CON PENDIENTES` en `34976f3` (3 P2: 1 regresión, 2 previos) → `APROBADO CON PENDIENTES` en `2b7fe64` (los 3 cerrados; 1 P2 nuevo en tablet) → **`APROBADO`** en `08a2342`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados, sidebar de 232px, 375–1440px; `@container`/`@3xl`/`@5xl` confirmadas en el CSS del build; sin sesión real ni iOS). Sin migración.
+- Estado: `APROBADO CON PENDIENTES` en `34976f3` (3 P2: 1 regresión, 2 previos) → `APROBADO CON PENDIENTES` en `2b7fe64` (los 3 cerrados; 1 P2 nuevo en tablet) → **`APROBADO`** en `08a2342`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados, sidebar de 232px, 375–1440px; `@container`/`@3xl`/`@5xl` confirmadas en el CSS del build; sin sesión real ni iOS). Sin migración. PR [#67](https://github.com/MartialOneOnline/martial-v2/pull/67) **mergeado** (`dcaf547`) y en producción el 2026-11-14.
 - Pedido del usuario: aplicar en todas las páginas del dashboard la barra superior de Users (Lote X): todos los controles a 40px y, en móvil, el buscador hasta la campana.
 - Alcance: la barra superior de las 29 páginas del dashboard con menú móvil (no hay barra compartida: cada página tiene su copia) + `NotificationBell` y `DashboardLanguageSelector` (solo se usan en el dashboard). Sin cambios de comportamiento ni de datos.
 - Criterios:
@@ -389,6 +389,15 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   1. P2 — Informe de Usuarios a 768px con el menú lateral abierto (232px) y «Custom»: el buscador volvía a 0px y la segunda fecha salía de la pantalla, porque desde `md` (ancho de pantalla) se forzaba una sola fila aunque la barra solo tuviera ~470px. Ahora la barra decide por su propio ancho con *container queries* de Tailwind 4 (`@container`): con menos de 768px de barra los periodos van a su propia fila a todo el ancho; con menos de 1024px también las fechas personalizadas; con más, todo en una fila. La barra siempre puede hacer salto de línea (`flex-wrap`).
   - Comprobado por Claude en Chromium (página temporal local con un menú lateral simulado de 232px, ya borrada), con «Custom» activo y sin scroll horizontal en ningún caso: 375 sin menú → buscador 239px, campana 319–359, periodos fila 2, fechas fila 3; 768 + menú → buscador 163px, campana 696–736, fechas 264–736 en fila 3; 1024 + menú → 3 filas, buscador 291px; 1280 + menú → periodos en la fila 1 y fechas en la 2; 1440 + menú → una sola fila de 65px.
   - Evidencia: `tsc` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint del fichero igual que `main`; `next build` local correcto.
+
+### Lote Z — La burbuja de la barra de letras se quedaba pegada en iPhone (rama `claude/alpha-rail-bubble`)
+
+- Estado: **pendiente de Project Audit**. Sin migración. Sin PR todavía.
+- Pedido del usuario (captura en iPhone, en producción tras el Lote X): al tocar una letra de la barra A–Z, la burbuja grande con la letra se quedaba en pantalla, incluso al seguir haciendo scroll hacia otras letras. Debe verse solo mientras se toca/arrastra y desaparecer después. El recuadro azul pequeño de la letra actual en la barra es correcto y se mantiene.
+- Causa probable: la burbuja solo se ocultaba con `pointerup`/`pointercancel` del propio carril. En iOS Safari esos eventos no siempre llegan al carril cuando la página se desplaza bajo el dedo, que es justo lo que hace el salto.
+- Corrección (`apps/web/components/AlphaRail.tsx`): (a) mientras la burbuja está visible se escucha el final del toque en toda la página (`pointerup`, `pointercancel`, `touchend`, `touchcancel`, en fase de captura); (b) red de seguridad: la burbuja se oculta sola 800 ms después del último salto si no llega ningún aviso; cada salto mientras se arrastra reinicia esa cuenta, así que sigue visible durante el arrastre.
+- Evidencia: `tsc` limpio; lint del fichero sin avisos; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; `next build` local correcto. Comprobado por Claude en Chromium con `AlphaRail` montado solo (página temporal local, ya borrada; con el panel del navegador oculto la página no calcula layout, así que no se pudo usar la tabla completa) y eventos táctiles sintéticos: toque sin `pointerup` → visible y oculta a ~0,8 s; `pointerup` en otro elemento → oculta al instante; solo `touchend` → oculta al instante; arrastre de 1,5 s → visible durante el arrastre y oculta al soltar.
+- No verificado: iPhone real (es donde se ve el fallo).
 
 ## Próxima entrega de Claude
 

@@ -303,7 +303,12 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/topbar-40`, Lote Y — `APROBADO CON PENDIENTES` en `34976f3` (3 P2) → `APROBADO CON PENDIENTES` en `2b7fe64` (1 P2 tablet) → **`APROBADO`** en `08a2342`; sin migración; pendiente: merge y prueba en iPhone real)
+### Sesión — 2026-11-14 (rama `claude/alpha-rail-bubble`, Lote Z — pendiente de Codex Project Audit; sin migración; sin PR)
+
+- **Burbuja de la barra A–Z pegada en iPhone**: `components/AlphaRail.tsx` ahora la oculta con cualquier final de toque en la página (no solo en el carril) y, como red de seguridad, 800 ms después del último salto. Durante el arrastre sigue visible.
+- Comprobado en Chromium con eventos táctiles sintéticos; falta probar en iPhone real.
+
+### Sesión — 2026-11-14 (rama `claude/topbar-40`, Lote Y — `APROBADO CON PENDIENTES` en `34976f3` (3 P2) → `APROBADO CON PENDIENTES` en `2b7fe64` (1 P2 tablet) → **`APROBADO`** en `08a2342`; PR #67 mergeado `dcaf547` y en producción el 2026-11-14; pendiente: prueba en iPhone real)
 
 - **Barra superior a 40px en todo el dashboard**: en las 29 páginas con menú móvil, menú, buscador, fecha, campana, idioma, filtros, botones de acción y selectores de periodo/calendario miden 40px; en móvil el buscador llega hasta la campana en las 12 páginas que lo tienen. `NotificationBell` y `DashboardLanguageSelector` pasan a 40px por defecto.
 - Notificaciones y Soporte usan ya el mismo patrón de barra que el resto.
