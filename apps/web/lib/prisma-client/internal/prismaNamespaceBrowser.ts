@@ -111,7 +111,10 @@ export const ModelName = {
   SchoolSubscription: 'SchoolSubscription',
   StripeWebhookEvent: 'StripeWebhookEvent',
   InviteToken: 'InviteToken',
-  EmailChangeRequest: 'EmailChangeRequest'
+  EmailChangeRequest: 'EmailChangeRequest',
+  AccountMerge: 'AccountMerge',
+  AccountMergeClaim: 'AccountMergeClaim',
+  AccountMergeAuthPin: 'AccountMergeAuthPin'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1301,6 +1304,43 @@ export const EmailChangeRequestScalarFieldEnum = {
 } as const
 
 export type EmailChangeRequestScalarFieldEnum = (typeof EmailChangeRequestScalarFieldEnum)[keyof typeof EmailChangeRequestScalarFieldEnum]
+
+
+export const AccountMergeScalarFieldEnum = {
+  id: 'id',
+  keptUserId: 'keptUserId',
+  mergedUserId: 'mergedUserId',
+  mergedEmail: 'mergedEmail',
+  mergedName: 'mergedName',
+  actorId: 'actorId',
+  keptAuthId: 'keptAuthId',
+  disabledAuth: 'disabledAuth',
+  moved: 'moved',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeScalarFieldEnum = (typeof AccountMergeScalarFieldEnum)[keyof typeof AccountMergeScalarFieldEnum]
+
+
+export const AccountMergeClaimScalarFieldEnum = {
+  userId: 'userId',
+  attemptId: 'attemptId',
+  holdUntil: 'holdUntil',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeClaimScalarFieldEnum = (typeof AccountMergeClaimScalarFieldEnum)[keyof typeof AccountMergeClaimScalarFieldEnum]
+
+
+export const AccountMergeAuthPinScalarFieldEnum = {
+  authId: 'authId',
+  intent: 'intent',
+  email: 'email',
+  attemptId: 'attemptId',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeAuthPinScalarFieldEnum = (typeof AccountMergeAuthPinScalarFieldEnum)[keyof typeof AccountMergeAuthPinScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -3,6 +3,7 @@ import type Stripe from 'stripe'
 import { prisma } from '@/lib/db'
 import { getPlatformStripe } from '@/lib/stripe'
 import { SchoolSubscriptionStatus } from '@/lib/prisma-client/enums'
+import { resolveSurvivingUserId } from '@/lib/mergedUsers'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
 
 // POST /api/webhooks/stripe-platform
@@ -145,7 +146,8 @@ async function handleEvent(event: Stripe.Event, stripe: Stripe) {
         if (session.payment_status !== 'paid') break
         await fulfillCollectibleCheckout({
           collectibleUnitId,
-          userId: session.metadata!.userId!,
+          // The checkout may have been created by an account merged away since.
+          userId: await resolveSurvivingUserId(session.metadata!.userId!),
           amountTotalCents: session.amount_total ?? null,
           currency: session.currency ?? null,
           stripePaymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id ?? null,

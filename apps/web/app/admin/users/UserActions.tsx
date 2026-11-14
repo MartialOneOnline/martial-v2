@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import {
   MoreHorizontal, Pencil, MessageCircle, Trash2, X, Loader2,
-  Lock, Send, CheckCircle2,
+  Lock, Send, CheckCircle2, Merge,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 import RowMenu from '@/components/RowMenu'
@@ -28,10 +28,11 @@ const ROLES = ['SUPERADMIN', 'SCHOOL_OWNER', 'INSTRUCTOR', 'STUDENT']
 // ── Row kebab menu ─────────────────────────────────────────────────────────────
 // Rendered via a portal (RowMenu) so it escapes the table card's overflow-x-auto
 // clipping needed to keep wide tables from forcing the whole page to scroll on mobile.
-export function UserActionsMenu({ user, onEdit, onContact, onDelete }: {
+export function UserActionsMenu({ user, onEdit, onContact, onMerge, onDelete }: {
   user: AdminUser
   onEdit: () => void
   onContact: () => void
+  onMerge: () => void
   onDelete: () => void
 }) {
   return (
@@ -58,6 +59,12 @@ export function UserActionsMenu({ user, onEdit, onContact, onDelete }: {
         </button>
         {user.role !== 'SUPERADMIN' && (
           <>
+            <button
+              onClick={onMerge}
+              className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <Merge size={13} /> Merge with…
+            </button>
             <div className="my-1 border-t border-gray-100" />
             <button
               onClick={onDelete}

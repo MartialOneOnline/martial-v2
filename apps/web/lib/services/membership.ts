@@ -12,6 +12,7 @@ import { PaymentMethod, MembershipStatus, TransactionType, TransactionCategory, 
 import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
 import { getStripe } from '@/lib/stripe'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
+import { lockSurvivingUser } from '@/lib/mergedUsers'
 import { isTrialMembership, isTrialPlanType, NON_TRIAL_MEMBERSHIP_WHERE, syncTrialWindow, trialLapsed, TRIAL_MEMBERSHIP_WHERE } from '@/lib/services/trial'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -525,12 +526,15 @@ async function expireOneMembership(membership: {
   const newStatus = membership.cancelledAt ? MembershipStatus.CANCELLED : MembershipStatus.EXPIRED
 
   await prisma.$transaction(async (tx) => {
+    // Lock + re-resolve: an account merge may have moved this membership's
+    // owner since the cron read it (lib/mergedUsers.ts).
+    const userId = await lockSurvivingUser(tx, membership.userId)
     await tx.membership.update({
       where: { id: membership.id },
       data: { status: newStatus },
     })
     await syncSchoolMemberStatusForMembership(tx, {
-      userId: membership.userId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
+      userId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
     })
   })
 
@@ -690,11 +694,6 @@ export async function createRenewalPayment(input: CreateRenewalPaymentInput) {
     throw new Error('Free plans have nothing to collect — nothing to renew')
   }
 
-  const existing = await prisma.transaction.findFirst({
-    where: { membershipId, status: TransactionStatus.PENDING, category: TransactionCategory.MEMBERSHIP },
-  })
-  if (existing) return existing
-
   const periodStart = membership.endDate ?? membership.startDate
   // Imported/legacy memberships often carry no planId (see prisma/seed-rgm-payments.ts),
   // so fall back to repeating the membership's own start→end span when there's no
@@ -706,22 +705,33 @@ export async function createRenewalPayment(input: CreateRenewalPaymentInput) {
         ? new Date(periodStart.getTime() + (membership.endDate.getTime() - membership.startDate.getTime()))
         : null)
 
-  return prisma.transaction.create({
-    data: {
-      schoolId,
-      userId: membership.userId,
-      membershipId,
-      type: TransactionType.INCOME,
-      status: TransactionStatus.PENDING,
-      category: TransactionCategory.MEMBERSHIP,
-      paymentMethod: PaymentMethod.CASH,
-      amount: membership.price,
-      currency: membership.currency,
-      description: `${membership.planName} — renewal`,
-      date: new Date(),
-      periodStart,
-      periodEnd,
-    },
+  return prisma.$transaction(async (tx) => {
+    // Lock + re-resolve: an account merge may have moved this membership's
+    // owner since it was read above (lib/mergedUsers.ts) — the debt must land
+    // on the surviving account, never on the retired one.
+    const userId = await lockSurvivingUser(tx, membership.userId)
+    const existing = await tx.transaction.findFirst({
+      where: { membershipId, status: TransactionStatus.PENDING, category: TransactionCategory.MEMBERSHIP },
+    })
+    if (existing) return existing
+
+    return tx.transaction.create({
+      data: {
+        schoolId,
+        userId,
+        membershipId,
+        type: TransactionType.INCOME,
+        status: TransactionStatus.PENDING,
+        category: TransactionCategory.MEMBERSHIP,
+        paymentMethod: PaymentMethod.CASH,
+        amount: membership.price,
+        currency: membership.currency,
+        description: `${membership.planName} — renewal`,
+        date: new Date(),
+        periodStart,
+        periodEnd,
+      },
+    })
   })
 }
 

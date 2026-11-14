@@ -28,6 +28,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+// No account merges in these tests: user ids resolve to themselves.
+vi.mock('@/lib/mergedUsers', () => ({
+  resolveSurvivingUserId: async (id: string) => id,
+  lockSurvivingUser: async (_tx: unknown, id: string) => id,
+}))
 vi.mock('@/lib/stripe', () => ({
   getStripe: () => ({
     webhooks: {
