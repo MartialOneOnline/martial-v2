@@ -296,9 +296,25 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   - Sin tocar (fuera de alcance, ya listado o etiqueta): "Monthly Salary (€)" en staff y la tasa de graduación "€" en Settings.
   - Evidencia: `tsc` limpio; `currency.test.ts` 13/13; suite 1229 pasan / los mismos 55 fallan / 1 pendiente; avisos de lint iguales a `main` en los 8 ficheros tocados.
 
-### Lote U — Lista de alumnos continua en orden A–Z con índice por letras (rama `claude/users-list-az`)
+### Lote U — Fusionar cuentas duplicadas (rama `claude/merge-accounts`, PR #62)
 
-- Estado: `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → `APROBADO CON PENDIENTES` en `ea527c2` (1 P2 nuevo) → **`APROBADO`** en `6eb1282`, sin hallazgos P0–P3 (Codex: componente real en Chromium con 260 alumnos simulados; 19/19 tests; sin sesión real ni dashboard completo). Sin migración. Rama `origin/claude/users-list-az`; PR pendiente de merge.
+- Estado: `RECHAZADO` en `0c3b851` (5 P1, 2 P2) → `RECHAZADO` en `77bb81c` (2 P1, 2 P2) → `RECHAZADO` en `9cba507` (2 P1) → `RECHAZADO` en `3378f12` (1 P1, 1 P2) → `RECHAZADO` en `d8f9eec` (2 P1, 1 P2) → `RECHAZADO` en `0f88fae` (1 P1) → **`APROBADO`** en `b499d06`, sin hallazgos nuevos (Codex: 146/146 dirigidos; suite 1350 pasan / los mismos 55 de `main` / 1 pendiente; tsc, ESLint y `git diff --check` limpios). Migración `20261110120000_account_merges` (3 tablas, aditiva) **aplicada en Supabase el 2026-11-14** (`prisma migrate deploy`; tablas y `_prisma_migrations` verificados). **Mergeado el 2026-11-14.**
+- Pedido del usuario: un alumno aparecía dos veces en la búsqueda del dashboard (Apple «Ocultar mi email» + su email real), con el historial en una cuenta y la membresía activa en otra.
+- Diseño: acción de super admin «Merge with…» y página «Possible duplicates». La fusión mueve todas las referencias al usuario conservado y resuelve los conflictos únicos. La fila fusionada se borra de verdad y queda registrada en `AccountMerge`. Solo sobrevive un login: el otro se banea y se renombra. Reservas (`account_merge_claims`) y pins permanentes (`account_merge_auth_pins`) compartidos por todo lo que escribe en Supabase Auth: la fusión, el cambio de email del PR #59, su reconciliación y el auto-borrado. `lockSurvivingUser` y `resolveSurvivingUserId` protegen webhooks, crons y el QR de check-in.
+- No verificado: navegador, Supabase Auth real.
+
+### Lote V — Deshacer una cancelación programada (rama `claude/membership-undo-cancel`)
+
+- Estado: `APROBADO CON PENDIENTES` en `8e0cd9a` (2 P2) → `RECHAZADO` en `a7789d0` (1 P1: el reintento idempotente devolvía la membresía con `school.stripeSecretKey`) → **`APROBADO`** en `d1bed03`, sin hallazgos nuevos (Codex: 10/10; suite 1360 / los mismos 55 de `main`; tsc, ESLint y diff-check limpios). Pendiente de merge. Sin migración.
+- Corrección del P1: el camino idempotente relee la membresía sin `include` (como el camino normal); test HTTP con la ruta y el servicio reales que comprueba que ningún camino (primera vez, reintento, rechazo) lleva la clave en el JSON.
+- Correcciones: (P2) suscripción de Stripe sin clave de la escuela → error claro sin escribir nada local; (P2) fallo de red al deshacer → aviso traducido («recarga para comprobar o reintenta»). Reintentar es seguro: una membresía ya restaurada se devuelve sin cambios ni llamada a Stripe.
+- Pedido del usuario: no se podía añadir un pago a una membresía marcada para cancelarse al final del periodo («Payment» visible pero rechazado por el servidor) y no había forma de deshacer la cancelación.
+- Criterios: (1) «Payment» no aparece mientras haya `cancelledAt`; (2) «Deshacer cancelación» solo para ACTIVE + `cancelledAt`, en los 4 idiomas; (3) con Stripe, primero `cancel_at_period_end: false` y, si falla, nada local; (4) escritura condicional, que no revive una membresía terminada; (5) mismo permiso que cancelar.
+- No verificado: navegador (el usuario prueba la UI), Stripe real.
+
+### Lote W — Lista de alumnos continua en orden A–Z con índice por letras (rama `claude/users-list-az`)
+
+- Estado (auditado como "Lote U" antes de que `main` usara esa letra para fusionar cuentas): `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → `APROBADO CON PENDIENTES` en `ea527c2` (1 P2 nuevo) → **`APROBADO`** en `6eb1282`, sin hallazgos P0–P3 (Codex: componente real en Chromium con 260 alumnos simulados; 19/19 tests; sin sesión real ni dashboard completo). Sin migración. Rama `origin/claude/users-list-az`; PR pendiente de merge.
 - Pedido del usuario: el panel lateral de Users en desktop mostraba 8 alumnos por página ("1–8 of 59"), con más de un tercio del panel vacío. Quiere scroll continuo, orden alfabético y un marcador por letras tipo agenda. Maqueta aprobada antes de tocar código.
 - Alcance: solo `apps/web/app/dashboard/users/StudentListPanel.tsx` (vista dividida de desktop, montada desde `layout.tsx` vía `UsersSplitShell`). La tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8 a propósito.
 - Criterios:

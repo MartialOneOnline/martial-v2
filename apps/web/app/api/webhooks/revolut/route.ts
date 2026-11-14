@@ -9,6 +9,7 @@ import { isSchoolMemberArchived } from '@/lib/services/membership'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
 import { notifyPaymentReceived } from '@/lib/notifications/create'
+import { lockSurvivingUser } from '@/lib/mergedUsers'
 import { fmtPrice } from '@/lib/format'
 
 // POST /api/webhooks/revolut
@@ -79,7 +80,10 @@ export async function POST(req: NextRequest) {
         ? new Date(Date.now() + membership.plan.validityDays * 86_400_000)
         : undefined
 
+      let lockedUserId = membership.userId
       const outcome = await prisma.$transaction(async (tx) => {
+        // Lock + re-resolve: a merge may have moved this account meanwhile.
+        lockedUserId = await lockSurvivingUser(tx, membership.userId)
         // /api/my/checkout blocks starting a checkout while ARCHIVED, but a
         // staff member can archive this person *between* checkout and this
         // webhook delivery — Revolut has already captured the money by the
@@ -91,9 +95,9 @@ export async function POST(req: NextRequest) {
         // this same check every delivery (no per-event claim like Stripe's),
         // so recordFlaggedPayment's own idempotency is what keeps this from
         // creating a second flagged row.
-        if (await isSchoolMemberArchived(tx, { userId: membership.userId, schoolId: membership.schoolId })) {
+        if (await isSchoolMemberArchived(tx, { userId: lockedUserId, schoolId: membership.schoolId })) {
           await recordFlaggedPayment(tx, {
-            schoolId: membership.schoolId, userId: membership.userId,
+            schoolId: membership.schoolId, userId: lockedUserId,
             amount: Number(membership.price), currency: membership.currency,
             paymentMethod: PaymentMethod.REVOLUT,
             planId: membership.planId ?? undefined, planName: membership.planName,
@@ -130,7 +134,7 @@ export async function POST(req: NextRequest) {
         // race. The ARCHIVED case is already handled above, so an existing
         // row here just means PENDING/LEAD/ACTIVE/FROZEN/INACTIVE — promote it.
         const existingSchoolMember = await tx.schoolMember.findUnique({
-          where: { schoolId_userId: { schoolId: membership.schoolId, userId: membership.userId } },
+          where: { schoolId_userId: { schoolId: membership.schoolId, userId: lockedUserId } },
         })
         if (existingSchoolMember) {
           await tx.schoolMember.update({
@@ -139,12 +143,12 @@ export async function POST(req: NextRequest) {
           })
         } else {
           await tx.schoolMember.create({
-            data: { userId: membership.userId, schoolId: membership.schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
+            data: { userId: lockedUserId, schoolId: membership.schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
           })
         }
         await recordOnlinePayment(tx, {
           schoolId:      membership.schoolId,
-          userId:        membership.userId,
+          userId:        lockedUserId,
           amount:        Number(membership.price),
           currency:      membership.currency,
           paymentMethod: PaymentMethod.REVOLUT,
@@ -159,11 +163,11 @@ export async function POST(req: NextRequest) {
       if (outcome.archivedBlock) {
         // Real-time alerting hook — the durable record is the FLAGGED
         // Transaction created above, queryable from the dashboard.
-        console.error(`[revolut webhook] payment captured for ARCHIVED member — userId=${membership.userId} schoolId=${membership.schoolId} membershipId=${membership.id} orderId=${payload.order_id}. Flagged for manual review (see Transactions).`)
+        console.error(`[revolut webhook] payment captured for ARCHIVED member — userId=${lockedUserId} schoolId=${membership.schoolId} membershipId=${membership.id} orderId=${payload.order_id}. Flagged for manual review (see Transactions).`)
       }
       if (!outcome.claimed) return NextResponse.json({ received: true })
 
-      await convertLeadAfterPaidActivation(membership.schoolId, membership.userId, 'revolut webhook')
+      await convertLeadAfterPaidActivation(membership.schoolId, lockedUserId, 'revolut webhook')
 
       // Notify + send receipt email (fire-and-forget)
       prisma.membership.findUnique({
@@ -239,7 +243,10 @@ export async function POST(req: NextRequest) {
     const order = await getRevolutOrder(revolutSecretKey, payload.order_id)
     if (order.state !== 'COMPLETED') return NextResponse.json({ received: true })
 
+    let lockedUserId = eventBooking.userId
     const outcome = await prisma.$transaction(async (tx) => {
+      // Lock + re-resolve: a merge may have moved this account meanwhile.
+      lockedUserId = await lockSurvivingUser(tx, eventBooking.userId)
       // /api/my/events/checkout doesn't currently block starting a checkout
       // while ARCHIVED (unlike /api/my/checkout for memberships — see
       // TODO(event-checkout-archived-guard)), so this can trigger even
@@ -252,13 +259,13 @@ export async function POST(req: NextRequest) {
       // this same check every delivery (no per-event claim like Stripe's),
       // so recordFlaggedPayment's own idempotency is what keeps this from
       // creating a second flagged row.
-      if (await isSchoolMemberArchived(tx, { userId: eventBooking.userId, schoolId: eventBooking.event.schoolId })) {
+      if (await isSchoolMemberArchived(tx, { userId: lockedUserId, schoolId: eventBooking.event.schoolId })) {
         await tx.eventBooking.updateMany({
           where: { id: eventBooking.id, status: 'PENDING' },
           data: { status: 'CANCELLED' },
         })
         await recordFlaggedPayment(tx, {
-          schoolId: eventBooking.event.schoolId, userId: eventBooking.userId,
+          schoolId: eventBooking.event.schoolId, userId: lockedUserId,
           amount: Number(eventBooking.amountPaid ?? 0), currency: eventBooking.currency,
           paymentMethod: PaymentMethod.REVOLUT,
           eventId: eventBooking.eventId, eventTitle: eventBooking.event.title, bookingId: eventBooking.id,
@@ -293,7 +300,7 @@ export async function POST(req: NextRequest) {
       if (capacity.ok) {
         await recordOnlinePayment(tx, {
           schoolId:      eventBooking.event.schoolId,
-          userId:        eventBooking.userId,
+          userId:        lockedUserId,
           amount:        Number(eventBooking.amountPaid ?? 0),
           currency:      eventBooking.currency,
           paymentMethod: PaymentMethod.REVOLUT,
@@ -313,7 +320,7 @@ export async function POST(req: NextRequest) {
     if (outcome.archivedBlock) {
       // Real-time alerting hook — the durable record is the FLAGGED
       // Transaction created above, queryable from the dashboard.
-      console.error(`[revolut webhook] event payment captured for ARCHIVED member — userId=${eventBooking.userId} schoolId=${eventBooking.event.schoolId} eventBookingId=${eventBooking.id} orderId=${payload.order_id}. Flagged for manual review (see Transactions).`)
+      console.error(`[revolut webhook] event payment captured for ARCHIVED member — userId=${lockedUserId} schoolId=${eventBooking.event.schoolId} eventBookingId=${eventBooking.id} orderId=${payload.order_id}. Flagged for manual review (see Transactions).`)
     }
 
     if (!outcome.claimed) {

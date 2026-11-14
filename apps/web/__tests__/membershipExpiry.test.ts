@@ -24,6 +24,11 @@ const mockSchoolMemberUpdateMany = vi.fn().mockResolvedValue({ count: 1 })
 // Used by hasOtherActiveMembership() inside the tx — null means "no other ACTIVE membership".
 const mockOtherActiveMembershipFindFirst = vi.fn().mockResolvedValue(null)
 
+// No account merges in these tests: user ids resolve to themselves.
+vi.mock('@/lib/mergedUsers', () => ({
+  resolveSurvivingUserId: async (id: string) => id,
+  lockSurvivingUser: async (_tx: unknown, id: string) => id,
+}))
 vi.mock('@/lib/db', () => ({
   prisma: {
     membership: {

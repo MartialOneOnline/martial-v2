@@ -26,7 +26,7 @@ const USER = { id: 'u1', authId: 'auth-1' }
 
 function world(opts: { dbEmail?: string; otherEmails?: string[] } = {}) {
   let clock = new Date('2026-11-09T10:00:00Z').getTime()
-  const db = { email: opts.dbEmail ?? RELAY }
+  const db = { email: opts.dbEmail ?? RELAY, authId: USER.authId as string | null }
   const others = new Set(opts.otherEmails ?? [])
   let row: (ChangeRow & { userId: string }) | null = null
   let seq = 0
@@ -36,6 +36,7 @@ function world(opts: { dbEmail?: string; otherEmails?: string[] } = {}) {
   // Each method does its check-and-write synchronously, like one SQL statement.
   const store: EmailChangeStore = {
     async getUserEmail() { return db.email },
+    async getUserAuthId() { return db.authId },
     async isEmailTaken(email) { return others.has(email) },
     async getRequest() { return row ? { ...row } : null },
     async putPendingRequest(userId, data, cooldownBefore) {
@@ -495,6 +496,7 @@ describe('supabaseAuthEmailApi (real @supabase/supabase-js)', () => {
     try {
       const w = world()
       w.deps.auth = await adapter()
+      w.db.authId = SDK_USER.authId
       await requestEmailChange(w.deps, SDK_USER, { email: 'a@x.com' })
       expect(await confirmEmailChange(w.deps, SDK_USER, { code: w.sent[0]!.code })).toEqual({ ok: true, email: 'a@x.com' })
       expect(authEmail).toBe('a@x.com')
@@ -514,6 +516,7 @@ describe('supabaseAuthEmailApi (real @supabase/supabase-js)', () => {
     try {
       const w = world()
       w.deps.auth = await adapter()
+      w.db.authId = SDK_USER.authId
       await requestEmailChange(w.deps, SDK_USER, { email: 'a@x.com' })
       expect(await confirmEmailChange(w.deps, SDK_USER, { code: w.sent[0]!.code })).toEqual({ ok: false, error: 'update_failed' })
       expect(w.row()?.status).toBe('APPLYING')

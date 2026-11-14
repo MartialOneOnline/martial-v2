@@ -12,6 +12,7 @@ import { PaymentMethod, MembershipStatus, TransactionType, TransactionCategory, 
 import { sendMembershipReceiptEmail } from '@/lib/email/sendEmails'
 import { getStripe } from '@/lib/stripe'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
+import { lockSurvivingUser } from '@/lib/mergedUsers'
 import { isTrialMembership, isTrialPlanType, NON_TRIAL_MEMBERSHIP_WHERE, syncTrialWindow, trialLapsed, TRIAL_MEMBERSHIP_WHERE } from '@/lib/services/trial'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -525,12 +526,15 @@ async function expireOneMembership(membership: {
   const newStatus = membership.cancelledAt ? MembershipStatus.CANCELLED : MembershipStatus.EXPIRED
 
   await prisma.$transaction(async (tx) => {
+    // Lock + re-resolve: an account merge may have moved this membership's
+    // owner since the cron read it (lib/mergedUsers.ts).
+    const userId = await lockSurvivingUser(tx, membership.userId)
     await tx.membership.update({
       where: { id: membership.id },
       data: { status: newStatus },
     })
     await syncSchoolMemberStatusForMembership(tx, {
-      userId: membership.userId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
+      userId, schoolId: membership.schoolId, membershipStatus: newStatus, excludeMembershipId: membership.id,
     })
   })
 
@@ -690,11 +694,6 @@ export async function createRenewalPayment(input: CreateRenewalPaymentInput) {
     throw new Error('Free plans have nothing to collect — nothing to renew')
   }
 
-  const existing = await prisma.transaction.findFirst({
-    where: { membershipId, status: TransactionStatus.PENDING, category: TransactionCategory.MEMBERSHIP },
-  })
-  if (existing) return existing
-
   const periodStart = membership.endDate ?? membership.startDate
   // Imported/legacy memberships often carry no planId (see prisma/seed-rgm-payments.ts),
   // so fall back to repeating the membership's own start→end span when there's no
@@ -706,23 +705,87 @@ export async function createRenewalPayment(input: CreateRenewalPaymentInput) {
         ? new Date(periodStart.getTime() + (membership.endDate.getTime() - membership.startDate.getTime()))
         : null)
 
-  return prisma.transaction.create({
-    data: {
-      schoolId,
-      userId: membership.userId,
-      membershipId,
-      type: TransactionType.INCOME,
-      status: TransactionStatus.PENDING,
-      category: TransactionCategory.MEMBERSHIP,
-      paymentMethod: PaymentMethod.CASH,
-      amount: membership.price,
-      currency: membership.currency,
-      description: `${membership.planName} — renewal`,
-      date: new Date(),
-      periodStart,
-      periodEnd,
-    },
+  return prisma.$transaction(async (tx) => {
+    // Lock + re-resolve: an account merge may have moved this membership's
+    // owner since it was read above (lib/mergedUsers.ts) — the debt must land
+    // on the surviving account, never on the retired one.
+    const userId = await lockSurvivingUser(tx, membership.userId)
+    const existing = await tx.transaction.findFirst({
+      where: { membershipId, status: TransactionStatus.PENDING, category: TransactionCategory.MEMBERSHIP },
+    })
+    if (existing) return existing
+
+    return tx.transaction.create({
+      data: {
+        schoolId,
+        userId,
+        membershipId,
+        type: TransactionType.INCOME,
+        status: TransactionStatus.PENDING,
+        category: TransactionCategory.MEMBERSHIP,
+        paymentMethod: PaymentMethod.CASH,
+        amount: membership.price,
+        currency: membership.currency,
+        description: `${membership.planName} — renewal`,
+        date: new Date(),
+        periodStart,
+        periodEnd,
+      },
+    })
   })
+}
+
+export interface UndoCancelMembershipInput {
+  membershipId: string
+  schoolId: string
+}
+
+/**
+ * Undoes a scheduled (end-of-period) cancellation: the membership stays
+ * ACTIVE and renews as usual again. Only for that case — a membership already
+ * CANCELLED has ended, and getting it back means assigning a plan.
+ *
+ * With a Stripe subscription, Stripe's cancel_at_period_end is cleared first,
+ * awaited, same order as cancelMembership: if Stripe fails nothing local
+ * changes. Pending payments the cancellation cancelled are not brought back —
+ * staff add the next payment again with "Payment". Safe to retry: a
+ * membership already back to normal is returned unchanged.
+ */
+export async function undoCancelMembership(input: UndoCancelMembershipInput) {
+  const { membershipId, schoolId } = input
+  const membership = await prisma.membership.findFirst({
+    where: { id: membershipId, schoolId },
+    include: { school: { select: { stripeSecretKey: true } } },
+  })
+  if (!membership) throw new Error('Membership not found')
+  if (membership.status !== MembershipStatus.ACTIVE) {
+    throw new Error('Only an active membership can have its cancellation undone — assign a plan instead')
+  }
+  // Already undone (e.g. a retry after the first answer was lost): nothing to do.
+  // Re-read without the school include: `membership` carries the school's
+  // Stripe secret key and this goes straight to the browser.
+  if (!membership.cancelledAt) return prisma.membership.findUnique({ where: { id: membershipId } })
+
+  if (membership.stripeSubId) {
+    // Without the school's key Stripe would keep the cancellation scheduled
+    // while the dashboard says the membership continues.
+    if (!membership.school?.stripeSecretKey) {
+      throw new Error('This membership is billed through Stripe, but the school has no Stripe key configured — the cancellation can’t be undone in Stripe')
+    }
+    try {
+      await getStripe(membership.school.stripeSecretKey).subscriptions.update(membership.stripeSubId, { cancel_at_period_end: false })
+    } catch (err) {
+      throw new Error(`Stripe subscription update failed: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
+  // Conditional: never revives a membership that ended meanwhile.
+  const { count } = await prisma.membership.updateMany({
+    where: { id: membershipId, schoolId, status: MembershipStatus.ACTIVE, cancelledAt: { not: null } },
+    data: { cancelledAt: null, notes: [membership.notes, 'Cancellation undone'].filter(Boolean).join(' | ') },
+  })
+  if (count === 0) throw new Error('Membership changed meanwhile — reload and try again')
+  return prisma.membership.findUnique({ where: { id: membershipId } })
 }
 
 /**

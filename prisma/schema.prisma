@@ -2380,3 +2380,59 @@ model EmailChangeRequest {
 
   @@map("email_change_requests")
 }
+
+// Audit record of an admin "Merge accounts" action (lib/accountMerge.ts):
+// one person ended up with two User rows (typically an Apple "Hide My Email"
+// sign-in next to their real account) and everything was moved onto
+// keptUserId. The merged row stays in `users` soft-deleted with a placeholder
+// email; mergedEmail keeps the address it had. User ids are plain strings,
+// not FKs, so this history can never block deleting either row later.
+model AccountMerge {
+  id           String   @id @default(cuid())
+  keptUserId   String
+  mergedUserId String
+  mergedEmail  String
+  mergedName   String?
+  actorId      String?
+  keptAuthId   String?  @db.Uuid
+  // [{ id, email }] Supabase Auth users banned + renamed by the merge
+  disabledAuth Json
+  // Rows moved per table, e.g. { bookings: 17, memberships: 1 }
+  moved        Json
+  createdAt    DateTime @default(now())
+
+  @@index([keptUserId])
+  @@index([mergedUserId])
+  @@map("account_merges")
+}
+
+// Claim on a user while an admin account merge runs, or while it settles
+// after an uncertain Supabase Auth write (lib/accountMerge.ts). A merge that
+// touches a user with a live claim (holdUntil in the future) is refused, so
+// a late-arriving Auth write from an earlier attempt can never race a retry.
+// Expired rows are simply taken over; nothing needs cleaning up.
+model AccountMergeClaim {
+  userId    String   @id
+  attemptId String
+  holdUntil DateTime
+  createdAt DateTime @default(now())
+
+  @@map("account_merge_claims")
+}
+
+// Intent recorded for a Supabase Auth user before an account merge writes to
+// it (lib/accountMerge.ts): RETIRE (ban + placeholder email) or KEEP (this
+// email, unbanned). A pin whose write ended with an unknown outcome (timeout,
+// network error, 5xx) stays forever — that request may still be applied by
+// Supabase at any time — and every later merge must agree with it, so a late
+// write can only ever re-apply what was intended. Pins of writes that
+// finished definitely are removed straight away.
+model AccountMergeAuthPin {
+  authId    String   @id @db.Uuid
+  intent    String // RETIRE | KEEP
+  email     String
+  attemptId String
+  createdAt DateTime @default(now())
+
+  @@map("account_merge_auth_pins")
+}

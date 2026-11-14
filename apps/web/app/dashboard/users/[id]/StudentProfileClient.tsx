@@ -1188,7 +1188,7 @@ function EditTransactionModal({ tx, membershipEndDate, onClose, onSaved }: {
 // ── Membership Section ─────────────────────────────────────────────────────────
 function MembershipSection({
   memberId, activeMembership: initialActiveMembership, memberships: initialMemberships, availablePlans,
-  pendingRenewal, onAssigned, onRenewalCreated, onRenewalPaid, onRenewalCancelled, onCancelled,
+  pendingRenewal, onAssigned, onRenewalCreated, onRenewalPaid, onRenewalCancelled, onCancelled, onUncancelled,
 }: {
   memberId: string
   activeMembership: ActiveMembership | null
@@ -1200,6 +1200,7 @@ function MembershipSection({
   onRenewalPaid: (transactionId: string, newEndDate: string | null) => void
   onRenewalCancelled: (transactionId: string) => void
   onCancelled: (membershipId: string, deferredCancelledAt?: string) => void
+  onUncancelled: (membershipId: string) => void
 }) {
   const tt = useT()
   const memStatusMap = getMemStatusMap(tt)
@@ -1208,6 +1209,7 @@ function MembershipSection({
   const [showModal, setShowModal] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [cancelling, setCancelling] = useState(false)
+  const [undoingCancel, setUndoingCancel] = useState(false)
   const [creatingRenewal, setCreatingRenewal] = useState(false)
   const [markingPaid, setMarkingPaid] = useState(false)
   const [cancellingRenewal, setCancellingRenewal] = useState(false)
@@ -1342,6 +1344,32 @@ function MembershipSection({
     }
   }
 
+  async function handleUndoCancel() {
+    if (!activeMembership || !confirm(tt.studentProfile.undoCancelConfirm)) return
+    setUndoingCancel(true)
+    try {
+      const res = await fetch(`/api/dashboard/members/${memberId}/membership`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ membershipId: activeMembership.id, action: 'undoCancel' }),
+      })
+      if (res.ok) {
+        setActiveMembership(prev => prev ? { ...prev, cancelledAt: null } : prev)
+        onUncancelled(activeMembership.id)
+      } else {
+        const d = await res.json().catch(() => ({}))
+        alert(d.error ?? tt.studentProfile.couldNotUndoCancel)
+      }
+    } catch {
+      // No answer: it may or may not have gone through. Retrying is safe
+      // (an already-undone membership is returned unchanged), and a reload
+      // shows the current state.
+      alert(tt.studentProfile.undoCancelNoAnswer)
+    } finally {
+      setUndoingCancel(false)
+    }
+  }
+
   async function handleCancel() {
     if (!activeMembership || !confirm(tt.studentProfile.cancelMembershipConfirm)) return
     setCancelling(true)
@@ -1386,7 +1414,7 @@ function MembershipSection({
       <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', margin: 0 }}>{tt.studentProfile.membershipTitle}</p>
         <div className="flex items-center gap-2">
-          {activeMembership && activeMembership.paymentMethod === 'CASH' && !pendingRenewal && Number(activeMembership.price) > 0 && (
+          {activeMembership && activeMembership.paymentMethod === 'CASH' && !activeMembership.cancelledAt && !pendingRenewal && Number(activeMembership.price) > 0 && (
             <button onClick={handleCreateRenewalPayment} disabled={creatingRenewal}
               className="flex items-center gap-1"
               style={{ fontSize: 12, fontWeight: 600, color: '#D97706', background: '#FFFBEB', border: 'none',
@@ -1522,6 +1550,11 @@ function MembershipSection({
                   </span>
                   {' · '}{tt.studentProfile.accessUntilThen}
                 </p>
+                <button onClick={handleUndoCancel} disabled={undoingCancel}
+                  style={{ marginLeft: 'auto', flexShrink: 0, fontSize: 12, fontWeight: 600, color: '#0071E3', background: 'none', border: 'none',
+                    padding: 0, cursor: undoingCancel ? 'not-allowed' : 'pointer', opacity: undoingCancel ? 0.6 : 1 }}>
+                  {tt.studentProfile.undoCancel}
+                </button>
               </div>
             )}
 
@@ -2221,6 +2254,9 @@ export default function StudentProfileClient({ profile: initialProfile, ranks, a
               }}
               onRenewalCancelled={transactionId => {
                 setTransactions(prev => prev.map(t => t.id === transactionId ? { ...t, status: 'CANCELLED' } : t))
+              }}
+              onUncancelled={membershipId => {
+                setActiveMembership(prev => prev && prev.id === membershipId ? { ...prev, cancelledAt: null } : prev)
               }}
               onCancelled={(membershipId, deferredCancelledAt) => {
                 setActiveMembership(prev => deferredCancelledAt && prev ? { ...prev, cancelledAt: deferredCancelledAt } : null)

@@ -29,6 +29,11 @@ const mockGetAuthUser = vi.fn()
 const mockGetCurrentSchoolId = vi.fn()
 const mockRequireSchoolAccess = vi.fn()
 
+// No account merges in these tests: user ids resolve to themselves.
+vi.mock('@/lib/mergedUsers', () => ({
+  resolveSurvivingUserId: async (id: string) => id,
+  lockSurvivingUser: async (_tx: unknown, id: string) => id,
+}))
 vi.mock('@/lib/auth/server', () => ({
   getAuthUser: mockGetAuthUser,
   getCurrentSchoolId: mockGetCurrentSchoolId,

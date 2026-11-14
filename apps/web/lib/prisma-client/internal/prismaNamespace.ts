@@ -444,7 +444,10 @@ export const ModelName = {
   SchoolSubscription: 'SchoolSubscription',
   StripeWebhookEvent: 'StripeWebhookEvent',
   InviteToken: 'InviteToken',
-  EmailChangeRequest: 'EmailChangeRequest'
+  EmailChangeRequest: 'EmailChangeRequest',
+  AccountMerge: 'AccountMerge',
+  AccountMergeClaim: 'AccountMergeClaim',
+  AccountMergeAuthPin: 'AccountMergeAuthPin'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -460,7 +463,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest" | "accountMerge" | "accountMergeClaim" | "accountMergeAuthPin"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4978,6 +4981,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AccountMerge: {
+      payload: Prisma.$AccountMergePayload<ExtArgs>
+      fields: Prisma.AccountMergeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccountMergeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccountMergeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        findFirst: {
+          args: Prisma.AccountMergeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccountMergeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        findMany: {
+          args: Prisma.AccountMergeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>[]
+        }
+        create: {
+          args: Prisma.AccountMergeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        createMany: {
+          args: Prisma.AccountMergeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AccountMergeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>[]
+        }
+        delete: {
+          args: Prisma.AccountMergeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        update: {
+          args: Prisma.AccountMergeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        deleteMany: {
+          args: Prisma.AccountMergeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccountMergeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AccountMergeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>[]
+        }
+        upsert: {
+          args: Prisma.AccountMergeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergePayload>
+        }
+        aggregate: {
+          args: Prisma.AccountMergeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccountMerge>
+        }
+        groupBy: {
+          args: Prisma.AccountMergeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccountMergeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeCountAggregateOutputType> | number
+        }
+      }
+    }
+    AccountMergeClaim: {
+      payload: Prisma.$AccountMergeClaimPayload<ExtArgs>
+      fields: Prisma.AccountMergeClaimFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccountMergeClaimFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccountMergeClaimFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>
+        }
+        findFirst: {
+          args: Prisma.AccountMergeClaimFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccountMergeClaimFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>
+        }
+        findMany: {
+          args: Prisma.AccountMergeClaimFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>[]
+        }
+        create: {
+          args: Prisma.AccountMergeClaimCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>
+        }
+        createMany: {
+          args: Prisma.AccountMergeClaimCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AccountMergeClaimCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>[]
+        }
+        delete: {
+          args: Prisma.AccountMergeClaimDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>
+        }
+        update: {
+          args: Prisma.AccountMergeClaimUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>
+        }
+        deleteMany: {
+          args: Prisma.AccountMergeClaimDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccountMergeClaimUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AccountMergeClaimUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>[]
+        }
+        upsert: {
+          args: Prisma.AccountMergeClaimUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeClaimPayload>
+        }
+        aggregate: {
+          args: Prisma.AccountMergeClaimAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccountMergeClaim>
+        }
+        groupBy: {
+          args: Prisma.AccountMergeClaimGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeClaimGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccountMergeClaimCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeClaimCountAggregateOutputType> | number
+        }
+      }
+    }
+    AccountMergeAuthPin: {
+      payload: Prisma.$AccountMergeAuthPinPayload<ExtArgs>
+      fields: Prisma.AccountMergeAuthPinFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccountMergeAuthPinFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccountMergeAuthPinFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        findFirst: {
+          args: Prisma.AccountMergeAuthPinFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccountMergeAuthPinFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        findMany: {
+          args: Prisma.AccountMergeAuthPinFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>[]
+        }
+        create: {
+          args: Prisma.AccountMergeAuthPinCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        createMany: {
+          args: Prisma.AccountMergeAuthPinCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AccountMergeAuthPinCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>[]
+        }
+        delete: {
+          args: Prisma.AccountMergeAuthPinDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        update: {
+          args: Prisma.AccountMergeAuthPinUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        deleteMany: {
+          args: Prisma.AccountMergeAuthPinDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccountMergeAuthPinUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AccountMergeAuthPinUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>[]
+        }
+        upsert: {
+          args: Prisma.AccountMergeAuthPinUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccountMergeAuthPinPayload>
+        }
+        aggregate: {
+          args: Prisma.AccountMergeAuthPinAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccountMergeAuthPin>
+        }
+        groupBy: {
+          args: Prisma.AccountMergeAuthPinGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeAuthPinGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccountMergeAuthPinCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccountMergeAuthPinCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -6190,6 +6415,43 @@ export const EmailChangeRequestScalarFieldEnum = {
 export type EmailChangeRequestScalarFieldEnum = (typeof EmailChangeRequestScalarFieldEnum)[keyof typeof EmailChangeRequestScalarFieldEnum]
 
 
+export const AccountMergeScalarFieldEnum = {
+  id: 'id',
+  keptUserId: 'keptUserId',
+  mergedUserId: 'mergedUserId',
+  mergedEmail: 'mergedEmail',
+  mergedName: 'mergedName',
+  actorId: 'actorId',
+  keptAuthId: 'keptAuthId',
+  disabledAuth: 'disabledAuth',
+  moved: 'moved',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeScalarFieldEnum = (typeof AccountMergeScalarFieldEnum)[keyof typeof AccountMergeScalarFieldEnum]
+
+
+export const AccountMergeClaimScalarFieldEnum = {
+  userId: 'userId',
+  attemptId: 'attemptId',
+  holdUntil: 'holdUntil',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeClaimScalarFieldEnum = (typeof AccountMergeClaimScalarFieldEnum)[keyof typeof AccountMergeClaimScalarFieldEnum]
+
+
+export const AccountMergeAuthPinScalarFieldEnum = {
+  authId: 'authId',
+  intent: 'intent',
+  email: 'email',
+  attemptId: 'attemptId',
+  createdAt: 'createdAt'
+} as const
+
+export type AccountMergeAuthPinScalarFieldEnum = (typeof AccountMergeAuthPinScalarFieldEnum)[keyof typeof AccountMergeAuthPinScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -7009,6 +7271,9 @@ export type GlobalOmitConfig = {
   stripeWebhookEvent?: Prisma.StripeWebhookEventOmit
   inviteToken?: Prisma.InviteTokenOmit
   emailChangeRequest?: Prisma.EmailChangeRequestOmit
+  accountMerge?: Prisma.AccountMergeOmit
+  accountMergeClaim?: Prisma.AccountMergeClaimOmit
+  accountMergeAuthPin?: Prisma.AccountMergeAuthPinOmit
 }
 
 /* Types for Logging */
