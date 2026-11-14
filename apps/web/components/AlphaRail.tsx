@@ -1,6 +1,10 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+// Hide the letter bubble this long after the last jump if no end-of-touch
+// event arrives (iOS can drop them while the page scrolls under the finger).
+const BUBBLE_FALLBACK_MS = 800
 
 // Contact-book letter rail fixed to the right edge of the screen, for lists that
 // scroll with the page (mobile). Tap a letter or drag a finger along it; a
@@ -23,6 +27,25 @@ export default function AlphaRail({
   const railRef = useRef<HTMLDivElement>(null)
   const [bubble, setBubble] = useState<{ key: string; y: number } | null>(null)
 
+  // The bubble only lives while the finger is on the rail. iOS Safari doesn't
+  // always deliver pointerup/cancel to the rail when the page scrolls under the
+  // finger (which is exactly what a jump does), and the bubble stayed stuck.
+  // So: hide on any end-of-touch anywhere on the page, and as a fallback a
+  // moment after the last jump (each new jump while dragging restarts it).
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hideBubble = () => {
+    if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null }
+    setBubble(null)
+  }
+  useEffect(() => {
+    if (!bubble) return
+    const end = () => hideBubble()
+    const events = ['pointerup', 'pointercancel', 'touchend', 'touchcancel'] as const
+    events.forEach(ev => window.addEventListener(ev, end, true))
+    return () => events.forEach(ev => window.removeEventListener(ev, end, true))
+  }, [bubble])
+  useEffect(() => () => { if (hideTimer.current) clearTimeout(hideTimer.current) }, [])
+
   const letterAt = (clientY: number): HTMLElement | null => {
     const items = railRef.current?.querySelectorAll<HTMLElement>('[data-letter]')
     if (!items?.length) return null
@@ -38,6 +61,8 @@ export default function AlphaRail({
     if (!key) return
     const r = el.getBoundingClientRect()
     setBubble({ key, y: r.top + r.height / 2 })
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+    hideTimer.current = setTimeout(hideBubble, BUBBLE_FALLBACK_MS)
   }
 
   return (
@@ -45,8 +70,8 @@ export default function AlphaRail({
       <div ref={railRef} role="navigation" aria-label={label}
         onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e.clientY) }}
         onPointerMove={e => { if (e.currentTarget.hasPointerCapture(e.pointerId)) scrub(e.clientY) }}
-        onPointerUp={() => setBubble(null)}
-        onPointerCancel={() => setBubble(null)}
+        onPointerUp={hideBubble}
+        onPointerCancel={hideBubble}
         style={{ position: 'fixed', right: 'calc(1px + env(safe-area-inset-right, 0px))', top: top + 8,
           bottom: 'calc(10px + env(safe-area-inset-bottom, 0px))', width: 20, zIndex: 15,
           display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
