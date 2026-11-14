@@ -636,7 +636,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           {/* Burger — mobile/tablet only */}
           <button
             id="burger-btn"
-            className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
             onClick={() => setMenuOpen(!menuOpen)}
           >
@@ -644,7 +644,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           </button>
 
           {/* Search — hidden on mobile */}
-          <div ref={searchBoxRef} className="hidden sm:flex flex-1 max-w-sm items-center gap-2 px-3 py-2 rounded-xl relative"
+          <div ref={searchBoxRef} className="hidden sm:flex flex-1 max-w-sm items-center gap-2 px-3 h-10 rounded-xl relative"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
             <Filter size={13} strokeWidth={1.5} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             <input type="text" placeholder={t.dashboard.searchPlaceholder}
@@ -700,7 +700,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
                 fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 color: period === p ? '#111827' : '#6B7280',
                 background: period === p ? '#F3F4F6' : 'transparent',
-                border: 'none', borderRadius: 8, padding: '5px 10px',
+                border: 'none', borderRadius: 8, padding: '0 10px', height: 40,
               }}>{periodLabels[p]}</button>
             )})}
           </div>
@@ -708,7 +708,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
           <div className="flex-1" />
 
           {/* Date — hidden on mobile */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl"
+          <div className="hidden sm:flex items-center gap-2 px-3 h-10 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
             <Clock size={13} strokeWidth={1.5} style={{ color: '#9CA3AF' }} />
             {dateLabel}
@@ -725,7 +725,7 @@ export default function DashboardClient({ userName, userEmail }: Props) {
             alignItems: 'center', gap: 6,
             fontSize: 13, fontWeight: 500, color: '#374151',
             background: '#fff', border: '1px solid #E5E7EB',
-            borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+            borderRadius: 8, padding: '0 14px', height: 40, cursor: 'pointer',
           }}>
             <Download size={13} strokeWidth={1.5} style={{ color: '#6B7280' }} />
             {t.common.export}

@@ -54,8 +54,8 @@ const LANGUAGES: { code: Locale; name: string }[] = [
   { code: 'fr', name: 'Français'   },
 ]
 
-// `size` is the square button's side in px (36 by default, 40 on the Users topbar).
-export default function DashboardLanguageSelector({ size = 36 }: { size?: number } = {}) {
+// `size` is the square button's side in px; 40 matches every dashboard topbar control.
+export default function DashboardLanguageSelector({ size = 40 }: { size?: number } = {}) {
   const { locale, setLocale } = useLanguage()
   const [open, setOpen]       = useState(false)
   const ref                   = useRef<HTMLDivElement>(null)

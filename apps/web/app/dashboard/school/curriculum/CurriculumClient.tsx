@@ -416,14 +416,14 @@ export default function CurriculumClient() {
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+        <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
         <div className="flex-1" />
         <NotificationBell />
         <button onClick={() => setDrawerOpen(true)} disabled={!selectedId}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
+          className="flex items-center gap-2 px-4 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: selectedId ? '#0071E3' : '#93C5FD', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
           <Plus size={15} />Add Lesson
         </button>

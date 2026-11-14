@@ -340,7 +340,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote X — Tabla de alumnos en móvil: lista A–Z con índice por letras + barra superior a 40px (rama `claude/users-mobile-az`)
 
-- Estado: **`RECHAZADO`** en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados a 375/800/1280 px; sin regresiones en `/`, `/explore`, `/my` y Clases; sin sesión real ni Safari/iOS). Sin migración.
+- Estado: **`RECHAZADO`** en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados a 375/800/1280 px; sin regresiones en `/`, `/explore`, `/my` y Clases; sin sesión real ni Safari/iOS). Sin migración. PR [#66](https://github.com/MartialOneOnline/martial-v2/pull/66) **mergeado** (`75b651d`) y en producción el 2026-11-14.
 - Pedido del usuario: llevar a la tabla de móvil lo mismo que el panel de desktop (Lote W), con maqueta aprobada antes del código. Además, en la barra superior de móvil el buscador debe llegar hasta la campana, y menú, buscador, campana, idioma y filtros deben tener la misma altura.
 - Alcance: `apps/web/app/dashboard/users/UsersClient.tsx` (la vista de lista que se ve en móvil/tablet y en desktop cuando no hay vista dividida). El panel de desktop (Lote W) no cambia.
 - Criterios:
@@ -362,6 +362,33 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   - Extra visto al comprobarlo: en una tabla de bordes colapsados, los bordes de una celda fija no se mueven con ella y asomaban unos píxeles de filas por encima del encabezado; las líneas pasan a ser sombras interiores.
   - Comprobado por Claude en Chromium con el componente y el CSS reales (página temporal local con 832 alumnos simulados, ya borrada): a 375px no hay scroll horizontal, la tabla mide 333px, el "···" va de x=318 a 346 y la barra de letras empieza en x=354; tras saltar a M y bajar 200px, la barra superior sigue en y=0 y el encabezado "M" en y=65, con la M resaltada; a 800px el encabezado ocupa 5 columnas, sin scroll horizontal.
   - Evidencia: `tsc` limpio; 23/23 en los tests del lote; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint: los mismos 6 avisos que `main`.
+
+### Lote Y — Barra superior a 40px en todas las páginas del dashboard (rama `claude/topbar-40`)
+
+- Estado: `APROBADO CON PENDIENTES` en `34976f3` (3 P2: 1 regresión, 2 previos) → `APROBADO CON PENDIENTES` en `2b7fe64` (los 3 cerrados; 1 P2 nuevo en tablet) → **`APROBADO`** en `08a2342`, sin hallazgos P0–P3 (Codex: Chromium con componentes reales y datos simulados, sidebar de 232px, 375–1440px; `@container`/`@3xl`/`@5xl` confirmadas en el CSS del build; sin sesión real ni iOS). Sin migración.
+- Pedido del usuario: aplicar en todas las páginas del dashboard la barra superior de Users (Lote X): todos los controles a 40px y, en móvil, el buscador hasta la campana.
+- Alcance: la barra superior de las 29 páginas del dashboard con menú móvil (no hay barra compartida: cada página tiene su copia) + `NotificationBell` y `DashboardLanguageSelector` (solo se usan en el dashboard). Sin cambios de comportamiento ni de datos.
+- Criterios:
+  1. Menú, buscador, fecha, campana, idioma, filtros y botones de acción ("+", Exportar, Añadir…) miden 40px de alto en todas las barras; la barra mide 65px (40 + 12 + 12 + borde).
+  2. Campana e idioma: `size` por defecto 40 (antes 36); Users deja de pasarlo.
+  3. En móvil el buscador ocupa el hueco hasta la campana en las 12 páginas con buscador (el espaciador solo existe desde `md`; `max-w-xs`/`max-w-sm` solo desde `md`). La home mantiene el buscador oculto en móvil, como antes.
+  4. Selectores de periodo (informes de Balance, Leads y Usuarios; pestañas de Membresías) y controles del Calendario/Horario (vista Mes/Semana, flechas, fecha, Hoy) también a 40px; los botones internos de un selector miden 32px dentro de su caja de 40.
+  5. Notificaciones y Soporte tenían otra barra (60px, menú sin caja): ahora usan el mismo patrón que el resto; la campana de Notificaciones sigue siendo un enlace a la propia página, con caja de 40px.
+  6. Suscripciones: el botón "Filters" de la barra pasa de 34 a 40px.
+- Archivos: 27 clientes de páginas en `app/dashboard/**`, `components/NotificationBell.tsx`, `components/DashboardLanguageSelector.tsx`, `components/grading/GradingModuleGate.tsx`, `CONTEXT.md`.
+- Evidencia: `tsc --noEmit` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint de los 32 ficheros: 63 avisos, los mismos que en `main`; `next build` local correcto. Medido por Claude en Chromium con una página temporal local (ya borrada) que monta cada página real: a 375px las 29 barras miden 65px con todos sus controles a 40px y sin scroll horizontal; a 1280px igual en las 19 páginas que cargan con la API simulada (las otras 10 fallan por la simulación, no por el cambio; a 375px sí se midieron).
+- Visto y no cambiado: en móvil, las barras de los informes de Balance (3 líneas) y Leads (2 líneas) saltan de línea porque ya tenían `flex-wrap`; no he cambiado anchos, así que el salto ya existía. Las barras de Notificaciones y Soporte no son fijas al hacer scroll (como antes).
+- No verificado: sesión real ni dispositivo iOS.
+- Hallazgos de Codex en `34976f3` y corrección:
+  1. P2 (regresión) — Horario a 375px: la campana tapaba «List» (pulsarlo abría Notificaciones). Con los controles a 40px, título + selector con texto + campana + «+» ya no cabían. Ahora, por debajo de `sm`, el selector Calendar/List muestra solo iconos (botones de 40×40 con `aria-label`) y el título se recorta con «…». Mismo cambio en el Calendario (Month/Week), que tiene la misma estructura.
+  2. P2 (previo) — Informe de Usuarios a 375px: el buscador medía 0px y la campana quedaba fuera. Ahora, por debajo de `md`, la barra hace salto de línea: primera fila menú + buscador + campana; segunda fila el selector de periodo a todo el ancho (y las fechas personalizadas, si se eligen). Desde `md`, una sola fila como antes.
+  3. P2 (previo) — el desplegable de la campana se salía por la izquierda en móvil (iba alineado al borde derecho de la campana, que no es el último control). Ahora se coloca con `position: fixed` calculando la posición de la campana: alineado a su borde derecho, sin salir nunca de la pantalla (16px de margen) y con ancho máximo 360px; se recoloca al cambiar el tamaño o hacer scroll.
+  - Comprobado por Claude en Chromium (página temporal local, ya borrada): Horario a 375px, «Calendar» 153–193 y «List» 193–233 reciben su propio toque y la campana empieza en x=271; Calendario a 375px sin controles tapados; Informe de Usuarios a 375px, buscador de 192px, campana en 319–359, barra de 117px con los periodos en la segunda fila; desplegable en Clases a 375px de x=16 a x=359 (top 60), y a 1280px alineado con la campana (784–1144).
+  - Evidencia: `tsc` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint de los 4 ficheros: 24 avisos, los mismos que en `main`.
+- Hallazgo de Codex en `2b7fe64` y corrección:
+  1. P2 — Informe de Usuarios a 768px con el menú lateral abierto (232px) y «Custom»: el buscador volvía a 0px y la segunda fecha salía de la pantalla, porque desde `md` (ancho de pantalla) se forzaba una sola fila aunque la barra solo tuviera ~470px. Ahora la barra decide por su propio ancho con *container queries* de Tailwind 4 (`@container`): con menos de 768px de barra los periodos van a su propia fila a todo el ancho; con menos de 1024px también las fechas personalizadas; con más, todo en una fila. La barra siempre puede hacer salto de línea (`flex-wrap`).
+  - Comprobado por Claude en Chromium (página temporal local con un menú lateral simulado de 232px, ya borrada), con «Custom» activo y sin scroll horizontal en ningún caso: 375 sin menú → buscador 239px, campana 319–359, periodos fila 2, fechas fila 3; 768 + menú → buscador 163px, campana 696–736, fechas 264–736 en fila 3; 1024 + menú → 3 filas, buscador 291px; 1280 + menú → periodos en la fila 1 y fechas en la 2; 1440 + menú → una sola fila de 65px.
+  - Evidencia: `tsc` limpio; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint del fichero igual que `main`; `next build` local correcto.
 
 ## Próxima entrega de Claude
 

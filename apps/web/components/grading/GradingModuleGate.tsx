@@ -69,7 +69,7 @@ export default function GradingModuleGate({ children }: { children: React.ReactN
     <main style={{ flex: 1, minWidth: 0 }}>
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20 md:hidden"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0" aria-label="Menu"
+        <button className="flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0" aria-label="Menu"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>

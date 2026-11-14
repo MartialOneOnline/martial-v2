@@ -2007,9 +2007,9 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
           {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
 
-        <NotificationBell size={TOPBAR_CONTROL} />
+        <NotificationBell />
 
-        <DashboardLanguageSelector size={TOPBAR_CONTROL} />
+        <DashboardLanguageSelector />
 
         <FiltersDropdown filters={advFilters} onChange={handleAdvFilters} />
 

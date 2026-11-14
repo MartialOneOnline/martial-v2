@@ -137,8 +137,8 @@ function SubFiltersPanel({ filters, onChange }: {
   return (
     <RowMenu align="right" closeOnItemClick={false} trigger={({ onClick }) => (
       <button onClick={onClick}
-        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 34, padding: '0 12px',
-          borderRadius: 8, border: activeCount ? '1.5px solid #0071E3' : '1px solid #E5E7EB',
+        style={{ display: 'flex', alignItems: 'center', gap: 5, height: 40, padding: '0 12px', flexShrink: 0,
+          borderRadius: 12, border: activeCount ? '1.5px solid #0071E3' : '1px solid #E5E7EB',
           background: activeCount ? '#EFF6FF' : '#fff', cursor: 'pointer' }}>
         <Filter size={13} style={{ color: activeCount ? '#0071E3' : '#6B7280' }} />
         <span style={{ fontSize: 12, fontWeight: 500, color: activeCount ? '#0071E3' : '#6B7280' }}>Filters</span>
@@ -637,12 +637,12 @@ export default function PaymentSubscriptionsClient() {
       {/* Topbar */}
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+        <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
 
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
+        <div className="flex items-center gap-2 px-3 h-10 rounded-xl flex-1 min-w-0 md:max-w-xs"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
           <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
           <input type="text" placeholder={t.paymentsPage.searchSubs} value={search}
@@ -652,15 +652,15 @@ export default function PaymentSubscriptionsClient() {
 
         <SubFiltersPanel filters={subFilters} onChange={f => { setSubFilters(f); setCurrentPage(1) }} />
 
-        <div className="flex-1" />
+        <div className="hidden md:block flex-1" />
 
         <button onClick={handleExport}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
+          className="hidden sm:flex items-center gap-2 px-4 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
         </button>
         <button onClick={() => setShowAssignModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
+          className="flex items-center gap-2 px-4 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
           <Plus size={15} /><span className="hidden sm:inline">Asignar membresía</span>
         </button>

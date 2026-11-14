@@ -967,12 +967,12 @@ export default function EventsClient() {
         {/* Topbar */}
         <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
           style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-          <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+          <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
             <Menu size={16} style={{ color: '#374151' }} />
           </button>
 
-          <div className="flex flex-1 items-center gap-2 px-3 py-2 rounded-xl"
+          <div className="flex flex-1 items-center gap-2 px-3 h-10 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', minWidth: 0 }}>
             <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
             <input type="text" placeholder={t.classes.eventsSearchPlaceholder} value={search}
@@ -980,9 +980,9 @@ export default function EventsClient() {
               style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%', minWidth: 0 }} />
           </div>
 
-          <div className="flex-1" />
+          <div className="hidden md:block flex-1" />
 
-          <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl"
+          <div className="hidden sm:flex items-center gap-2 px-3 h-10 rounded-xl"
             style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
             <Clock size={13} style={{ color: '#9CA3AF' }} />
             {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -993,7 +993,7 @@ export default function EventsClient() {
           <DashboardLanguageSelector />
 
           <button onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer shrink-0"
+            className="flex items-center gap-2 px-4 h-10 rounded-xl cursor-pointer shrink-0"
             style={{ background: '#0071E3', border: 'none', color: '#fff', fontSize: 13, fontWeight: 600 }}>
             <Plus size={15} />
             <span className="hidden sm:inline">{t.classes.createEvent}</span>

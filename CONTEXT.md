@@ -303,7 +303,15 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-14 (rama `claude/users-mobile-az`, Lote X — `RECHAZADO` en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`; sin migración; pendiente: prueba en iPhone real)
+### Sesión — 2026-11-14 (rama `claude/topbar-40`, Lote Y — `APROBADO CON PENDIENTES` en `34976f3` (3 P2) → `APROBADO CON PENDIENTES` en `2b7fe64` (1 P2 tablet) → **`APROBADO`** en `08a2342`; sin migración; pendiente: merge y prueba en iPhone real)
+
+- **Barra superior a 40px en todo el dashboard**: en las 29 páginas con menú móvil, menú, buscador, fecha, campana, idioma, filtros, botones de acción y selectores de periodo/calendario miden 40px; en móvil el buscador llega hasta la campana en las 12 páginas que lo tienen. `NotificationBell` y `DashboardLanguageSelector` pasan a 40px por defecto.
+- Notificaciones y Soporte usan ya el mismo patrón de barra que el resto.
+- En móvil: Horario y Calendario muestran el selector de vista solo con iconos; el Informe de Usuarios reparte la barra según su propio ancho (primer uso de *container queries* `@container` de Tailwind 4 en el repo: periodos y fechas a filas propias cuando no caben, también en tablet con el menú lateral abierto); el desplegable de la campana (`NotificationsPopup`) se coloca fijo sin salirse de la pantalla.
+- Sigue sin existir una barra compartida: cada página tiene su copia. Un cambio de barra futuro hay que repetirlo en las 29 (o extraer un componente).
+- Verificación: `tsc`, `next build`, lint igual que `main`; medido en Chromium a 375 y 1280 px con una página temporal local.
+
+### Sesión — 2026-11-14 (rama `claude/users-mobile-az`, Lote X — `RECHAZADO` en `4e03990` (1 P1, 1 P2) → **`APROBADO`** en `c487058`; PR #66 mergeado `75b651d` y en producción el 2026-11-14; pendiente: prueba en iPhone real)
 
 - **Tabla de alumnos en móvil (`UsersClient.tsx`) sin paginación**: lista continua en orden A–Z (o Recientes por mes), encabezados de letra fijos bajo la barra superior y barra A–Z fija en el borde derecho con toque y arrastre del dedo (`components/AlphaRail.tsx`, burbuja con la letra). Misma lógica que el panel de desktop del Lote W (`lib/alphaIndex.ts`, `lib/listScrollIntent.ts`) y misma preferencia de orden.
 - En móvil la tabla ya no tiene scroll horizontal (si no, los encabezados no se quedan fijos); en tablet sí, y ahí los encabezados no se fijan.

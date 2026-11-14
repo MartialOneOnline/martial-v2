@@ -157,19 +157,19 @@ export default function GradingsReportClient() {
     <main style={{ flex: 1, minWidth: 0, width: '100%', overflow: 'auto' }}>
       <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
+        <button className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shrink-0"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(true)}>
           <Menu size={16} style={{ color: '#374151' }} />
         </button>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs"
+        <div className="flex items-center gap-2 px-3 h-10 rounded-xl flex-1 min-w-0 md:max-w-xs"
           style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
           <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
           <input type="text" placeholder="Search promotions…"
             style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
         </div>
-        <div className="flex-1" />
+        <div className="hidden md:block flex-1" />
         <button onClick={handleExport}
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer"
+          className="hidden sm:flex items-center gap-2 px-4 h-10 rounded-xl cursor-pointer"
           style={{ background: '#fff', border: '1px solid #E5E7EB', color: '#374151', fontSize: 13, fontWeight: 500 }}>
           <Download size={14} /> Export
         </button>
