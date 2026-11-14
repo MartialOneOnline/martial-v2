@@ -69,3 +69,17 @@ export function groupByMonth<T extends { joinedAt: string | null }>(items: T[], 
   }
   return sections
 }
+
+/**
+ * Where a rail press on `letter` should land: that letter if it has a section,
+ * else the next letter down that has one, else the closest one above.
+ * Null when there are no sections at all.
+ */
+export function nearestPresentKey(alphabet: string[], present: Set<string>, letter: string): string | null {
+  if (present.has(letter)) return letter
+  const i = alphabet.indexOf(letter)
+  if (i < 0) return null
+  for (let j = i + 1; j < alphabet.length; j++) if (present.has(alphabet[j]!)) return alphabet[j]!
+  for (let j = i - 1; j >= 0; j--) if (present.has(alphabet[j]!)) return alphabet[j]!
+  return null
+}

@@ -314,7 +314,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote W — Lista de alumnos continua en orden A–Z con índice por letras (rama `claude/users-list-az`)
 
-- Estado (auditado como "Lote U" antes de que `main` usara esa letra para fusionar cuentas): `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → `APROBADO CON PENDIENTES` en `ea527c2` (1 P2 nuevo) → **`APROBADO`** en `6eb1282`, sin hallazgos P0–P3 (Codex: componente real en Chromium con 260 alumnos simulados; 19/19 tests; sin sesión real ni dashboard completo). Sin migración. Rama `origin/claude/users-list-az`; PR pendiente de merge.
+- Estado (auditado como "Lote U" antes de que `main` usara esa letra para fusionar cuentas): `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → `APROBADO CON PENDIENTES` en `ea527c2` (1 P2 nuevo) → **`APROBADO`** en `6eb1282`, sin hallazgos P0–P3 (Codex: componente real en Chromium con 260 alumnos simulados; 19/19 tests; sin sesión real ni dashboard completo). Sin migración. PR [#65](https://github.com/MartialOneOnline/martial-v2/pull/65) **mergeado** (`953fe0d`) y en producción el 2026-11-14.
 - Pedido del usuario: el panel lateral de Users en desktop mostraba 8 alumnos por página ("1–8 of 59"), con más de un tercio del panel vacío. Quiere scroll continuo, orden alfabético y un marcador por letras tipo agenda. Maqueta aprobada antes de tocar código.
 - Alcance: solo `apps/web/app/dashboard/users/StudentListPanel.tsx` (vista dividida de desktop, montada desde `layout.tsx` vía `UsersSplitShell`). La tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8 a propósito.
 - Criterios:
@@ -337,6 +337,25 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
   1. P2 — una petición "arriba" pendiente deshacía el salto por letras: pulsar un control ya activo (A–Z estando en A–Z, o el filtro activo) pedía "arriba", React no re-renderizaba (mismo valor) y la petición se consumía en el render siguiente, el del resaltado de la letra tras el salto. Ahora (a) filtro, búsqueda y orden solo piden "arriba" si el valor cambia (`requestTopIfChanged`), y (b) el salto por letra borra cualquier petición pendiente (`clear()`) antes de mover el scroll, porque es un scroll del propio usuario.
   - Pruebas: 4 tests nuevos en `listScrollIntent.test.ts` (A–Z→A–Z→M, filtro activo otra vez, un cambio real sigue yendo arriba, el salto anula lo pendiente). Siguen siendo pruebas de la lógica sin DOM: Codex las acepta para el controlador, pero no validan la integración con React (este fallo dependía de que no hubiera render). Añadir jsdom + Testing Library queda como decisión aparte del usuario.
   - Evidencia: `tsc` limpio; 19/19 en los tests del lote; suite 1248 pasan / los mismos 55 fallan / 1 pendiente; lint: solo el aviso `no-img-element` previo.
+
+### Lote X — Tabla de alumnos en móvil: lista A–Z con índice por letras + barra superior a 40px (rama `claude/users-mobile-az`)
+
+- Estado: **pendiente de Project Audit**. Sin migración. Sin PR todavía.
+- Pedido del usuario: llevar a la tabla de móvil lo mismo que el panel de desktop (Lote W), con maqueta aprobada antes del código. Además, en la barra superior de móvil el buscador debe llegar hasta la campana, y menú, buscador, campana, idioma y filtros deben tener la misma altura.
+- Alcance: `apps/web/app/dashboard/users/UsersClient.tsx` (la vista de lista que se ve en móvil/tablet y en desktop cuando no hay vista dividida). El panel de desktop (Lote W) no cambia.
+- Criterios:
+  1. Sin paginación: todos los alumnos de la pestaña/búsqueda/filtros en una lista continua; la cabecera "N de M miembros" se mantiene.
+  2. Mismo orden que el Lote W (`lib/alphaIndex.ts`): A–Z por defecto, Ñ propia solo en `es`, `#` al final; selector A–Z / Recientes junto al título; preferencia compartida con el panel de desktop (`localStorage` `martial_users_list_sort`).
+  3. Una sección por letra (o por mes en Recientes) con encabezado fijo justo bajo la barra superior (altura medida en vivo). En móvil la tabla deja de tener scroll horizontal para que el encabezado pueda quedarse fijo; en tablet (≥ md) lo conserva, así que ahí los encabezados no se quedan fijos.
+  4. Barra A–Z fija en el borde derecho de la pantalla (`components/AlphaRail.tsx`): tocar o deslizar el dedo salta a la letra; burbuja con la letra durante el gesto; letras vacías en gris que llevan a la siguiente con alumnos (`nearestPresentKey`); letra actual resaltada; solo visible en A–Z, con ≥ 20 resultados y con la tabla en pantalla. El contenido deja 8px más de margen derecho en móvil para que la barra no tape el menú "···".
+  5. Cambiar pestaña, búsqueda, filtros avanzados u orden lleva al principio de la lista (las pestañas) si se estaba más abajo, solo si el valor cambia de verdad; el salto por letra anula lo pendiente (mismo controlador `lib/listScrollIntent.ts`).
+  6. Selección: la casilla de la cabecera selecciona/deselecciona todos los visibles (antes, solo la página); barra de selección y campañas sin cambios.
+  7. Barra superior: todos los controles miden 40px; en móvil el buscador ocupa todo el hueco hasta la campana. `NotificationBell` y `DashboardLanguageSelector` aceptan `size` (36 por defecto, las otras ~30 páginas no cambian); el botón de filtros pasa a 40px (cuadrado en móvil).
+  8. Rendimiento: la búsqueda filtra con `useDeferredValue` para que escribir no se bloquee con cientos de filas; avatares con `loading="lazy"`.
+- Archivos: `UsersClient.tsx`, `components/AlphaRail.tsx` (nuevo), `components/NotificationBell.tsx`, `components/DashboardLanguageSelector.tsx`, `lib/alphaIndex.ts` (`nearestPresentKey`), `__tests__/alphaIndex.test.ts` (+4), `CONTEXT.md`.
+- Evidencia: `tsc --noEmit` limpio; `alphaIndex` + `listScrollIntent` 23/23; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; lint: los mismos 6 avisos que `main` en `UsersClient.tsx`; `next build` local correcto.
+- A revisar: rendimiento con 800+ filas en un móvil real (cada fila lleva su menú y su insignia); encabezados fijos con la barra superior a distinta altura; gesto de arrastre en iOS Safari / WebView de la app (que la página no haga scroll a la vez); la barra con el menú lateral, desplegables y modales abiertos; atrás desde un perfil (comportamiento previo: vuelve al principio, igual que antes con la página 1).
+- No verificado: navegador ni dispositivo real (el usuario prueba la UI).
 
 ## Próxima entrega de Claude
 
