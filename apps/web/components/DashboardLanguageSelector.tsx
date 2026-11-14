@@ -54,7 +54,8 @@ const LANGUAGES: { code: Locale; name: string }[] = [
   { code: 'fr', name: 'Français'   },
 ]
 
-export default function DashboardLanguageSelector() {
+// `size` is the square button's side in px (36 by default, 40 on the Users topbar).
+export default function DashboardLanguageSelector({ size = 36 }: { size?: number } = {}) {
   const { locale, setLocale } = useLanguage()
   const [open, setOpen]       = useState(false)
   const ref                   = useRef<HTMLDivElement>(null)
@@ -73,16 +74,17 @@ export default function DashboardLanguageSelector() {
       <button
         onClick={() => setOpen(v => !v)}
         aria-label="Select language"
-        className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-        style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}
+        className="flex items-center justify-center rounded-xl cursor-pointer shrink-0"
+        style={{ width: size, height: size, background: '#F9FAFB', border: '1px solid #E5E7EB' }}
       >
         <FlagIcon lang={locale} />
       </button>
 
       {open && (
         <div
-          className="absolute right-0 top-11 rounded-xl overflow-hidden z-50"
+          className="absolute right-0 rounded-xl overflow-hidden z-50"
           style={{
+            top: size + 8,
             background: '#fff',
             border: '1px solid #E5E7EB',
             boxShadow: '0 8px 24px rgba(0,0,0,0.10)',

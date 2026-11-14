@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, createContext, useContext } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo, useDeferredValue, createContext, useContext } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Bell, Menu, Search, Plus, MoreHorizontal,
@@ -16,7 +16,7 @@ import { resolveGradingEnabled } from '../../../lib/school-modules'
 import NotificationBell from '../../../components/NotificationBell'
 import RowMenu from '../../../components/RowMenu'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
-import { useT } from '../../../lib/i18n/LanguageContext'
+import { useT, useLanguage } from '../../../lib/i18n/LanguageContext'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { memberStatusColors } from '../../../lib/design/tokens'
 import { submitMemberStatusChange, applyOptimisticStatus } from '../../../lib/memberStatus'
@@ -25,6 +25,9 @@ import { matchesSearch } from '../../../lib/search'
 import { normalizeBeltName } from '../../../lib/beltGroups'
 import { fmtPrice, currencySymbol } from '../../../lib/format'
 import CampaignComposerModal from './CampaignComposerModal'
+import AlphaRail from '../../../components/AlphaRail'
+import { alphabetFor, groupAlphabetically, groupByMonth, nearestPresentKey, type Section } from '../../../lib/alphaIndex'
+import { createListScrollController } from '../../../lib/listScrollIntent'
 import SendWaiverModal from '../../../components/SendWaiverModal'
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -756,8 +759,8 @@ function FiltersDropdown({
       <button
         onClick={() => setOpen(v => !v)}
         style={{
-          display: 'flex', alignItems: 'center', gap: 7,
-          padding: '7px 14px', borderRadius: 8, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+          height: TOPBAR_CONTROL, minWidth: TOPBAR_CONTROL, padding: '0 12px', borderRadius: 12, cursor: 'pointer', flexShrink: 0,
           border: `1px solid ${activeCount > 0 ? '#0071E3' : '#E5E7EB'}`,
           background: activeCount > 0 ? '#EFF6FF' : '#F9FAFB',
           fontSize: 13, fontWeight: 500,
@@ -1464,15 +1467,14 @@ function ImportTab({ onClose, onCreated }: { onClose: () => void; onCreated: (s:
   )
 }
 
-// ── Pagination ─────────────────────────────────────────────────────────────────
-const ITEMS_PER_PAGE = 8
-
-function getPaginationPages(current: number, total: number): (number | '...')[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
-  if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
-  return [1, '...', current - 1, current, current + 1, '...', total]
-}
+// ── List ───────────────────────────────────────────────────────────────────────
+// One continuous list (no pages), like the desktop panel (StudentListPanel).
+// Below this many results the A–Z rail adds nothing, so it's hidden.
+const RAIL_MIN_RESULTS = 20
+// Shared with the desktop panel: one A–Z / Recent preference per browser.
+const SORT_STORAGE_KEY = 'martial_users_list_sort'
+type SortMode = 'az' | 'recent'
+const TOPBAR_CONTROL = 40 // px — every topbar control is this tall
 
 type FilterType = 'All' | 'Active' | 'Inactive' | 'Pending' | 'Invited' | 'Archived'
 
@@ -1648,6 +1650,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   const gradingEnabled = gradingState === true
   const { menuOpen, setMenuOpen } = useDashboard()
   const t = useT()
+  const { locale } = useLanguage()
   const router = useRouter()
   const { toasts, show: showToast, remove: removeToast } = useToast()
 
@@ -1662,7 +1665,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   const [activeFilter, setActiveFilter] = useState<FilterType>('All')
   const [advFilters, setAdvFilters]     = useState<ActiveFilters>({ belts: [], statuses: [], roles: [] })
   const [search, setSearch]             = useState('')
-  const [currentPage, setCurrentPage]   = useState(1)
+  const [sort, setSort]                 = useState<SortMode>('az')
   const [editStudent, setEditStudent]     = useState<Student | null>(null)
   const [msgStudent, setMsgStudent]       = useState<Student | null>(null)
   const [qrStudent, setQrStudent]         = useState<Student | null>(null)
@@ -1673,9 +1676,45 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
   const searchParams = useSearchParams()
   useEffect(() => {
     const q = searchParams.get('search')
-    if (q) { setSearch(q); setCurrentPage(1) }
+    if (q) setSearch(q)
+    try {
+      const saved = localStorage.getItem(SORT_STORAGE_KEY)
+      if (saved === 'az' || saved === 'recent') setSort(saved)
+    } catch { /* storage blocked: keep the default */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // The topbar's real height: sticky section headers sit right under it and
+  // the A–Z rail starts below it.
+  const topbarRef = useRef<HTMLDivElement>(null)
+  const [topbarH, setTopbarH] = useState(65)
+  useEffect(() => {
+    const el = topbarRef.current
+    if (!el) return
+    const measure = () => setTopbarH(el.offsetHeight)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // Explicit tab / search / filter / order changes bring the start of the list
+  // back into view — only on real changes (see requestTopIfChanged).
+  const tabsRef  = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef(createListScrollController())
+  useEffect(() => {
+    // This list never auto-reveals a row: it starts ready, with nothing pending.
+    scrollRef.current.markReady()
+    scrollRef.current.clear()
+  }, [])
+  useLayoutEffect(() => {
+    if (scrollRef.current.consume() !== 'top') return
+    const tabs = tabsRef.current
+    if (!tabs) return
+    const y = tabs.getBoundingClientRect().top - topbarH - 8
+    if (y < 0) window.scrollTo({ top: window.scrollY + y, behavior: 'instant' })
+  })
 
   useEffect(() => {
     fetch('/api/dashboard/school').then(r => r.json()).then(d => {
@@ -1701,27 +1740,93 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
     { label: t.users.avgAttendance, value: bookingsThisMonth !== null ? String(bookingsThisMonth) : '—', trend: '', trendUp: true, sub: t.common.thisMonth },
   ]
 
-  const filtered = students.filter(s => {
+  // Typing stays responsive while hundreds of rows re-render behind it.
+  const deferredSearch = useDeferredValue(search)
+  const filtered = useMemo(() => students.filter(s => {
     const displayStatus = STATUS_DISPLAY[s.status] ?? s.status
     // Invited tab also surfaces PENDING invites (sent but not yet accepted) so
     // admins can find them without hunting through the Pending tab — the
     // underlying status stays PENDING, this only affects what's shown here.
     const matchStatusTab = activeFilter === 'All' || displayStatus === activeFilter
       || (activeFilter === 'Invited' && s.status === 'PENDING')
-    const matchSearch = matchesSearch(s.name, search) || matchesSearch(s.email, search)
+    const matchSearch = matchesSearch(s.name, deferredSearch) || matchesSearch(s.email, deferredSearch)
     const matchBelt   = advFilters.belts.length === 0    || advFilters.belts.includes(s.belt)
     const matchStatus = advFilters.statuses.length === 0 || advFilters.statuses.includes(s.status)
     const matchRole   = advFilters.roles.length === 0    || advFilters.roles.includes(s.role)
     return matchStatusTab && matchSearch && matchBelt && matchStatus && matchRole
-  })
+  }), [students, activeFilter, deferredSearch, advFilters])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const safePage   = Math.min(currentPage, totalPages)
-  const paginated  = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE)
-  const pages      = getPaginationPages(safePage, totalPages)
+  const sections: Section<Student>[] = useMemo(
+    () => (sort === 'az' ? groupAlphabetically(filtered, locale) : groupByMonth(filtered, locale)),
+    [filtered, sort, locale],
+  )
+  const alphabet    = useMemo(() => alphabetFor(locale), [locale])
+  const presentKeys = useMemo(() => new Set(sections.map(s => s.key)), [sections])
 
-  const handleFilter = (f: FilterType) => { setActiveFilter(f); setCurrentPage(1) }
-  const handleSearch = (v: string) => { setSearch(v); setCurrentPage(1) }
+  const handleFilter = (f: FilterType) => { scrollRef.current.requestTopIfChanged(activeFilter, f); setActiveFilter(f) }
+  const handleSearch = (v: string) => { scrollRef.current.requestTopIfChanged(search, v); setSearch(v) }
+  const handleAdvFilters = (f: ActiveFilters) => {
+    scrollRef.current.requestTopIfChanged(JSON.stringify(advFilters), JSON.stringify(f))
+    setAdvFilters(f)
+  }
+  const changeSort = (next: SortMode) => {
+    scrollRef.current.requestTopIfChanged(sort, next)
+    setSort(next)
+    try { localStorage.setItem(SORT_STORAGE_KEY, next) } catch { /* ignore */ }
+  }
+
+  // Letter headers must span exactly the columns shown at this width: a
+  // hidden (display: none) cell leaves no gap, so a wider colSpan would add
+  // phantom columns that steal the member column's space on mobile.
+  const [visibleColumns, setVisibleColumns] = useState(4)
+  useEffect(() => {
+    const count = () => {
+      const ths = tableRef.current?.querySelectorAll('thead th')
+      if (ths) setVisibleColumns([...ths].filter(th => getComputedStyle(th).display !== 'none').length || 4)
+    }
+    count()
+    window.addEventListener('resize', count)
+    return () => window.removeEventListener('resize', count)
+  }, [gradingEnabled])
+
+  // A–Z rail: only while the table is on screen, in A–Z, with enough results.
+  const [tableInView, setTableInView] = useState(false)
+  const [currentKey, setCurrentKey]   = useState<string | null>(null)
+  const updateRail = useCallback(() => {
+    const table = tableRef.current
+    if (!table) return
+    const r = table.getBoundingClientRect()
+    setTableInView(r.top < window.innerHeight - 120 && r.bottom > topbarH + 120)
+    let key: string | null = null
+    for (const el of table.querySelectorAll<HTMLElement>('tbody[data-section-key]')) {
+      if (el.getBoundingClientRect().top <= topbarH + 1) key = el.dataset.sectionKey ?? null
+      else break
+    }
+    setCurrentKey(key ?? sections[0]?.key ?? null)
+  }, [topbarH, sections])
+  useEffect(() => {
+    updateRail()
+    let frame = 0
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(() => { frame = 0; updateRail() }) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (frame) cancelAnimationFrame(frame)
+    }
+  }, [updateRail])
+  const showRail = sort === 'az' && filtered.length >= RAIL_MIN_RESULTS && tableInView
+
+  const jumpToLetter = (letter: string): string | null => {
+    const key = nearestPresentKey(alphabet, presentKeys, letter)
+    const el = key ? tableRef.current?.querySelector<HTMLElement>(`tbody[data-section-key="${CSS.escape(key)}"]`) : null
+    if (!key || !el) return null
+    // A jump is the user's own scroll: nothing pending may undo it later.
+    scrollRef.current.clear()
+    window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - topbarH, behavior: 'instant' })
+    return key
+  }
 
   const toggleSelected = (id: string) => {
     setSelectedIds(prev => {
@@ -1730,12 +1835,12 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
       return next
     })
   }
-  const pageAllSelected = paginated.length > 0 && paginated.every(s => selectedIds.has(s.id))
-  const togglePageSelected = () => {
+  const allVisibleSelected = filtered.length > 0 && filtered.every(s => selectedIds.has(s.id))
+  const toggleAllVisible = () => {
     setSelectedIds(prev => {
       const next = new Set(prev)
-      if (pageAllSelected) paginated.forEach(s => next.delete(s.id))
-      else paginated.forEach(s => next.add(s.id))
+      if (allVisibleSelected) filtered.forEach(s => next.delete(s.id))
+      else filtered.forEach(s => next.add(s.id))
       return next
     })
   }
@@ -1876,46 +1981,50 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
       )}
 
       {/* Topbar */}
-      <div className="flex items-center gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
+      {/* Every control is TOPBAR_CONTROL tall; on mobile the search box takes
+          all the room up to the bell. */}
+      <div ref={topbarRef} className="flex items-center gap-2 md:gap-3 px-4 md:px-8 py-3 sticky top-0 z-20"
         style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
-        <button className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer shrink-0"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }} onClick={() => setMenuOpen(!menuOpen)}>
-          <Menu size={16} style={{ color: '#374151' }} />
+        <button className="md:hidden flex items-center justify-center rounded-xl cursor-pointer shrink-0"
+          style={{ width: TOPBAR_CONTROL, height: TOPBAR_CONTROL, background: '#F9FAFB', border: '1px solid #E5E7EB' }}
+          onClick={() => setMenuOpen(!menuOpen)}>
+          <Menu size={17} style={{ color: '#374151' }} />
         </button>
 
-        <div className="flex flex-1 max-w-sm items-center gap-2 px-3 py-2 rounded-xl"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
-          <Search size={13} style={{ color: '#9CA3AF', flexShrink: 0 }} />
+        <div className="flex flex-1 min-w-0 md:max-w-sm items-center gap-2 px-3 rounded-xl"
+          style={{ height: TOPBAR_CONTROL, background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
+          <Search size={14} style={{ color: '#9CA3AF', flexShrink: 0 }} />
           <input type="text" placeholder={t.users.searchPlaceholder} value={search}
             onChange={e => handleSearch(e.target.value)}
-            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: '#374151', width: '100%' }} />
+            style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 14, color: '#374151', width: '100%', minWidth: 0 }} />
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden md:block flex-1" />
 
-        <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl"
-          style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
+        <div className="hidden sm:flex items-center gap-2 px-3 rounded-xl"
+          style={{ height: TOPBAR_CONTROL, background: '#F9FAFB', border: '1px solid #E5E7EB', fontSize: 13, color: '#374151', whiteSpace: 'nowrap' }}>
           <Clock size={13} style={{ color: '#9CA3AF' }} />
           {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
 
-        <NotificationBell />
+        <NotificationBell size={TOPBAR_CONTROL} />
 
-        <DashboardLanguageSelector />
+        <DashboardLanguageSelector size={TOPBAR_CONTROL} />
 
-        <FiltersDropdown filters={advFilters} onChange={f => { setAdvFilters(f); setCurrentPage(1) }} />
+        <FiltersDropdown filters={advFilters} onChange={handleAdvFilters} />
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="hidden sm:flex items-center gap-2 cursor-pointer"
+          className="hidden sm:flex items-center gap-2 cursor-pointer shrink-0"
           style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: '#0071E3',
-            border: 'none', borderRadius: 8, padding: '7px 14px' }}>
+            border: 'none', borderRadius: 12, height: TOPBAR_CONTROL, padding: '0 14px' }}>
           <Plus size={14} />
           {t.users.addStudent}
         </button>
       </div>
 
-      <div className="px-4 md:px-8 py-6 flex flex-col gap-6">
+      {/* pr-6 on mobile leaves room for the A–Z rail on the screen edge */}
+      <div className="pl-4 pr-6 md:px-8 py-6 flex flex-col gap-6">
 
         {/* Page header */}
         <div className="flex items-center justify-between">
@@ -1927,12 +2036,26 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
               {filtered.length} {t.common.of} {students.length} {t.users.ofMembers}
             </p>
           </div>
-          <button onClick={handleExport} disabled={!gradingKnown} className="hidden sm:flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-default"
-            style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff',
-              border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 14px' }}>
-            <Download size={13} style={{ color: '#6B7280' }} />
-            {t.common.export}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <div role="group" aria-label={t.users.sortLabel} className="inline-flex"
+              style={{ background: '#F3F4F6', borderRadius: 10, padding: 3 }}>
+              {(['az', 'recent'] as SortMode[]).map(mode => (
+                <button key={mode} type="button" onClick={() => changeSort(mode)} aria-pressed={sort === mode}
+                  className="cursor-pointer"
+                  style={{ border: 'none', fontSize: 12, padding: '6px 10px', borderRadius: 8,
+                    background: sort === mode ? '#fff' : 'transparent', color: sort === mode ? '#111827' : '#6B7280',
+                    fontWeight: sort === mode ? 600 : 400, boxShadow: sort === mode ? '0 1px 2px rgba(17,24,39,0.08)' : 'none' }}>
+                  {mode === 'az' ? t.users.sortAz : t.users.sortRecent}
+                </button>
+              ))}
+            </div>
+            <button onClick={handleExport} disabled={!gradingKnown} className="hidden sm:flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-default"
+              style={{ fontSize: 13, fontWeight: 500, color: '#374151', background: '#fff',
+                border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 14px' }}>
+              <Download size={13} style={{ color: '#6B7280' }} />
+              {t.common.export}
+            </button>
+          </div>
         </div>
 
         {/* Membership status drift banner — OWNER/ADMIN only, see page.tsx */}
@@ -1992,7 +2115,7 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
         </div>
 
         {/* Filter tabs */}
-        <div className="overflow-x-auto pb-1 scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div ref={tabsRef} className="overflow-x-auto pb-1 scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="flex items-center gap-2 w-max">
             {(['All', 'Active', 'Pending', 'Invited', 'Inactive', 'Archived'] as FilterType[]).map(f => {
               const filterLabels: Record<FilterType, string> = {
@@ -2085,22 +2208,27 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
         )}
 
         {/* Table */}
-        <div className="rounded-2xl overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
-          <table className="w-full">
+        {/* No horizontal-scroll box on mobile: it would stop the letter
+            headers from sticking under the topbar. Tablet keeps it (more columns). */}
+        <div ref={tableRef} className="rounded-2xl md:overflow-x-auto" style={{ background: '#fff', border: '1px solid #E5E7EB' }}>
+          {/* Below md the columns get fixed widths (first row) so checkbox,
+              member, status and the "···" button all fit a 375px screen
+              with room for the A–Z rail; md+ keeps the auto layout. */}
+          <table className="w-full table-fixed md:table-auto">
             <thead>
               <tr style={{ borderBottom: '1px solid #F3F4F6' }}>
-                <th className="px-3 sm:px-6 py-3 text-left" style={{ width: 32 }}>
-                  <input type="checkbox" checked={pageAllSelected} onChange={togglePageSelected}
+                <th className="w-[34px] md:w-[32px] px-2 md:px-6 py-3 text-left">
+                  <input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible}
                     style={{ width: 15, height: 15, cursor: 'pointer' }} />
                 </th>
                 {[
-                  { label: t.common.member,     cls: '',                     pad: 'px-3 sm:px-6' },
+                  { label: t.common.member,     cls: '',                     pad: 'px-2 md:px-6' },
                   ...(gradingEnabled ? [{ label: t.users.belt, cls: 'hidden md:table-cell', pad: 'px-6' }] : []),
                   { label: t.users.membership,  cls: 'hidden lg:table-cell', pad: 'px-6' },
                   { label: t.common.classes,    cls: 'hidden lg:table-cell', pad: 'px-6' },
                   { label: t.users.lastSeen,    cls: 'hidden md:table-cell', pad: 'px-6' },
-                  { label: t.common.status,     cls: '',                     pad: 'px-2 sm:px-6' },
-                  { label: '',                  cls: '',                     pad: 'px-2 sm:px-6' },
+                  { label: t.common.status,     cls: 'w-[86px] md:w-auto',   pad: 'px-1 md:px-6' },
+                  { label: '',                  cls: 'w-9 md:w-auto',        pad: 'px-1 md:px-6' },
                 ].map((h, i) => (
                   <th key={i} className={`${h.pad} py-3 text-left ${h.cls}`}
                     style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -2109,34 +2237,47 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {paginated.map((student, idx) => (
+            {sections.map((section, sIdx) => (
+            <tbody key={section.key} data-section-key={section.key}>
+              <tr>
+                <th colSpan={visibleColumns} scope="colgroup" className="text-left"
+                  // Opaque: in a table, passed headers can stay stuck in the same
+                  // spot underneath the current one.
+                  style={{ position: 'sticky', top: topbarH, zIndex: 5, background: '#F9FAFB', fontSize: 12, fontWeight: 700, color: '#6B7280', letterSpacing: '0.06em',
+                    // Lines as inset shadows: borders on a sticky cell of a
+                    // collapsed-border table don't move with it, so rows
+                    // peeked through its top edge.
+                    padding: '6px 16px', boxShadow: 'inset 0 1px 0 #F3F4F6, inset 0 -1px 0 #F3F4F6' }}>
+                  {section.label}
+                </th>
+              </tr>
+              {section.items.map((student, idx) => (
                 <tr key={student.id}
                   className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
-                  style={{ borderBottom: idx < paginated.length - 1 ? '1px solid #F9FAFB' : 'none' }}
+                  style={{ borderBottom: idx < section.items.length - 1 || sIdx < sections.length - 1 ? '1px solid #F9FAFB' : 'none' }}
                   onClick={() => router.push(`/dashboard/users/${student.id}`)}>
 
                   {/* Select */}
-                  <td className="px-3 sm:px-6 py-4" onClick={e => e.stopPropagation()}>
+                  <td className="px-2 md:px-6 py-4" onClick={e => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedIds.has(student.id)} onChange={() => toggleSelected(student.id)}
                       style={{ width: 15, height: 15, cursor: 'pointer' }} />
                   </td>
 
                   {/* Member */}
-                  <td className="px-3 sm:px-6 py-4">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <td className="px-2 md:px-6 py-4">
+                    <div className="flex items-center gap-2.5 md:gap-3 min-w-0">
                       {student.avatarUrl ? (
-                        <img src={student.avatarUrl} alt={student.name}
-                          className="w-[42px] h-[42px] rounded-full shrink-0 border border-[#E5E7EB] object-cover" />
+                        <img src={student.avatarUrl} alt={student.name} loading="lazy"
+                          className="w-9 h-9 md:w-[42px] md:h-[42px] rounded-full shrink-0 border border-[#E5E7EB] object-cover" />
                       ) : (
-                        <div className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
+                        <div className="w-9 h-9 md:w-[42px] md:h-[42px] rounded-full flex items-center justify-center shrink-0 border border-[#E5E7EB]"
                           style={{ background: '#F3F4F6', fontSize: 14, fontWeight: 700, color: '#374151' }}>
                           {student.name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="truncate" style={{ fontSize: 14, fontWeight: 600, color: '#111827', maxWidth: 148 }}>{student.name}</p>
-                        <p className="truncate" style={{ fontSize: 12, color: '#9CA3AF', maxWidth: 148 }}>{student.email}</p>
+                        <p className="truncate md:max-w-[148px]" style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{student.name}</p>
+                        <p className="truncate md:max-w-[148px]" style={{ fontSize: 12, color: '#9CA3AF' }}>{student.email}</p>
                       </div>
                     </div>
                   </td>
@@ -2198,12 +2339,12 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                   </td>
 
                   {/* Status */}
-                  <td className="px-2 sm:px-6 py-4">
+                  <td className="px-1 md:px-6 py-4">
                     <StatusBadge status={student.status} />
                   </td>
 
                   {/* Actions */}
-                  <td className="px-2 sm:px-6 py-4" onClick={e => e.stopPropagation()}>
+                  <td className="px-1 md:px-6 py-4" onClick={e => e.stopPropagation()}>
                     <ActionsMenu
                       student={student}
                       onStatusChange={handleStatusChange}
@@ -2223,55 +2364,24 @@ export default function UsersClient({ students: initialStudents, driftedMembers 
                 </tr>
               ))}
             </tbody>
+            ))}
           </table>
 
-          {paginated.length === 0 && (
+          {filtered.length === 0 && (
             <div className="py-16 text-center">
               <Users size={32} style={{ color: '#E5E7EB', margin: '0 auto 12px' }} />
               <p style={{ fontSize: 14, color: '#9CA3AF' }}>{t.users.noStudents}</p>
             </div>
           )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: '1px solid #F3F4F6' }}>
-              <p style={{ fontSize: 13, color: '#6B7280' }}>
-                {t.common.showing}{' '}
-                <span style={{ fontWeight: 600, color: '#111827' }}>{(safePage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(safePage * ITEMS_PER_PAGE, filtered.length)}</span>
-                {' '}{t.common.of}{' '}
-                <span style={{ fontWeight: 600, color: '#111827' }}>{filtered.length}</span>
-                {' '}{t.users.students}
-              </p>
-              <div className="flex items-center gap-1">
-                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition-colors"
-                  style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', color: safePage === 1 ? '#D1D5DB' : '#374151', background: '#fff', cursor: safePage === 1 ? 'not-allowed' : 'pointer' }}>
-                  ← {t.common.previous}
-                </button>
-                <div className="flex items-center gap-1 mx-1">
-                  {pages.map((p, i) =>
-                    p === '...'
-                      ? <span key={`e-${i}`} style={{ fontSize: 13, color: '#9CA3AF', padding: '0 4px' }}>…</span>
-                      : (
-                        <button key={p} onClick={() => setCurrentPage(p as number)}
-                          className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer transition-colors"
-                          style={{ fontSize: 13, fontWeight: p === safePage ? 600 : 400, border: 'none', background: p === safePage ? '#F3F4F6' : 'transparent', color: p === safePage ? '#111827' : '#6B7280' }}>
-                          {p}
-                        </button>
-                      )
-                  )}
-                </div>
-                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition-colors"
-                  style={{ fontSize: 13, fontWeight: 500, border: '1px solid #E5E7EB', color: safePage === totalPages ? '#D1D5DB' : '#374151', background: '#fff', cursor: safePage === totalPages ? 'not-allowed' : 'pointer' }}>
-                  {t.common.next} →
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
       </div>
+
+      {showRail && (
+        <AlphaRail letters={alphabet} present={presentKeys} current={currentKey} top={topbarH}
+          label={t.users.alphaIndex} letterLabel={t.users.jumpToLetter} onJump={jumpToLetter} />
+      )}
     </main>
 
     {markPaidStudent && (

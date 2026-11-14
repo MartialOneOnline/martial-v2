@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { alphabetFor, letterKey, groupAlphabetically, groupByMonth, OTHER_KEY } from '../lib/alphaIndex'
+import { alphabetFor, letterKey, groupAlphabetically, groupByMonth, nearestPresentKey, OTHER_KEY } from '../lib/alphaIndex'
 
 const names = (xs: { name: string }[]) => xs.map(x => x.name)
 
@@ -73,5 +73,27 @@ describe('groupByMonth', () => {
   it('capitalises localised month names', () => {
     const [s] = groupByMonth([{ name: 'a', joinedAt: '2026-11-02T10:00:00.000Z' }], 'es')
     expect(s!.label.startsWith('N')).toBe(true)
+  })
+})
+
+describe('nearestPresentKey (rail tap / drag over a letter)', () => {
+  const abc = alphabetFor('es')
+  const present = new Set(['A', 'C', 'Ñ', 'Z', '#'])
+
+  it('lands on the letter itself when it has a section', () => {
+    expect(nearestPresentKey(abc, present, 'C')).toBe('C')
+    expect(nearestPresentKey(abc, present, '#')).toBe('#')
+  })
+  it('an empty letter goes to the next one down', () => {
+    expect(nearestPresentKey(abc, present, 'B')).toBe('C')
+    expect(nearestPresentKey(abc, present, 'N')).toBe('Ñ')
+    expect(nearestPresentKey(abc, present, 'D')).toBe('Ñ')
+  })
+  it('past the last section, falls back to the closest one above', () => {
+    expect(nearestPresentKey(abc, new Set(['A', 'C']), 'X')).toBe('C')
+  })
+  it('null with no sections or an unknown letter', () => {
+    expect(nearestPresentKey(abc, new Set(), 'A')).toBeNull()
+    expect(nearestPresentKey(abc, present, 'Ø')).toBeNull()
   })
 })

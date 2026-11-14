@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { Bell } from 'lucide-react'
 import NotificationsPopup from './popups/NotificationsPopup'
 
-export default function NotificationBell() {
+// `size` is the square button's side in px (36 everywhere except pages whose
+// topbar uses 40px controls, e.g. Users).
+export default function NotificationBell({ size = 36 }: { size?: number } = {}) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -19,8 +21,8 @@ export default function NotificationBell() {
     <div className="relative">
       <button
         onClick={() => setShowNotifications(v => !v)}
-        className="relative w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer"
-        style={{ background: showNotifications ? '#EFF6FF' : '#F9FAFB', border: '1px solid #E5E7EB' }}
+        className="relative flex items-center justify-center rounded-xl cursor-pointer shrink-0"
+        style={{ width: size, height: size, background: showNotifications ? '#EFF6FF' : '#F9FAFB', border: '1px solid #E5E7EB' }}
       >
         <Bell size={15} strokeWidth={1.5} style={{ color: '#374151' }} />
         {unreadCount > 0 && (
