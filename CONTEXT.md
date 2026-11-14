@@ -353,7 +353,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 - Durante la sesión el árbol de `martial-v2` tenía cambios ajenos sin commitear (tokens de invitación, cliente Prisma regenerado…); no entraron en los commits de esta sesión y después los commiteó otra sesión (p. ej. `04e5c7c`).
 - Sin tests automáticos nuevos: no hay suite en el repo Flutter y las páginas `/android` y `/ios` se comprobaron con `curl` (200 + og:tags) en local y en producción.
 
-### Sesión — 2026-11-08 (rama `claude/users-list-az`, sin PR todavía, pendiente de Codex Project Audit; sin migración)
+### Sesión — 2026-11-08 → 2026-11-14 (rama `claude/users-list-az`, Lote U — `APROBADO CON PENDIENTES` en `24f813b` → `APROBADO CON PENDIENTES` en `ea527c2` → **`APROBADO`** en `6eb1282`; sin migración; pendiente: prueba del usuario y merge)
 
 - **Panel lateral de Users (desktop, `StudentListPanel.tsx`) sin paginación**: antes mostraba 8 alumnos por página aunque los cargaba todos; ahora es una lista continua con scroll. El contador "N alumnos" sustituye a "1–8 of 59".
 - **Orden A–Z por defecto** con encabezados de letra fijos y barra A–Z a la derecha (clic = salto; letras sin alumnos en gris; letra actual en azul). La barra se oculta con menos de 20 resultados. Selector **A–Z / Recientes** (Recientes = fecha de alta, agrupado por mes, sin barra); la elección se guarda en `localStorage` (`martial_users_list_sort`).
@@ -361,7 +361,8 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 - Al cambiar filtro, búsqueda u orden la lista vuelve arriba; si se abre un alumno por enlace directo, su fila se trae a la vista.
 - i18n: claves nuevas en `users` (`student`, `sortAz`, `sortRecent`, `sortLabel`, `alphaIndex`, `jumpToLetter`) en EN/ES/PT/FR. Los chips de filtro siguen en inglés fijo (ya lo estaban).
 - No cambia: la tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8.
-- Verificación: `tsc` limpio, 9 tests nuevos pasan. La suite completa tiene 55 fallos en tests de API (`bookingRace`, `cancelMembership`, …) que también fallan sin este cambio. No probado en navegador por Claude (lo prueba el usuario).
+- Correcciones de auditoría: el scroll lo decide un único controlador (`lib/listScrollIntent.ts`): filtro/búsqueda/orden van arriba solo si el valor cambia; abrir un alumno (enlace, `?search=`, atrás/adelante) muestra su fila tras aplicar la búsqueda; el salto por letra anula lo pendiente.
+- Verificación: `tsc` limpio, 19 tests del lote pasan (`alphaIndex`, `listScrollIntent`). La suite completa tiene 55 fallos en tests de API (`bookingRace`, `cancelMembership`, …) que también fallan sin este cambio. No probado en navegador por Claude (lo prueba el usuario).
 
 ### Sesión — 2026-11-02 (o) (rama `claude/bookings-report`, PR [#53](https://github.com/MartialOneOnline/martial-v2/pull/53) — `APROBADO CON PENDIENTES` en `6e7f31d` (5 P2) → `APROBADO CON PENDIENTES` en `6eb7dd1` (3 P2) → **`APROBADO`** en `106331a`; sin migración)
 

@@ -298,7 +298,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote U — Lista de alumnos continua en orden A–Z con índice por letras (rama `claude/users-list-az`)
 
-- Estado: `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → `APROBADO CON PENDIENTES` en `ea527c2` (1 P2 nuevo) → corrección entregada, **pendiente de reauditoría**. Sin migración. Sin PR todavía; rama publicada en `origin/claude/users-list-az`.
+- Estado: `APROBADO CON PENDIENTES` en `24f813b` (1 P2) → `APROBADO CON PENDIENTES` en `ea527c2` (1 P2 nuevo) → **`APROBADO`** en `6eb1282`, sin hallazgos P0–P3 (Codex: componente real en Chromium con 260 alumnos simulados; 19/19 tests; sin sesión real ni dashboard completo). Sin migración. Rama `origin/claude/users-list-az`; PR pendiente de merge.
 - Pedido del usuario: el panel lateral de Users en desktop mostraba 8 alumnos por página ("1–8 of 59"), con más de un tercio del panel vacío. Quiere scroll continuo, orden alfabético y un marcador por letras tipo agenda. Maqueta aprobada antes de tocar código.
 - Alcance: solo `apps/web/app/dashboard/users/StudentListPanel.tsx` (vista dividida de desktop, montada desde `layout.tsx` vía `UsersSplitShell`). La tabla de pantalla completa / móvil (`UsersClient.tsx`) sigue paginando de 8 en 8 a propósito.
 - Criterios:
