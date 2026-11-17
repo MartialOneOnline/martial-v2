@@ -4,13 +4,13 @@ import { prisma } from '@/lib/db'
 import { getStripe } from '@/lib/stripe'
 import { MembershipStatus } from '@/lib/prisma-client/client'
 import type { Prisma } from '@/lib/prisma-client/client'
-import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
+import { sendMembershipReceiptEmail, sendMembershipPaymentFailedEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transactions'
 import { syncSchoolMemberStatusForMembership, isSchoolMemberArchived } from '@/lib/services/membership'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, MembershipPaymentStatus } from '@/lib/prisma-client/enums'
-import { notifyPaymentReceived } from '@/lib/notifications/create'
+import { notifyPaymentReceived, notifyMembershipPaymentFailed } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
 import { lockSurvivingUser, resolveSurvivingUserId } from '@/lib/mergedUsers'
@@ -251,6 +251,70 @@ async function applyPaymentStatus(
     data: { paymentStatus, paymentStatusAt: eventAt },
   })
   return result.count > 0
+}
+
+// Tells the student (email) and the school (dashboard bell) that Stripe could
+// not collect a renewal. Only on the invoice's FIRST failed attempt: Stripe
+// retries several times and a message per retry would be spam — and this is
+// keyed on the invoice, not on the PAST_DUE transition, because
+// customer.subscription.updated (past_due) often lands a second earlier and
+// flips the status first. Event-level dedupe (claimStripeEvent) already stops
+// a redelivery of the same event from sending twice. The first invoice of a
+// subscription is skipped: that is a checkout that never completed, with no
+// membership behind it. Never throws — a notification problem must not make
+// Stripe redeliver an event whose state change already applied.
+async function notifyMembershipPaymentFailure(
+  stripeSubId: string,
+  invoice: {
+    billing_reason?: string
+    attempt_count?: number
+    amount_due?: number
+    currency?: string
+    next_payment_attempt?: number | null
+    hosted_invoice_url?: string | null
+  },
+) {
+  if (invoice.billing_reason === 'subscription_create') return
+  if ((invoice.attempt_count ?? 1) > 1) return
+
+  try {
+    const m = await prisma.membership.findFirst({
+      where: { stripeSubId, status: { in: [MembershipStatus.ACTIVE, MembershipStatus.PAUSED] } },
+      select: {
+        userId: true, schoolId: true, planName: true, price: true, currency: true,
+        user:   { select: { email: true, name: true } },
+        school: { select: { name: true, city: true, language: true } },
+      },
+    })
+    if (!m) return
+
+    const currency = invoice.currency ? invoice.currency.toUpperCase() : m.currency
+    const amount = invoice.amount_due != null ? invoice.amount_due / 100 : Number(m.price)
+    const amountLabel = fmtPrice(amount, currency)
+
+    const schoolMember = await prisma.schoolMember.findUnique({
+      where: { schoolId_userId: { schoolId: m.schoolId, userId: m.userId } },
+      select: { id: true },
+    })
+    notifyMembershipPaymentFailed(m.schoolId, m.user?.name ?? 'Alumno', amountLabel, m.planName, schoolMember?.id)
+
+    if (m.user?.email) {
+      const result = await sendMembershipPaymentFailedEmail({
+        to:            m.user.email,
+        studentName:   m.user.name,
+        schoolName:    m.school.name,
+        schoolCity:    m.school.city,
+        planName:      m.planName,
+        amountLabel,
+        nextAttemptAt: invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000) : null,
+        invoiceUrl:    invoice.hosted_invoice_url ?? null,
+        lang:          m.school.language,
+      })
+      if (!result.success) console.error('[stripe webhook] payment-failed email not sent:', result.error)
+    }
+  } catch (err) {
+    console.error('[stripe webhook] payment-failed notification failed:', err)
+  }
 }
 
 async function handleStripeEvent(event: Stripe.Event) {
@@ -678,7 +742,15 @@ async function handleStripeEvent(event: Stripe.Event) {
 
     // ── Subscription payment failed ────────────────────────────────────────────
     case 'invoice.payment_failed': {
-      const invoice = event.data.object as { subscription?: string }
+      const invoice = event.data.object as {
+        subscription?: string
+        billing_reason?: string
+        attempt_count?: number
+        amount_due?: number
+        currency?: string
+        next_payment_attempt?: number | null
+        hosted_invoice_url?: string | null
+      }
       if (!invoice.subscription) break
 
       // A failed attempt is not a revocation: Stripe keeps retrying on its own
@@ -697,6 +769,8 @@ async function handleStripeEvent(event: Stripe.Event) {
           eventAt,
         )
       })
+
+      await notifyMembershipPaymentFailure(invoice.subscription, invoice)
       break
     }
 

@@ -44,12 +44,15 @@ vi.mock('@/lib/stripe', () => ({
     refunds: { create: vi.fn().mockResolvedValue({}) },
   }),
 }))
+const mockSendPaymentFailedEmail = vi.hoisted(() => vi.fn().mockResolvedValue({ success: true }))
 vi.mock('@/lib/email/sendEmails', () => ({
   sendMembershipReceiptEmail: vi.fn().mockResolvedValue(undefined),
+  sendMembershipPaymentFailedEmail: mockSendPaymentFailedEmail,
   sendEventTicketConfirmationEmail: vi.fn().mockResolvedValue(undefined),
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
-vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+const mockNotifyPaymentFailed = vi.hoisted(() => vi.fn())
+vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn(), notifyMembershipPaymentFailed: mockNotifyPaymentFailed }))
 const mockConvertLead = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
 vi.mock('@/lib/leads', () => ({ convertLeadAfterPaidActivation: mockConvertLead }))
 const mockAlertWebhookFailure = vi.fn().mockResolvedValue(undefined)
@@ -317,6 +320,109 @@ describe('invoice.payment_failed', () => {
     await POST(failed('evt_4'))
 
     expect(memberships['membership-1']!.paymentStatus).toBe('ACTIVE')
+  })
+  describe('student email + school notification', () => {
+    const invoiceFailed = (id: string, invoice: Record<string, unknown> = {}) =>
+      makeRequest({
+        id, type: 'invoice.payment_failed',
+        data: { object: {
+          subscription: 'sub_1', metadata: { schoolId: 'school-1' },
+          billing_reason: 'subscription_cycle', attempt_count: 1, amount_due: 6500, currency: 'eur',
+          next_payment_attempt: Date.UTC(2026, 10, 19, 13, 6) / 1000,
+          hosted_invoice_url: 'https://invoice.stripe.com/i/abc',
+          ...invoice,
+        } },
+      })
+    const seedPayer = (extra: Partial<Membership> = {}) => {
+      seedMembership({
+        id: 'membership-1', stripeSubId: 'sub_1', status: 'ACTIVE', planName: 'Jiu Jitsu Mensual', price: 65, currency: 'EUR',
+        user: { email: 'francis@test.com', name: 'Francis' },
+        school: { name: 'Roger Gracie Malaga', city: 'Málaga', language: 'es' },
+        ...extra,
+      })
+      seedSchoolMember('school-1', 'user-1', 'ACTIVE')
+    }
+
+    it('emails the student and notifies the school on the first failed attempt', async () => {
+      seedPayer()
+
+      const res = await POST(invoiceFailed('evt_n1'))
+
+      expect(res.status).toBe(200)
+      expect(mockSendPaymentFailedEmail).toHaveBeenCalledTimes(1)
+      expect(mockSendPaymentFailedEmail).toHaveBeenCalledWith(expect.objectContaining({
+        to: 'francis@test.com', studentName: 'Francis', schoolName: 'Roger Gracie Malaga', planName: 'Jiu Jitsu Mensual',
+        amountLabel: '65 €', lang: 'es',
+        nextAttemptAt: new Date(Date.UTC(2026, 10, 19, 13, 6)),
+        invoiceUrl: 'https://invoice.stripe.com/i/abc',
+      }))
+      expect(mockNotifyPaymentFailed).toHaveBeenCalledWith('school-1', 'Francis', '65 €', 'Jiu Jitsu Mensual', smKey('school-1', 'user-1'))
+    })
+
+    it('still notifies when subscription.updated already flipped the membership to PAST_DUE', async () => {
+      seedPayer({ paymentStatus: 'PAST_DUE', paymentStatusAt: new Date() })
+
+      await POST(invoiceFailed('evt_n2'))
+
+      expect(mockSendPaymentFailedEmail).toHaveBeenCalledTimes(1)
+      expect(mockNotifyPaymentFailed).toHaveBeenCalledTimes(1)
+    })
+
+    it('stays quiet on Stripe retries (attempt_count > 1)', async () => {
+      seedPayer({ paymentStatus: 'PAST_DUE' })
+
+      await POST(invoiceFailed('evt_n3', { attempt_count: 2 }))
+
+      expect(mockSendPaymentFailedEmail).not.toHaveBeenCalled()
+      expect(mockNotifyPaymentFailed).not.toHaveBeenCalled()
+    })
+
+    it('does not send twice when Stripe redelivers the same event', async () => {
+      seedPayer()
+
+      await POST(invoiceFailed('evt_n4'))
+      await POST(invoiceFailed('evt_n4'))
+
+      expect(mockSendPaymentFailedEmail).toHaveBeenCalledTimes(1)
+      expect(mockNotifyPaymentFailed).toHaveBeenCalledTimes(1)
+    })
+
+    it('skips the first invoice of a subscription (an unfinished checkout)', async () => {
+      seedPayer()
+
+      await POST(invoiceFailed('evt_n5', { billing_reason: 'subscription_create' }))
+
+      expect(mockSendPaymentFailedEmail).not.toHaveBeenCalled()
+      expect(mockNotifyPaymentFailed).not.toHaveBeenCalled()
+    })
+
+    it('skips a cancelled membership', async () => {
+      seedPayer({ status: 'CANCELLED', paymentStatus: 'CANCELED' })
+
+      await POST(invoiceFailed('evt_n6'))
+
+      expect(mockSendPaymentFailedEmail).not.toHaveBeenCalled()
+      expect(mockNotifyPaymentFailed).not.toHaveBeenCalled()
+    })
+
+    it('notifies the school even when the student has no email', async () => {
+      seedPayer({ user: { email: null, name: 'Francis' } })
+
+      await POST(invoiceFailed('evt_n7'))
+
+      expect(mockSendPaymentFailedEmail).not.toHaveBeenCalled()
+      expect(mockNotifyPaymentFailed).toHaveBeenCalledTimes(1)
+    })
+
+    it('a failing email never fails the webhook or undoes PAST_DUE', async () => {
+      seedPayer()
+      mockSendPaymentFailedEmail.mockRejectedValueOnce(new Error('Resend down'))
+
+      const res = await POST(invoiceFailed('evt_n8'))
+
+      expect(res.status).toBe(200)
+      expect(memberships['membership-1']!.paymentStatus).toBe('PAST_DUE')
+    })
   })
 })
 

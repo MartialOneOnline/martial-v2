@@ -303,6 +303,14 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-17 (rama `claude/payment-failed-notify` — aviso de cobro Stripe fallido a alumno y escuela; sin migración; pendiente: Project Audit, merge y primer fallo real)
+
+- **Problema**: `invoice.payment_failed` solo ponía `Membership.paymentStatus = PAST_DUE`. Ni el alumno ni la escuela recibían aviso; solo se veía entrando en `/my/membership` o en la ficha del alumno. Casos reales del 17/11 en RGM: Francis Roberts (`insufficient_funds`) y Ramiro (`transaction_not_allowed`), ambos 65 € Jiu Jitsu Mensual.
+- **Ahora** (`notifyMembershipPaymentFailure` en `app/api/webhooks/stripe/route.ts`): en el **primer intento fallido** de una factura (`attempt_count === 1`, no `subscription_create`) y con membresía ACTIVE/PAUSED → email al alumno (`sendMembershipPaymentFailedEmail`, plantilla `lib/email/templates/membershipPaymentFailed.ts`, EN/ES/PT/FR según `School.language`, CTA a `/my/membership` — que ya muestra el botón del portal de facturación — + enlace a la factura de Stripe `hosted_invoice_url`) y notificación en la campana (`notifyMembershipPaymentFailed`, tipo `PAYMENT_PENDING` ya existente → sin migración; enlaza a la ficha del alumno).
+- Se decide por `attempt_count` y no por la transición a PAST_DUE porque `customer.subscription.updated` (past_due) suele llegar un segundo antes y ya la ha hecho. Reintentos de Stripe (`attempt_count > 1`) no avisan; la redelivery del mismo evento la frena `claimStripeEvent`. Un fallo del email nunca hace fallar el webhook.
+- Tests: `stripeWebhookLifecycleSync.test.ts` (+8) y `membershipPaymentFailedEmail.test.ts` (6). Los 55 tests que fallan en la suite completa fallan igual en `main`.
+- Abierto: el email propio de Stripe para pagos fallidos (Settings → Billing → Manage failed payments de cada escuela) puede duplicar este aviso si la escuela lo tiene activo. La tarjeta de membresía muestra "Expires" con el nuevo periodo aunque la cuota no esté cobrada (Stripe adelanta `current_period_end` al crear la factura).
+
 ### Sesión — 2026-11-17 (rama `claude/campaign-sender` — remitente y marca de la escuela en campañas, Lote AA — **`APROBADO`** en `e444210`; sin migración; pendiente: merge y correo de prueba real)
 
 - **Remitente**: las campañas salen como `"<nombre escuela>" <notifications@martialapp.com>` (`campaignFrom` en `lib/email/templates/campaign.ts`: entre comillas, quita comillas/saltos de línea). Misma dirección verificada → SPF/DKIM sin cambios. `replyTo` = `School.email` si existe. El resto de emails sigue con `FROM` de `lib/email/resend.ts`.

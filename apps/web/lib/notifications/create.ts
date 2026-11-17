@@ -37,6 +37,20 @@ export function notifyPaymentReceived(schoolId: string, memberName: string, amou
   })
 }
 
+// Stripe declined a subscription renewal. PAYMENT_PENDING (amber card icon,
+// "Payments" group) fits "money still owed" and avoids an enum migration.
+export function notifyMembershipPaymentFailed(
+  schoolId: string, memberName: string, amount: string, planName: string, schoolMemberId?: string | null,
+) {
+  createNotification({
+    schoolId,
+    type: 'PAYMENT_PENDING',
+    title: 'Pago fallido',
+    body: `No se ha podido cobrar ${amount} a ${memberName} por ${planName}. Stripe lo reintentará automáticamente.`,
+    href: schoolMemberId ? `/dashboard/users/${schoolMemberId}` : '/dashboard/reports/payments',
+  })
+}
+
 export function notifyNewMember(schoolId: string, memberName: string) {
   createNotification({
     schoolId,
