@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
-import { getResend, FROM } from '@/lib/email/resend'
-import { renderCampaignTokens, buildCampaignEmail } from '@/lib/email/templates/campaign'
+import { getResend } from '@/lib/email/resend'
+import { renderCampaignTokens, buildCampaignEmail, buildCampaignText, campaignFrom } from '@/lib/email/templates/campaign'
 
 const CONCURRENCY = 5
 
@@ -21,7 +21,10 @@ export type ProcessResult = { processed: number; sent: number; failed: number; r
 export async function processPendingCampaignRecipients(campaignId: string, limit = 40): Promise<ProcessResult> {
   const campaign = await prisma.campaign.findUnique({
     where: { id: campaignId },
-    select: { id: true, status: true, subject: true, bodyHtml: true, school: { select: { name: true } } },
+    select: {
+      id: true, status: true, subject: true, bodyHtml: true, language: true,
+      school: { select: { name: true, email: true, logoUrl: true, language: true } },
+    },
   })
   // DRAFT must go through /queue first — never sent implicitly just because
   // a recipient row happens to be PENDING (e.g. right after an edit).
@@ -47,6 +50,13 @@ export async function processPendingCampaignRecipients(campaignId: string, limit
   let failed = 0
   const resend = getResend()
   const schoolName = campaign.school.name
+  // Sender shows the school's name on the shared verified address; replies go
+  // to the school's own inbox when it has one.
+  const from = campaignFrom(schoolName)
+  const replyTo = campaign.school.email?.trim() || undefined
+  // The campaign's language is the one its copy was written in (snapshot of
+  // School.language at creation) — the envelope/footer follows it.
+  const language = campaign.language || campaign.school.language
 
   await runInChunks(recipients, CONCURRENCY, async recipient => {
     const email = recipient.schoolMember.user.email
@@ -54,10 +64,11 @@ export async function processPendingCampaignRecipients(campaignId: string, limit
     const tokens = { nombre: studentName ?? '', escuela: schoolName, cinturon: recipient.schoolMember.belt ?? undefined }
     const message = renderCampaignTokens(campaign.bodyHtml, tokens)
     const subject = renderCampaignTokens(campaign.subject, tokens)
-    const html = buildCampaignEmail({ studentName, schoolName, message })
+    const html = buildCampaignEmail({ schoolName, schoolLogoUrl: campaign.school.logoUrl, message, language })
+    const text = buildCampaignText({ schoolName, message, language })
 
     try {
-      const { data, error } = await resend.emails.send({ from: FROM, to: email, subject, html })
+      const { data, error } = await resend.emails.send({ from, to: email, subject, html, text, ...(replyTo ? { replyTo } : {}) })
       if (error) {
         failed++
         await prisma.campaignRecipient.update({

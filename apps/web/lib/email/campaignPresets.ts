@@ -98,10 +98,12 @@ export const CAMPAIGN_PRESETS: Record<CampaignType, Record<Lang, Preset>> = {
       body: "Bonjour {{nombre}},\n\nCela fait un moment que vous avez rejoint {{escuela}}. Nous aimerions le célébrer en vous accueillant à nouveau — venez vous entraîner avec nous.",
     },
   },
+  // The email envelope adds no greeting of its own, so "Libre" starts with
+  // just the greeting line — the author can rewrite or delete it.
   CUSTOM: {
-    en: { subject: '', body: '' },
-    es: { subject: '', body: '' },
-    pt: { subject: '', body: '' },
-    fr: { subject: '', body: '' },
+    en: { subject: '', body: 'Hi {{nombre}},\n\n' },
+    es: { subject: '', body: 'Hola {{nombre}},\n\n' },
+    pt: { subject: '', body: 'Olá {{nombre}},\n\n' },
+    fr: { subject: '', body: 'Bonjour {{nombre}},\n\n' },
   },
 }

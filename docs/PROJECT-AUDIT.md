@@ -399,6 +399,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Evidencia: `tsc` limpio; lint del fichero sin avisos; suite 1383 pasan / los mismos 55 fallan / 1 pendiente; `next build` local correcto. Comprobado por Claude en Chromium con `AlphaRail` montado solo (página temporal local, ya borrada; con el panel del navegador oculto la página no calcula layout, así que no se pudo usar la tabla completa) y eventos táctiles sintéticos: toque sin `pointerup` → visible y oculta a ~0,8 s; `pointerup` en otro elemento → oculta al instante; solo `touchend` → oculta al instante; arrastre de 1,5 s → visible durante el arrastre y oculta al soltar.
 - No verificado: iPhone real (es donde se ve el fallo).
 
+### Lote AA — Campañas con remitente y marca de la escuela (rama `claude/campaign-sender`)
+
+- Estado: **`APROBADO`** en `e444210`, sin hallazgos P0–P3 (Codex: mensajes directos y bulk-email a leads intactos; `campaignFrom()` elimina comillas, barras inversas y CR/LF conservando la dirección fija; HTML escapado y un solo saludo; presets EN/ES/PT/FR saludan una vez; DRAFT no envía; QUEUED/SENDING completan con `replyTo`, HTML y texto; 11/11 tests entregados + 39 casos propios simulados; suite 1394 pasan / mismos 55 fallos que la base / 1 pendiente; type-check, ESLint y diff-check limpios). Sin migración.
+- Pedido del usuario: el email de campaña llegaba como «Martial» y con «Hi Pablo Cabo,» en inglés seguido de «Hola Pablo Cabo,». Quiere el nombre (y logo) de la escuela como remitente y el saludo en el idioma de la escuela.
+- Cambios: plantilla propia de campaña sin saludo automático, logo de la escuela (https, no SVG) en lugar de «MARTIAL», pie traducido; `from` = `"<escuela>" <notifications@martialapp.com>`, `replyTo` = `School.email`; versión `text`; preset «Libre» solo con el saludo por idioma.
+- No verificado: recepción real en Gmail (remitente visible, logo, respuesta a la escuela). Fuera de alcance: avatar redondo de Gmail por escuela (BIMI es por dominio).
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
