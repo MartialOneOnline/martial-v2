@@ -303,7 +303,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-17 (rama `claude/campaign-sender` — remitente y marca de la escuela en campañas; sin migración; pendiente: Project Audit y correo de prueba real)
+### Sesión — 2026-11-17 (rama `claude/campaign-sender` — remitente y marca de la escuela en campañas, Lote AA — **`APROBADO`** en `e444210`; sin migración; pendiente: merge y correo de prueba real)
 
 - **Remitente**: las campañas salen como `"<nombre escuela>" <notifications@martialapp.com>` (`campaignFrom` en `lib/email/templates/campaign.ts`: entre comillas, quita comillas/saltos de línea). Misma dirección verificada → SPF/DKIM sin cambios. `replyTo` = `School.email` si existe. El resto de emails sigue con `FROM` de `lib/email/resend.ts`.
 - **Saludo duplicado**: la plantilla de campaña ya no usa `buildDirectMessageEmail` (que añadía siempre "Hi X," en inglés, duplicando el "Hola {{nombre}}," de los presets). Plantilla propia sin saludo; el preset «Libre» (`CUSTOM`) se rellena solo con el saludo en el idioma (Hi/Hola/Olá/Bonjour {{nombre}},). Mensajes directos y bulk-email a leads no cambian.
