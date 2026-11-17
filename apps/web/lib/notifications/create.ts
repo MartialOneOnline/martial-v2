@@ -12,7 +12,9 @@ interface NotificationInput {
 
 // Fire-and-forget: never awaited in API routes so it never blocks the response
 export function createNotification(input: NotificationInput): void {
-  prisma.notification.create({ data: input }).catch(() => {})
+  prisma.notification.create({ data: input }).catch(err => {
+    console.error(`[notifications] ${input.type} for school ${input.schoolId} not saved:`, err)
+  })
 }
 
 // ── Pre-built factories ───────────────────────────────────────────────────────
@@ -39,16 +41,27 @@ export function notifyPaymentReceived(schoolId: string, memberName: string, amou
 
 // Stripe declined a subscription renewal. PAYMENT_PENDING (amber card icon,
 // "Payments" group) fits "money still owed" and avoids an enum migration.
-export function notifyMembershipPaymentFailed(
+// Awaited (unlike the fire-and-forget factories): it can be the school's only
+// signal, so the write must finish before the webhook responds and a failure
+// is logged. Never throws.
+export async function notifyMembershipPaymentFailed(
   schoolId: string, memberName: string, amount: string, planName: string, schoolMemberId?: string | null,
-) {
-  createNotification({
-    schoolId,
-    type: 'PAYMENT_PENDING',
-    title: 'Pago fallido',
-    body: `No se ha podido cobrar ${amount} a ${memberName} por ${planName}. Stripe lo reintentará automáticamente.`,
-    href: schoolMemberId ? `/dashboard/users/${schoolMemberId}` : '/dashboard/reports/payments',
-  })
+): Promise<boolean> {
+  try {
+    await prisma.notification.create({
+      data: {
+        schoolId,
+        type: 'PAYMENT_PENDING',
+        title: 'Pago fallido',
+        body: `No se ha podido cobrar ${amount} a ${memberName} por ${planName}. Stripe lo reintentará automáticamente.`,
+        href: schoolMemberId ? `/dashboard/users/${schoolMemberId}` : '/dashboard/reports/payments',
+      },
+    })
+    return true
+  } catch (err) {
+    console.error(`[notifications] payment-failed notice for school ${schoolId} not saved:`, err)
+    return false
+  }
 }
 
 export function notifyNewMember(schoolId: string, memberName: string) {
