@@ -5,12 +5,15 @@ import { Copy, Menu, RefreshCw, CheckCircle2, Merge, Phone, User as UserIcon } f
 import { adminFetch } from '@/lib/api/adminFetch'
 import { useAdminShell } from '../../AdminLayoutClient'
 import MergeAccountsModal from '../MergeAccountsModal'
+import type { DuplicateReason } from '@/lib/duplicateNames'
+
+const REASON_LABEL: Record<DuplicateReason, string> = { name: 'Name', phone: 'Phone', similar_name: 'Similar name' }
 
 type Person = {
   id: string; name: string | null; email: string; avatarUrl: string | null; createdAt: string
   schools: string[]; bookings: number; memberships: number
 }
-type Pair = { a: Person; b: Person; reasons: ('name' | 'phone')[] }
+type Pair = { a: Person; b: Person; reasons: DuplicateReason[] }
 
 function PersonCell({ p }: { p: Person }) {
   return (
@@ -75,7 +78,7 @@ export default function DuplicatesClient() {
           </button>
           <div>
             <h1 className="text-lg font-bold text-[#101828]">Possible duplicates</h1>
-            <p className="text-xs text-gray-400">Accounts with the same name or phone — check before merging, two people can share a name</p>
+            <p className="text-xs text-gray-400">Accounts with the same or a similar name, or the same phone — check before merging, two people can share a name</p>
           </div>
         </div>
         <button onClick={load}
@@ -97,10 +100,10 @@ export default function DuplicatesClient() {
             </div>
           ) : pairs.map(p => (
             <div key={`${p.a.id}|${p.b.id}`} className="flex flex-col md:flex-row md:items-center gap-3 px-4 md:px-6 py-3">
-              <div className="flex gap-1.5 md:w-28 shrink-0">
+              <div className="flex flex-wrap gap-1.5 md:w-28 shrink-0">
                 {p.reasons.map(r => (
                   <span key={r} className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
-                    {r === 'name' ? <UserIcon className="w-3 h-3" /> : <Phone className="w-3 h-3" />}{r === 'name' ? 'Name' : 'Phone'}
+                    {r === 'phone' ? <Phone className="w-3 h-3" /> : <UserIcon className="w-3 h-3" />}{REASON_LABEL[r]}
                   </span>
                 ))}
               </div>

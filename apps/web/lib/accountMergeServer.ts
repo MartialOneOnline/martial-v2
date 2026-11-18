@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { prisma } from '@/lib/db'
 import { normalizeForSearch } from '@/lib/search'
+import { findPartialNamePairs, type DuplicateReason } from '@/lib/duplicateNames'
 import { prismaClaimStore, prismaPinStore } from '@/lib/authPins'
 import { resolveSurvivingUserId } from '@/lib/mergedUsers'
 import {
@@ -200,7 +201,8 @@ export async function resolveMergedPair(keepId: string, mergeId: string) {
   }
 }
 
-// Likely duplicates: same normalized name, or same phone (last 9 digits).
+// Likely duplicates: same normalized name, same phone (last 9 digits), or a
+// name that is the other's with surnames left out (weakest signal, listed last).
 // A shortlist for a human to check, never merged automatically — two
 // different people can share a name.
 export async function findDuplicateCandidates() {
@@ -228,18 +230,22 @@ export async function findDuplicateCandidates() {
   }
 
   const byId = new Map(users.map(u => [u.id, u]))
-  const pairs = new Map<string, { a: string; b: string; reasons: Set<string> }>()
+  const pairs = new Map<string, { a: string; b: string; reasons: Set<DuplicateReason> }>()
+  const addPair = (first: string, second: string, reason: DuplicateReason) => {
+    const [a, b] = [first, second].sort() as [string, string]
+    const key = `${a}|${b}`
+    if (!pairs.has(key)) pairs.set(key, { a, b, reasons: new Set() })
+    pairs.get(key)!.reasons.add(reason)
+  }
   for (const [k, ids] of groups) {
     if (ids.length < 2 || ids.length > 4) continue // big clusters are shared family/test phones, not one person
     for (let i = 0; i < ids.length; i++) {
       for (let j = i + 1; j < ids.length; j++) {
-        const [a, b] = [ids[i]!, ids[j]!].sort() as [string, string]
-        const key = `${a}|${b}`
-        if (!pairs.has(key)) pairs.set(key, { a, b, reasons: new Set() })
-        pairs.get(key)!.reasons.add(k.startsWith('name:') ? 'name' : 'phone')
+        addPair(ids[i]!, ids[j]!, k.startsWith('name:') ? 'name' : 'phone')
       }
     }
   }
+  for (const [a, b] of findPartialNamePairs(users)) addPair(a, b, 'similar_name')
 
   const view = (id: string) => {
     const u = byId.get(id)!
@@ -249,10 +255,12 @@ export async function findDuplicateCandidates() {
       bookings: u._count.bookings, memberships: u._count.memberships,
     }
   }
+  const strongReasons = (reasons: DuplicateReason[]) => reasons.filter(r => r !== 'similar_name').length
   return [...pairs.values()]
     .map(p => ({ a: view(p.a), b: view(p.b), reasons: [...p.reasons] }))
-    // Both reasons first, then pairs with an Apple relay side (the known cause)
+    // Most exact matches first, then pairs with an Apple relay side (the known cause)
     .sort((x, y) =>
+      strongReasons(y.reasons) - strongReasons(x.reasons) ||
       y.reasons.length - x.reasons.length ||
       Number(y.a.email.includes('privaterelay') || y.b.email.includes('privaterelay')) -
         Number(x.a.email.includes('privaterelay') || x.b.email.includes('privaterelay')) ||
