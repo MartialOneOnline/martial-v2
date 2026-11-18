@@ -5,6 +5,7 @@ import { buildTrialConfirmedEmail, getTrialConfirmedSubject } from './templates/
 import { buildClassCancelledEmail, getClassCancelledSubject } from './templates/classCancelled'
 import { buildMembershipReceiptEmail, getMembershipReceiptSubject } from './templates/membershipReceipt'
 import { buildMembershipRequestEmail, getMembershipRequestSubject } from './templates/membershipRequest'
+import { buildMembershipPaymentFailedEmail, getMembershipPaymentFailedSubject } from './templates/membershipPaymentFailed'
 import {
   buildEventTicketConfirmationEmail, getEventTicketConfirmationSubject,
   buildEventTicketRefundEmail, getEventTicketRefundSubject,
@@ -210,6 +211,44 @@ export async function sendMembershipReceiptEmail({
     endDate,
     membershipId,
     dashboardUrl: `${APP_URL}/my/membership`,
+    lang,
+  })
+  return send(to, subject, html)
+}
+
+// ── 4b. Membership payment failed (Stripe renewal declined) ──────────────────────
+export async function sendMembershipPaymentFailedEmail({
+  to,
+  studentName,
+  schoolName,
+  schoolCity,
+  planName,
+  amountLabel,
+  nextAttemptAt,
+  invoiceUrl,
+  lang,
+}: {
+  to: string
+  studentName?: string | null
+  schoolName: string
+  schoolCity?: string | null
+  planName: string
+  amountLabel: string
+  nextAttemptAt?: Date | null
+  invoiceUrl?: string | null
+  lang?: string | null
+}): Promise<SendResult> {
+  const l = detectLang(lang)
+  const subject = getMembershipPaymentFailedSubject(planName, l)
+  const html = buildMembershipPaymentFailedEmail({
+    studentName,
+    schoolName,
+    schoolCity,
+    planName,
+    amountLabel,
+    nextAttemptAt,
+    updateUrl: `${APP_URL}/my/membership`,
+    invoiceUrl,
     lang,
   })
   return send(to, subject, html)

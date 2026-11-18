@@ -12,6 +12,8 @@ import { formatDisplayNumber } from './verification'
 
 export interface FulfillCollectibleCheckoutParams {
   collectibleUnitId: string
+  /** School-account webhook only: the school whose secret verified the event. A unit from any other collection is ignored. */
+  expectedSchoolId?: string
   userId: string
   amountTotalCents: number | null
   currency: string | null
@@ -44,6 +46,10 @@ export async function fulfillCollectibleCheckout(params: FulfillCollectibleCheck
       },
     })
     if (!unit) return null
+    if (params.expectedSchoolId !== undefined && unit.collection.schoolId !== params.expectedSchoolId) {
+      console.error(`[collectibles] unit ${collectibleUnitId} belongs to school ${unit.collection.schoolId ?? 'Martial'}, not the verifying school ${params.expectedSchoolId} — ignored.`)
+      return null
+    }
 
     const schoolId = unit.collection.schoolId
 

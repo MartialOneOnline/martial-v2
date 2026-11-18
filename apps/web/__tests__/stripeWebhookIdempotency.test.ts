@@ -56,7 +56,7 @@ function resetState() {
   membershipSeq = 0
 }
 
-const mockSchoolFindUnique = vi.fn().mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+const mockSchoolFindUnique = vi.fn().mockResolvedValue({ id: 'school-1', stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
 
 const mockStripeWebhookEventCreate = vi.fn((args: { data: { eventId: string; type: string; status: string } }) => {
   const { eventId, type, status } = args.data
@@ -208,7 +208,7 @@ function eventBookingCheckoutEvent(eventId: string, bookingId: string) {
 beforeEach(() => {
   vi.clearAllMocks()
   resetState()
-  mockSchoolFindUnique.mockResolvedValue({ stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
+  mockSchoolFindUnique.mockResolvedValue({ id: 'school-1', stripeSecretKey: 'sk_test', stripeWebhookSecret: 'whsec_test' })
   mockCheckEventCapacity.mockResolvedValue({ ok: true })
 })
 

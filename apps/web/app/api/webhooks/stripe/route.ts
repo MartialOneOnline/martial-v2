@@ -4,13 +4,13 @@ import { prisma } from '@/lib/db'
 import { getStripe } from '@/lib/stripe'
 import { MembershipStatus } from '@/lib/prisma-client/client'
 import type { Prisma } from '@/lib/prisma-client/client'
-import { sendMembershipReceiptEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
+import { sendMembershipReceiptEmail, sendMembershipPaymentFailedEmail, sendEventTicketConfirmationEmail, sendEventTicketRefundedEmail } from '@/lib/email/sendEmails'
 import { checkEventCapacity } from '@/lib/services/eventCapacity'
 import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transactions'
 import { syncSchoolMemberStatusForMembership, isSchoolMemberArchived } from '@/lib/services/membership'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, MembershipPaymentStatus } from '@/lib/prisma-client/enums'
-import { notifyPaymentReceived } from '@/lib/notifications/create'
+import { notifyPaymentReceived, notifyMembershipPaymentFailed } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
 import { lockSurvivingUser, resolveSurvivingUserId } from '@/lib/mergedUsers'
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
   let school = schoolId
     ? await prisma.school.findUnique({
         where: { id: schoolId },
-        select: { stripeSecretKey: true, stripeWebhookSecret: true },
+        select: { id: true, stripeSecretKey: true, stripeWebhookSecret: true },
       })
     : null
 
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       if (membership) {
         school = await prisma.school.findUnique({
           where: { id: membership.schoolId },
-          select: { stripeSecretKey: true, stripeWebhookSecret: true },
+          select: { id: true, stripeSecretKey: true, stripeWebhookSecret: true },
         })
       }
     }
@@ -178,7 +178,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true })
 
   try {
-    await handleStripeEvent(event)
+    // school.id is the school whose webhook secret verified this signature —
+    // the only tenant this event is allowed to touch. Never the payload's
+    // metadata, which the sender controls.
+    await handleStripeEvent(event, school.id)
     await prisma.stripeWebhookEvent.update({
       where: { eventId: event.id },
       data: { status: StripeWebhookEventStatus.PROCESSED, processedAt: new Date() },
@@ -253,7 +256,101 @@ async function applyPaymentStatus(
   return result.count > 0
 }
 
-async function handleStripeEvent(event: Stripe.Event) {
+// Tells the student (email) and the school (dashboard bell) that Stripe could
+// not collect a renewal. Rules:
+//  - Only the invoice's FIRST failed attempt: Stripe retries several times and
+//    a message per retry would be spam. Keyed on attempt_count, not on the
+//    PAST_DUE transition, because customer.subscription.updated (past_due)
+//    usually lands a second earlier and has already made that transition.
+//  - Not the first invoice of a subscription (an unfinished checkout, with no
+//    membership behind it).
+//  - Only memberships of the school whose secret verified the event.
+//  - Not when the failure is already stale: this invoice was paid since
+//    (stripeInvoiceId), or a newer event put payment health back to healthy.
+//  - At most once per invoice, even across a FAILED → reclaim redelivery of
+//    the same event: a marker row (stripe_webhook_events, eventId
+//    "notify:invoice.payment_failed:<school>:<invoice>") is claimed BEFORE sending. If
+//    sending then fails the notice is lost rather than duplicated — logged.
+//  - Never throws: a notification problem must not make Stripe redeliver an
+//    event whose state change already applied.
+async function notifyMembershipPaymentFailure(
+  ctx: { stripeSubId: string; schoolId: string; eventId: string; eventAt: Date },
+  invoice: {
+    id?: string
+    billing_reason?: string
+    attempt_count?: number
+    amount_due?: number
+    currency?: string
+    next_payment_attempt?: number | null
+    hosted_invoice_url?: string | null
+  },
+) {
+  if (invoice.billing_reason === 'subscription_create') return
+  if ((invoice.attempt_count ?? 1) > 1) return
+
+  try {
+    const m = await prisma.membership.findFirst({
+      where: {
+        stripeSubId: ctx.stripeSubId,
+        schoolId: ctx.schoolId,
+        status: { in: [MembershipStatus.ACTIVE, MembershipStatus.PAUSED] },
+      },
+      select: {
+        userId: true, schoolId: true, planName: true, price: true, currency: true,
+        stripeInvoiceId: true, paymentStatus: true, paymentStatusAt: true,
+        user:   { select: { email: true, name: true } },
+        school: { select: { name: true, city: true, language: true } },
+      },
+    })
+    if (!m) return
+
+    if (invoice.id && m.stripeInvoiceId === invoice.id) return // this invoice has been paid since
+    const healthy = m.paymentStatus === MembershipPaymentStatus.ACTIVE || m.paymentStatus === MembershipPaymentStatus.TRIALING
+    if (healthy && m.paymentStatusAt && m.paymentStatusAt.getTime() > ctx.eventAt.getTime()) return // superseded by a newer event
+
+    // Scoped by school: invoice ids are visible to other schools' Stripe
+    // accounts only as data they could forge, so A must never be able to
+    // claim (and thereby suppress) B's marker.
+    const markerId = `notify:invoice.payment_failed:${ctx.schoolId}:${invoice.id ?? ctx.eventId}`
+    try {
+      await prisma.stripeWebhookEvent.create({
+        data: { eventId: markerId, type: 'notify.invoice.payment_failed', status: StripeWebhookEventStatus.PROCESSED, processedAt: new Date() },
+      })
+    } catch (err) {
+      if ((err as { code?: string })?.code === 'P2002') return // already notified for this invoice
+      throw err
+    }
+
+    const currency = invoice.currency ? invoice.currency.toUpperCase() : m.currency
+    const amount = invoice.amount_due != null ? invoice.amount_due / 100 : Number(m.price)
+    const amountLabel = fmtPrice(amount, currency)
+
+    const schoolMember = await prisma.schoolMember.findUnique({
+      where: { schoolId_userId: { schoolId: m.schoolId, userId: m.userId } },
+      select: { id: true },
+    })
+    await notifyMembershipPaymentFailed(m.schoolId, m.user?.name ?? 'Alumno', amountLabel, m.planName, schoolMember?.id)
+
+    if (m.user?.email) {
+      const result = await sendMembershipPaymentFailedEmail({
+        to:            m.user.email,
+        studentName:   m.user.name,
+        schoolName:    m.school.name,
+        schoolCity:    m.school.city,
+        planName:      m.planName,
+        amountLabel,
+        nextAttemptAt: invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000) : null,
+        invoiceUrl:    invoice.hosted_invoice_url ?? null,
+        lang:          m.school.language,
+      })
+      if (!result.success) console.error(`[stripe webhook] payment-failed email not sent (invoice ${invoice.id ?? 'n/a'}):`, result.error)
+    }
+  } catch (err) {
+    console.error(`[stripe webhook] payment-failed notification failed (invoice ${invoice.id ?? 'n/a'}, event ${ctx.eventId}):`, err)
+  }
+}
+
+async function handleStripeEvent(event: Stripe.Event, verifiedSchoolId: string) {
   const eventAt = new Date((event.created ?? Math.floor(Date.now() / 1000)) * 1000)
 
   switch (event.type) {
@@ -271,8 +368,14 @@ async function handleStripeEvent(event: Stripe.Event) {
       }
       const meta = (session.metadata ?? {}) as Record<string, string>
       const { planId, planType, validityDays, eventBookingId, collectibleUnitId } = meta
-      // Non-null: these always accompany planId, set together by /api/my/checkout.
-      const schoolId = meta.schoolId!
+      // A school's Stripe account can only act on its own school: metadata
+      // pointing somewhere else is either a misconfiguration or a forgery
+      // signed with another school's secret.
+      if (meta.schoolId && meta.schoolId !== verifiedSchoolId) {
+        console.error(`[stripe webhook] checkout metadata.schoolId=${meta.schoolId} does not match the verifying school ${verifiedSchoolId} — event ${event.id} ignored.`)
+        break
+      }
+      const schoolId = verifiedSchoolId
       // The checkout may have been created by an account merged away since.
       let userId = meta.userId ? await resolveSurvivingUserId(meta.userId) : meta.userId!
       const planName = meta.planName!
@@ -285,6 +388,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       if (collectibleUnitId) {
         await fulfillCollectibleCheckout({
           collectibleUnitId,
+          expectedSchoolId: verifiedSchoolId,
           userId,
           amountTotalCents: session.amount_total ?? null,
           currency: session.currency ?? null,
@@ -309,6 +413,10 @@ async function handleStripeEvent(event: Stripe.Event) {
             },
           })
           if (!booking) return null
+          if (booking.event.schoolId !== verifiedSchoolId) {
+            console.error(`[stripe webhook] event booking ${eventBookingId} belongs to school ${booking.event.schoolId}, not the verifying school ${verifiedSchoolId} — ignored.`)
+            return null
+          }
 
           // /api/my/events/checkout doesn't currently block starting a
           // checkout while ARCHIVED (unlike /api/my/checkout for
@@ -592,7 +700,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       if (invoice.billing_reason === 'subscription_create') break
 
       const membership = await prisma.membership.findFirst({
-        where: { stripeSubId: invoice.subscription },
+        where: { stripeSubId: invoice.subscription, schoolId: verifiedSchoolId },
         select: {
           id: true, schoolId: true, userId: true, planName: true, currency: true, stripeInvoiceId: true,
           plan: { select: { billingCycle: true } },
@@ -678,7 +786,16 @@ async function handleStripeEvent(event: Stripe.Event) {
 
     // ── Subscription payment failed ────────────────────────────────────────────
     case 'invoice.payment_failed': {
-      const invoice = event.data.object as { subscription?: string }
+      const invoice = event.data.object as {
+        id?: string
+        subscription?: string
+        billing_reason?: string
+        attempt_count?: number
+        amount_due?: number
+        currency?: string
+        next_payment_attempt?: number | null
+        hosted_invoice_url?: string | null
+      }
       if (!invoice.subscription) break
 
       // A failed attempt is not a revocation: Stripe keeps retrying on its own
@@ -692,11 +809,13 @@ async function handleStripeEvent(event: Stripe.Event) {
       await prisma.$transaction(async (tx) => {
         await applyPaymentStatus(
           tx,
-          { stripeSubId: invoice.subscription, paymentStatus: { in: [MembershipPaymentStatus.ACTIVE, MembershipPaymentStatus.TRIALING] } },
+          { stripeSubId: invoice.subscription, schoolId: verifiedSchoolId, paymentStatus: { in: [MembershipPaymentStatus.ACTIVE, MembershipPaymentStatus.TRIALING] } },
           MembershipPaymentStatus.PAST_DUE,
           eventAt,
         )
       })
+
+      await notifyMembershipPaymentFailure({ stripeSubId: invoice.subscription, schoolId: verifiedSchoolId, eventId: event.id, eventAt }, invoice)
       break
     }
 
@@ -705,7 +824,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       const sub = event.data.object as { id: string }
 
       const membership = await prisma.membership.findFirst({
-        where: { stripeSubId: sub.id },
+        where: { stripeSubId: sub.id, schoolId: verifiedSchoolId },
         select: { id: true, userId: true, schoolId: true },
       })
       if (!membership) break
@@ -715,7 +834,7 @@ async function handleStripeEvent(event: Stripe.Event) {
         // Lock + re-resolve: a merge may have moved this account meanwhile.
         lockedUserId = await lockSurvivingUser(tx, membership.userId)
         await tx.membership.updateMany({
-          where: { stripeSubId: sub.id },
+          where: { stripeSubId: sub.id, schoolId: verifiedSchoolId },
           data:  {
             status: MembershipStatus.CANCELLED, cancelledAt: new Date(),
             paymentStatus: MembershipPaymentStatus.CANCELED, paymentStatusAt: eventAt,
@@ -739,7 +858,7 @@ async function handleStripeEvent(event: Stripe.Event) {
       }
 
       const membership = await prisma.membership.findFirst({
-        where: { stripeSubId: sub.id },
+        where: { stripeSubId: sub.id, schoolId: verifiedSchoolId },
         select: { id: true, userId: true, schoolId: true, endDate: true, status: true },
       })
       if (!membership) break
@@ -784,7 +903,7 @@ async function handleStripeEvent(event: Stripe.Event) {
         // Lock + re-resolve: a merge may have moved this account meanwhile.
         lockedUserId = await lockSurvivingUser(tx, membership.userId)
         const paymentStatusApplied = paymentStatus
-          ? await applyPaymentStatus(tx, { stripeSubId: sub.id }, paymentStatus, eventAt)
+          ? await applyPaymentStatus(tx, { stripeSubId: sub.id, schoolId: verifiedSchoolId }, paymentStatus, eventAt)
           : false
 
         // past_due leaves access untouched (Stripe is still retrying — that
@@ -803,7 +922,7 @@ async function handleStripeEvent(event: Stripe.Event) {
           ...(periodEndDate && { endDate: periodEndDate }),
         }
         if (Object.keys(data).length > 0) {
-          await tx.membership.updateMany({ where: { stripeSubId: sub.id }, data })
+          await tx.membership.updateMany({ where: { stripeSubId: sub.id, schoolId: verifiedSchoolId }, data })
         }
         if (newStatus) {
           await syncSchoolMemberStatusForMembership(tx, {
