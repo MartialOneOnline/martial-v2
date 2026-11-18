@@ -303,7 +303,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-17 (rama `claude/payment-failed-notify` — aviso de cobro Stripe fallido a alumno y escuela, Lote AB — `RECHAZADO` en `f21914c` (1 P1, 3 P2) → `APROBADO CON PENDIENTES` en `a9f868e` (1 P2) → corregido, pendiente de reauditoría; sin migración; pendiente: merge y primer fallo real)
+### Sesión — 2026-11-17 (rama `claude/payment-failed-notify` — aviso de cobro Stripe fallido a alumno y escuela, Lote AB — `RECHAZADO` en `f21914c` (1 P1, 3 P2) → `APROBADO CON PENDIENTES` en `a9f868e` (1 P2) → **`APROBADO`** en `ec8426c`; sin migración; pendiente: merge y primer fallo real)
 
 - **Problema**: `invoice.payment_failed` solo ponía `Membership.paymentStatus = PAST_DUE`. Ni el alumno ni la escuela recibían aviso; solo se veía entrando en `/my/membership` o en la ficha del alumno. Casos reales del 17/11 en RGM: Francis Roberts (`insufficient_funds`) y Ramiro (`transaction_not_allowed`), ambos 65 € Jiu Jitsu Mensual.
 - **Ahora** (`notifyMembershipPaymentFailure` en `app/api/webhooks/stripe/route.ts`): en el **primer intento fallido** de una factura (`attempt_count === 1`, no `subscription_create`) y con membresía ACTIVE/PAUSED → email al alumno (`sendMembershipPaymentFailedEmail`, plantilla `lib/email/templates/membershipPaymentFailed.ts`, EN/ES/PT/FR según `School.language`, CTA a `/my/membership` — que ya muestra el botón del portal de facturación — + enlace a la factura de Stripe `hosted_invoice_url`) y notificación en la campana (`notifyMembershipPaymentFailed`, tipo `PAYMENT_PENDING` ya existente → sin migración; enlaza a la ficha del alumno).

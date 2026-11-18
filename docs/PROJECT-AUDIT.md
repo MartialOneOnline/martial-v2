@@ -408,7 +408,7 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote AB — Aviso de cobro Stripe fallido a alumno y escuela (rama `claude/payment-failed-notify`)
 
-- Estado: **`RECHAZADO`** en `f21914c` (1 P1, 3 P2) → **`APROBADO CON PENDIENTES`** en `a9f868e` (1 P2 nuevo: marca de deduplicación sin escuela) → corregido, pendiente de reauditoría. Sin migración.
+- Estado: **`RECHAZADO`** en `f21914c` (1 P1, 3 P2) → `APROBADO CON PENDIENTES` en `a9f868e` (1 P2 nuevo: marca de deduplicación sin escuela) → **`APROBADO`** en `ec8426c`, sin hallazgos abiertos (Codex: A ya no ocupa la marca de B, el fallback por evento también lleva la escuela, reclaim y dos eventos de la misma factura → un aviso; 76/76 tests dirigidos + 6 propios; suite 1422 / mismos 55 fallos / 1 todo; tsc, ESLint y diff-check limpios). Límite aceptado: entrega «como mucho una vez». Sin migración.
 - Pedido del usuario: cuando Stripe no puede cobrar una renovación, ni el alumno ni la escuela se enteraban (solo `Membership.paymentStatus = PAST_DUE`). Casos reales del 17/11 en RGM (`insufficient_funds`, `transaction_not_allowed`).
 - Cambio inicial (`f21914c`): en el primer intento fallido de una factura (`attempt_count` 1, no `subscription_create`, membresía ACTIVE/PAUSED) → email al alumno (EN/ES/PT/FR, CTA `/my/membership` + `hosted_invoice_url`) y campana `PAYMENT_PENDING` a la escuela con enlace a la ficha.
 - Hallazgos de Codex en `f21914c` y corrección:
