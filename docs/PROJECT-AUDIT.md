@@ -420,6 +420,13 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Evidencia: `tsc`, ESLint y `git diff --check` limpios; tests nuevos/ajustados en `stripeWebhookLifecycleSync` (50), `membershipPaymentFailedEmail` (6), `paymentFailedTenantAndBell` (5), mocks de escuela con `id` en `stripeWebhookIdempotency` y `stripeEventBookingArchivedMemberReview`; suite 1422 pasan / los mismos 55 fallos que la base / 1 pendiente.
 - Abierto / fuera de alcance: email nativo de Stripe para pagos fallidos puede duplicar el aviso si la escuela lo tiene activo; versiones modernas de la API ponen la suscripción en `parent.subscription_details.subscription` (preexistente, el handler no lo lee); "Expires" adelantado mientras PAST_DUE; entrega real con Resend no verificada.
 
+### Lote AC — Posibles duplicados por nombre parcial (rama `claude/duplicates-partial-name`)
+
+- Estado: pendiente de auditoría de Codex.
+- Pedido del usuario: dos cuentas de la misma persona, una con segundo apellido y otra sin él, no aparecían en `/admin/users/duplicates`.
+- Cambio: `lib/duplicateNames.ts` añade el motivo `similar_name` (mismo primer nombre, al menos 2 palabras, todas las del nombre corto incluidas en el largo; sin acentos ni partículas). Un nombre corto que encaja con más de 3 cuentas se descarta. Estos pares se ordenan tras las coincidencias exactas; la fusión sigue siendo manual y sin cambios.
+- No verificado: volumen y falsos positivos con datos reales de producción, y la pantalla en navegador.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

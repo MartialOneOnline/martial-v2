@@ -303,6 +303,12 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-18 (rama `claude/duplicates-partial-name` — posibles duplicados por nombre parcial; sin migración; pendiente de Project Audit, Lote AC)
+
+- `/admin/users/duplicates` solo detectaba nombre completo idéntico o mismo teléfono, así que "Íñigo Pérez Gómez" y "Inigo Perez" no aparecían.
+- Nuevo `lib/duplicateNames.ts`: motivo `similar_name` cuando un nombre es el otro sin algún apellido (mismo primer nombre, mínimo 2 palabras, sin acentos ni partículas). Si el nombre corto encaja con más de 3 cuentas, se descarta por común. Estos pares van después de las coincidencias exactas y nunca se fusionan solos.
+- Verificado: tests de `duplicateNames` y `accountMerge*`, `tsc` y ESLint. **No verificado:** cuántos pares nuevos salen con datos reales ni la pantalla en navegador.
+
 ### Sesión — 2026-11-17 (rama `claude/payment-failed-notify` — aviso de cobro Stripe fallido a alumno y escuela, Lote AB — `RECHAZADO` en `f21914c` (1 P1, 3 P2) → `APROBADO CON PENDIENTES` en `a9f868e` (1 P2) → **`APROBADO`** en `ec8426c`; sin migración; pendiente: merge y primer fallo real)
 
 - **Problema**: `invoice.payment_failed` solo ponía `Membership.paymentStatus = PAST_DUE`. Ni el alumno ni la escuela recibían aviso; solo se veía entrando en `/my/membership` o en la ficha del alumno. Casos reales del 17/11 en RGM: Francis Roberts (`insufficient_funds`) y Ramiro (`transaction_not_allowed`), ambos 65 € Jiu Jitsu Mensual.
