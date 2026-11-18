@@ -269,7 +269,7 @@ async function applyPaymentStatus(
 //    (stripeInvoiceId), or a newer event put payment health back to healthy.
 //  - At most once per invoice, even across a FAILED → reclaim redelivery of
 //    the same event: a marker row (stripe_webhook_events, eventId
-//    "notify:invoice.payment_failed:<invoice>") is claimed BEFORE sending. If
+//    "notify:invoice.payment_failed:<school>:<invoice>") is claimed BEFORE sending. If
 //    sending then fails the notice is lost rather than duplicated — logged.
 //  - Never throws: a notification problem must not make Stripe redeliver an
 //    event whose state change already applied.
@@ -308,7 +308,10 @@ async function notifyMembershipPaymentFailure(
     const healthy = m.paymentStatus === MembershipPaymentStatus.ACTIVE || m.paymentStatus === MembershipPaymentStatus.TRIALING
     if (healthy && m.paymentStatusAt && m.paymentStatusAt.getTime() > ctx.eventAt.getTime()) return // superseded by a newer event
 
-    const markerId = `notify:invoice.payment_failed:${invoice.id ?? ctx.eventId}`
+    // Scoped by school: invoice ids are visible to other schools' Stripe
+    // accounts only as data they could forge, so A must never be able to
+    // claim (and thereby suppress) B's marker.
+    const markerId = `notify:invoice.payment_failed:${ctx.schoolId}:${invoice.id ?? ctx.eventId}`
     try {
       await prisma.stripeWebhookEvent.create({
         data: { eventId: markerId, type: 'notify.invoice.payment_failed', status: StripeWebhookEventStatus.PROCESSED, processedAt: new Date() },

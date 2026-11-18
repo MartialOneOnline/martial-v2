@@ -443,7 +443,7 @@ describe('invoice.payment_failed', () => {
 
       expect(mockSendPaymentFailedEmail).toHaveBeenCalledTimes(1)
       expect(mockNotifyPaymentFailed).toHaveBeenCalledTimes(1)
-      expect(webhookEvents['notify:invoice.payment_failed:in_r1']).toBeDefined()
+      expect(webhookEvents['notify:invoice.payment_failed:school-1:in_r1']).toBeDefined()
     })
 
     it('notifies once per invoice even if two distinct first-attempt events arrive for it', async () => {
@@ -965,6 +965,30 @@ describe('tenant isolation — an event only touches the school whose secret ver
 
     expect(memberships['membership-b']!.stripeInvoiceId).toBeUndefined()
     expect(Object.keys(transactions)).toHaveLength(0)
+  })
+
+  it('A cannot suppress B\'s notice by claiming B\'s invoice id first', async () => {
+    // A's own membership, failed event forged with B's invoice id.
+    seedMembership({
+      id: 'membership-a', schoolId: 'school-1', userId: 'user-a', stripeSubId: 'sub_a', status: 'ACTIVE',
+      planName: 'A plan', price: 50, currency: 'EUR',
+      user: { email: 'a@test.com', name: 'A' }, school: { name: 'School A', city: null, language: 'en' },
+    })
+    seedSchoolMember('school-1', 'user-a', 'ACTIVE')
+    seedOtherSchool()
+    const failedFor = (id: string, sub: string) => makeRequest({
+      id, type: 'invoice.payment_failed',
+      data: { object: { id: 'in_b', subscription: sub, metadata: {}, billing_reason: 'subscription_cycle', attempt_count: 1, amount_due: 8000, currency: 'eur' } },
+    })
+
+    await POST(failedFor('evt_fa', 'sub_a'))                       // verified as school-1
+    mockSchoolFindUnique.mockResolvedValue({ id: 'school-2', stripeSecretKey: 'sk_b', stripeWebhookSecret: 'whsec_b' })
+    await POST(failedFor('evt_fb', 'sub_b'))                       // B's legitimate event, verified as school-2
+
+    expect(memberships['membership-b']!.paymentStatus).toBe('PAST_DUE')
+    expect(mockSendPaymentFailedEmail).toHaveBeenCalledTimes(2)
+    expect(mockSendPaymentFailedEmail).toHaveBeenLastCalledWith(expect.objectContaining({ to: 'b@test.com' }))
+    expect(mockNotifyPaymentFailed).toHaveBeenLastCalledWith('school-2', 'B', '80 €', 'B plan', smKey('school-2', 'user-b'))
   })
 
   it('checkout.session.completed whose metadata names another school is ignored', async () => {
