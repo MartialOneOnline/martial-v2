@@ -422,10 +422,10 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 
 ### Lote AC — Posibles duplicados por nombre parcial (rama `claude/duplicates-partial-name`)
 
-- Estado: pendiente de auditoría de Codex.
+- Estado: **`APROBADO`** en `5301335`, sin hallazgos P0–P3 (Codex: normalización, límite de tres candidatos, pares únicos con varios motivos, prioridad de coincidencias exactas y protección por super admin verificados; la fusión sigue siendo manual; 94/94 tests dirigidos; suite con 1429 pasan y los mismos 55 fallos de la base, comparados por nombre).
 - Pedido del usuario: dos cuentas de la misma persona, una con segundo apellido y otra sin él, no aparecían en `/admin/users/duplicates`.
 - Cambio: `lib/duplicateNames.ts` añade el motivo `similar_name` (mismo primer nombre, al menos 2 palabras, todas las del nombre corto incluidas en el largo; sin acentos ni partículas). Un nombre corto que encaja con más de 3 cuentas se descarta. Estos pares se ordenan tras las coincidencias exactas; la fusión sigue siendo manual y sin cambios.
-- No verificado: volumen y falsos positivos con datos reales de producción, y la pantalla en navegador.
+- Pendiente tras la auditoría: validar falsos positivos con datos reales y la pantalla con sesión de super admin. El límite de tres reduce sugerencias, no demuestra identidad.
 
 ## Próxima entrega de Claude
 

@@ -303,11 +303,11 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
-### Sesión — 2026-11-18 (rama `claude/duplicates-partial-name` — posibles duplicados por nombre parcial; sin migración; pendiente de Project Audit, Lote AC)
+### Sesión — 2026-11-18 (rama `claude/duplicates-partial-name` — posibles duplicados por nombre parcial; sin migración; Lote AC **`APROBADO`** por Project Audit en `5301335`; pendiente: merge)
 
 - `/admin/users/duplicates` solo detectaba nombre completo idéntico o mismo teléfono, así que "Íñigo Pérez Gómez" y "Inigo Perez" no aparecían.
 - Nuevo `lib/duplicateNames.ts`: motivo `similar_name` cuando un nombre es el otro sin algún apellido (mismo primer nombre, mínimo 2 palabras, sin acentos ni partículas). Si el nombre corto encaja con más de 3 cuentas, se descarta por común. Estos pares van después de las coincidencias exactas y nunca se fusionan solos.
-- Verificado: tests de `duplicateNames` y `accountMerge*`, `tsc` y ESLint. **No verificado:** cuántos pares nuevos salen con datos reales ni la pantalla en navegador.
+- Verificado: tests de `duplicateNames` y `accountMerge*`, `tsc` y ESLint. **Pendiente de validar:** falsos positivos con datos reales y la pantalla con sesión de super admin.
 
 ### Sesión — 2026-11-17 (rama `claude/payment-failed-notify` — aviso de cobro Stripe fallido a alumno y escuela, Lote AB — `RECHAZADO` en `f21914c` (1 P1, 3 P2) → `APROBADO CON PENDIENTES` en `a9f868e` (1 P2) → **`APROBADO`** en `ec8426c`; sin migración; pendiente: merge y primer fallo real)
 
