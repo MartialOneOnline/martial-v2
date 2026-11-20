@@ -271,6 +271,8 @@ _Reescrito en la Sesión 71 (limpieza post-serie) — el backlog "Sprint 1/2/3" 
 7. **Email oculto de Apple (PR #59, aprobado, migración aplicada):** hacer merge y probar con una cuenta real de Apple con email oculto (llega el código, el email cambia y «Continuar con Apple» sigue funcionando).
 8. **Fusionar cuentas duplicadas (rama `claude/merge-accounts`, migración `20261110120000_account_merges` sin aplicar):** aplicar la migración en Supabase con OK del usuario antes de desplegar; luego fusionar a Manuel Conejo (hotmail ← Apple, después ← gmail) y revisar uno a uno los ~56 pares de *Users → Possible duplicates* (10 de las 28 cuentas de Apple con email oculto son duplicados). Pendiente aparte: que el paso de email real de PR #59 ofrezca fusionar en vez de dar `email_taken`, y avisar a la escuela de un posible duplicado en «Unirse a la escuela».
 
+9. **Bonos sin renewal (rama `claude/single-pass-no-renewal`, 2026-11-20):** el cron diario de cobros en efectivo (`generateDueRenewalPayments`) creaba un cobro «— renewal» también para bonos (SINGLE_PASS) y pruebas al vencer; marcarlo pagado alargaba el bono usado. Caso real: Andrej (RGM), pago Stripe del 20 oct que no llegó por el webhook roto, dado de alta a mano en efectivo. Ahora el cron solo renueva suscripciones y membresías sin plan (V1), `createRenewalPayment` rechaza SINGLE_PASS/TRIAL y el perfil oculta «+ Payment» en bonos. Datos: `apps/web/scripts/cancel-one-off-renewals.ts --apply` canceló 4 en producción (Wojtek Herchel, Pablo Cabo, Victor ML, Andrej). Hasta desplegar, el cron de las 03:00 UTC puede recrearlos: volver a pasar el script. Pendiente: el plan «Jiu Jitsu Mensual» de Wojtek figura como SINGLE_PASS — revisar si está mal tipado.
+
 ---
 
 ## App móvil (tiendas)
