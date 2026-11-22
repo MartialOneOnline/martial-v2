@@ -192,6 +192,11 @@ export type Campaign = Prisma.CampaignModel
  */
 export type CampaignRecipient = Prisma.CampaignRecipientModel
 /**
+ * Model EmailRateLimit
+ * 
+ */
+export type EmailRateLimit = Prisma.EmailRateLimitModel
+/**
  * Model SchoolClaim
  * 
  */

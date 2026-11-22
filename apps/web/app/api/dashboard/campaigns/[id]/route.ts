@@ -5,6 +5,8 @@ import { requireSchoolAccess } from '@/lib/auth/contexts'
 import type { Permission } from '@/lib/auth/permissions'
 import { memberHasPermission } from '@/lib/auth/customRoles'
 import type { CampaignType } from '@/lib/prisma-client/enums'
+import { prismaCampaignDeliveryRepo } from '@/lib/services/campaignDelivery'
+import { BULK_LANE, prismaRateLimitStore } from '@/lib/email/rateLimiter'
 
 async function authorise(schoolId: string, permission: Permission) {
   const user = await getAuthUser()
@@ -38,7 +40,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const campaign = await prisma.campaign.findFirst({ where: { id, schoolId } })
   if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
 
-  const [recipients, recipientTotal, allRecipients] = await Promise.all([
+  const [recipients, recipientTotal, allRecipients, summary, lanePause] = await Promise.all([
     prisma.campaignRecipient.findMany({
       where: { campaignId: id },
       orderBy: { createdAt: 'asc' },
@@ -46,6 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       take: pageSize,
       select: {
         id: true, status: true, sentAt: true, failedReason: true, convertedAt: true, statusAtSend: true,
+        attempts: true, nextAttemptAt: true, lastAttemptAt: true, lastErrorCode: true,
         schoolMember: { select: { id: true, belt: true, user: { select: { name: true, email: true } } } },
       },
     }),
@@ -53,10 +56,24 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     // Unpaginated — only member ids, used by the composer to restore the full
     // selection when editing a DRAFT campaign with more recipients than one page.
     prisma.campaignRecipient.findMany({ where: { campaignId: id }, select: { schoolMemberId: true } }),
+    prismaCampaignDeliveryRepo.summarize(id),
+    // Platform-wide sending pause (shared Resend quota) — only its reason and
+    // end time, which is all the school needs to understand the wait.
+    campaign.status === 'SENDING' || campaign.status === 'QUEUED'
+      ? prismaRateLimitStore.getPause(BULK_LANE).catch(() => null)
+      : Promise.resolve(null),
   ])
 
+  const delivery = {
+    ...summary,
+    nextAttemptAt: summary.nextAttemptAt?.toISOString() ?? null,
+    waiting: lanePause && lanePause.reason !== 'RATE_LIMIT'
+      ? { reason: lanePause.reason, until: lanePause.until.toISOString() }
+      : null,
+  }
+
   return NextResponse.json({
-    campaign, recipients, recipientTotal, page, pageSize,
+    campaign, recipients, recipientTotal, page, pageSize, delivery,
     recipientMemberIds: allRecipients.map(r => r.schoolMemberId),
   })
 }

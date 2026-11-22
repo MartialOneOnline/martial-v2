@@ -310,8 +310,10 @@ export type CampaignStatus = (typeof CampaignStatus)[keyof typeof CampaignStatus
 
 export const CampaignRecipientStatus = {
   PENDING: 'PENDING',
+  SENDING: 'SENDING',
   SENT: 'SENT',
   FAILED: 'FAILED',
+  UNCERTAIN: 'UNCERTAIN',
   SKIPPED: 'SKIPPED'
 } as const
 

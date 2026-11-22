@@ -427,6 +427,47 @@ Este documento es la fuente de verdad del circuito de entrega entre agentes.
 - Cambio: `lib/duplicateNames.ts` añade el motivo `similar_name` (mismo primer nombre, al menos 2 palabras, todas las del nombre corto incluidas en el largo; sin acentos ni partículas). Un nombre corto que encaja con más de 3 cuentas se descarta. Estos pares se ordenan tras las coincidencias exactas; la fusión sigue siendo manual y sin cambios.
 - Pendiente tras la auditoría: validar falsos positivos con datos reales y la pantalla con sesión de super admin. El límite de tres reduce sugerencias, no demuestra identidad.
 
+### Lote AD — Envío fiable de campañas con Resend (rama `claude/campaign-rate-limit`)
+
+- Estado: **pendiente de Project Audit**. **Con migración** `20261122120000_campaign_reliable_delivery` (aditiva, reejecutable, **no aplicada**) y cliente Prisma regenerado en el mismo commit.
+- Pedido del usuario: la campaña «Libre — 20/11/2026» de RGM (49 destinatarios: 24 SENT, 25 FAILED por el 429 de Resend, estado COMPLETED). Hay que enviar respetando los límites, recuperar errores temporales sin duplicados y explicar el resultado. Recuperar la campaña real queda preparado y **sin ejecutar**.
+- Diseño completo en `CONTEXT.md` (sesión 2026-11-22). Resumen:
+  - reclamación atómica `SKIP LOCKED` con lease y `claimToken`;
+  - carril compartido en BD (`email_rate_limits`) con reserva atómica, al 50 % de 10/s;
+  - pausa global por 429 o cupo;
+  - `Idempotency-Key` estable que solo cambia tras un rechazo confirmado;
+  - estado `UNCERTAIN` cuando el resultado es desconocido y han pasado las 23 h de validez de la clave;
+  - reintentos con espera creciente y jitter, respetando `Retry-After`;
+  - cupos diario/mensual en espera sin gastar intentos;
+  - contadores absolutos y COMPLETED solo sin pendientes.
+- Criterios de aceptación y dónde se prueban (`__tests__/campaignDelivery.test.ts`, proveedor y reloj simulados; Resend falso que respeta claves 24 h):
+  1. Dos campañas/workers comparten la regulación: los huecos están separados ≥ 200 ms y nunca hay más de 5 por segundo. Un 429 con `Retry-After: 5` frena también a la otra lane.
+  2. Dos procesos sobre la misma campaña: 20 destinatarios, 20 llamadas, 1 por persona.
+  3. 429 → éxito: reprogramado ≥ Retry-After, `gen` 0→1, después SENT y COMPLETED. Reintento no vencido → 0 llamadas. Intentos agotados → FAILED `retries_exhausted`.
+  4. Cupo diario: 1 llamada, todo PENDING con los intentos devueltos, espera hasta 00:01 UTC, 0 llamadas antes y envío completo después. El mensual reprueba a las 24 h. La reserva configurada pausa antes de agotar el cupo. Un problema de API key pausa sin marcar FAILED.
+  5. Rechazo de validación → FAILED una sola vez, con el mensaje.
+  6. Respuesta perdida tras la aceptación → misma clave, 1 correo, SENT. Un 429 posterior a un resultado incierto conserva la clave. Pasadas 23 h → UNCERTAIN sin reenvío. Los 5xx agotados → UNCERTAIN. Un 409 por cuerpo distinto → UNCERTAIN.
+  7. Fallo de BD al guardar SENT: no cuenta como fallo; la fila queda SENDING, al vencer el lease se reconcilia con la misma clave y queda 1 correo.
+  8. Worker muerto tras enviar: recuperado con la misma clave y sin duplicados.
+  9. Contadores idempotentes en ejecuciones repetidas; presupuesto/límite deja PENDING; DRAFT/CANCELLED nunca envían; cancelar a mitad detiene.
+  10. Recuperación (`campaignDeliveryUnits.test.ts`): 24 SENT intactos; solo los 429 sin evidencia; idempotente.
+  11. Permisos y aislamiento (`campaignDeliveryRoutes.test.ts`): `/process` 401/403/404 con búsqueda por `schoolId` actual; detalle 404/403 y solo esperas por cupo/config; el cron exige `CRON_SECRET`.
+- Evidencia:
+  - `tsc --noEmit` limpio; `next build` local correcto.
+  - Tests dirigidos 55/55. Suite: `main` 1429 pasan / 55 fallan / 1 pendiente; rama 1484 / **los mismos 55 por nombre** / 1.
+  - ESLint de los ficheros tocados: solo el aviso previo `<img>` del compositor.
+  - `git diff --check` limpio salvo el cliente Prisma generado (el generador ya deja espacios finales en `main`).
+- No verificado:
+  - el SQL nuevo contra Postgres real (sin BD local; los tests comprueban su forma y la semántica con un repositorio en memoria equivalente);
+  - UI en navegador;
+  - envío real (prohibido en este lote);
+  - datos de producción de la campaña (el runbook lo resuelve con el dry-run).
+- Riesgos abiertos / fuera de alcance:
+  - `POST /api/dashboard/messages` y `leads/bulk-email` siguen con `Promise.all` sin límite (y `messages` cuenta como enviados los errores);
+  - el cron sigue siendo diario (ver `CONTEXT.md`);
+  - orden de despliegue: migración antes que código.
+- Recuperación: [`docs/RUNBOOK-campaign-recovery-2026-11-20.md`](./RUNBOOK-campaign-recovery-2026-11-20.md), pendiente de autorización tras aprobar y desplegar.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

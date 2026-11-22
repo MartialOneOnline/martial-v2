@@ -8,6 +8,8 @@ import NotificationBell from '../../../components/NotificationBell'
 import DashboardLanguageSelector from '../../../components/DashboardLanguageSelector'
 import RowMenu from '../../../components/RowMenu'
 import { useT } from '../../../lib/i18n/LanguageContext'
+import { pollCampaignProcess } from '../../../lib/campaignPolling'
+import { campaignStatusLabel } from '../../../lib/campaignDeliveryLabels'
 import type { CampaignType, CampaignStatus } from '../../../lib/prisma-client/enums'
 import CampaignComposerModal from '../users/CampaignComposerModal'
 
@@ -32,6 +34,8 @@ const STATUS_STYLE: Record<CampaignStatus, { bg: string; color: string }> = {
   FAILED: { bg: '#FEF2F2', color: '#DC2626' },
   CANCELLED: { bg: '#F3F4F6', color: '#6B7280' },
 }
+
+const COMPLETED_WITH_ERRORS_STYLE = { bg: '#FFFBEB', color: '#B45309' }
 
 function CampaignRowMenu({ campaign, onView, onEdit, onSend, onDelete }: {
   campaign: CampaignListItem
@@ -129,12 +133,7 @@ export default function CampaignsClient() {
     try {
       const qRes = await fetch(`/api/dashboard/campaigns/${id}/queue`, { method: 'POST' })
       if (!qRes.ok) return
-      for (;;) {
-        const res = await fetch(`/api/dashboard/campaigns/${id}/process`, { method: 'POST' })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok || data.remaining === 0) break
-        await new Promise(r => setTimeout(r, 250))
-      }
+      await pollCampaignProcess(id).catch(() => {})
     } finally {
       setSendingId(null)
       fetchCampaigns()
@@ -153,14 +152,6 @@ export default function CampaignsClient() {
     SEASONAL: t.campaigns.typeSeasonal,
     ANNIVERSARY: t.campaigns.typeAnniversary,
     CUSTOM: t.campaigns.typeCustom,
-  }
-  const STATUS_LABELS: Record<CampaignStatus, string> = {
-    DRAFT: t.campaigns.statusDraft,
-    QUEUED: t.campaigns.statusQueued,
-    SENDING: t.campaigns.statusSending,
-    COMPLETED: t.common.completed,
-    FAILED: t.common.failed,
-    CANCELLED: t.common.cancelled,
   }
 
   return (
@@ -211,7 +202,8 @@ export default function CampaignsClient() {
               </thead>
               <tbody>
                 {campaigns.map((c, idx) => {
-                  const style = STATUS_STYLE[c.status]
+                  const withErrors = c.status === 'COMPLETED' && c.failedCount > 0
+                  const style = withErrors ? COMPLETED_WITH_ERRORS_STYLE : STATUS_STYLE[c.status]
                   const isSendingNow = sendingId === c.id
                   return (
                     <tr key={c.id} className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
@@ -221,7 +213,7 @@ export default function CampaignsClient() {
                       <td className="px-6 py-4" style={{ fontSize: 13, color: '#6B7280' }}>{TYPE_LABELS[c.type]}</td>
                       <td className="px-6 py-4">
                         <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: style.bg, color: style.color }}>
-                          {isSendingNow ? t.campaigns.statusSending : STATUS_LABELS[c.status]}
+                          {isSendingNow ? t.campaigns.statusSending : campaignStatusLabel(t, c.status, c.failedCount)}
                         </span>
                       </td>
                       <td className="px-6 py-4" style={{ fontSize: 13, color: '#111827' }}>{c.sentCount}/{c.totalRecipients}</td>

@@ -20,8 +20,22 @@ export type CampaignRecipientModel = runtime.Types.Result.DefaultSelection<Prism
 
 export type AggregateCampaignRecipient = {
   _count: CampaignRecipientCountAggregateOutputType | null
+  _avg: CampaignRecipientAvgAggregateOutputType | null
+  _sum: CampaignRecipientSumAggregateOutputType | null
   _min: CampaignRecipientMinAggregateOutputType | null
   _max: CampaignRecipientMaxAggregateOutputType | null
+}
+
+export type CampaignRecipientAvgAggregateOutputType = {
+  attempts: number | null
+  idempotencyGen: number | null
+  lastStatusCode: number | null
+}
+
+export type CampaignRecipientSumAggregateOutputType = {
+  attempts: number | null
+  idempotencyGen: number | null
+  lastStatusCode: number | null
 }
 
 export type CampaignRecipientMinAggregateOutputType = {
@@ -34,6 +48,15 @@ export type CampaignRecipientMinAggregateOutputType = {
   failedReason: string | null
   resendEmailId: string | null
   convertedAt: Date | null
+  attempts: number | null
+  nextAttemptAt: Date | null
+  lastAttemptAt: Date | null
+  idempotencyGen: number | null
+  uncertainSince: Date | null
+  claimToken: string | null
+  claimedUntil: Date | null
+  lastErrorCode: string | null
+  lastStatusCode: number | null
   createdAt: Date | null
 }
 
@@ -47,6 +70,15 @@ export type CampaignRecipientMaxAggregateOutputType = {
   failedReason: string | null
   resendEmailId: string | null
   convertedAt: Date | null
+  attempts: number | null
+  nextAttemptAt: Date | null
+  lastAttemptAt: Date | null
+  idempotencyGen: number | null
+  uncertainSince: Date | null
+  claimToken: string | null
+  claimedUntil: Date | null
+  lastErrorCode: string | null
+  lastStatusCode: number | null
   createdAt: Date | null
 }
 
@@ -60,10 +92,31 @@ export type CampaignRecipientCountAggregateOutputType = {
   failedReason: number
   resendEmailId: number
   convertedAt: number
+  attempts: number
+  nextAttemptAt: number
+  lastAttemptAt: number
+  idempotencyGen: number
+  uncertainSince: number
+  claimToken: number
+  claimedUntil: number
+  lastErrorCode: number
+  lastStatusCode: number
   createdAt: number
   _all: number
 }
 
+
+export type CampaignRecipientAvgAggregateInputType = {
+  attempts?: true
+  idempotencyGen?: true
+  lastStatusCode?: true
+}
+
+export type CampaignRecipientSumAggregateInputType = {
+  attempts?: true
+  idempotencyGen?: true
+  lastStatusCode?: true
+}
 
 export type CampaignRecipientMinAggregateInputType = {
   id?: true
@@ -75,6 +128,15 @@ export type CampaignRecipientMinAggregateInputType = {
   failedReason?: true
   resendEmailId?: true
   convertedAt?: true
+  attempts?: true
+  nextAttemptAt?: true
+  lastAttemptAt?: true
+  idempotencyGen?: true
+  uncertainSince?: true
+  claimToken?: true
+  claimedUntil?: true
+  lastErrorCode?: true
+  lastStatusCode?: true
   createdAt?: true
 }
 
@@ -88,6 +150,15 @@ export type CampaignRecipientMaxAggregateInputType = {
   failedReason?: true
   resendEmailId?: true
   convertedAt?: true
+  attempts?: true
+  nextAttemptAt?: true
+  lastAttemptAt?: true
+  idempotencyGen?: true
+  uncertainSince?: true
+  claimToken?: true
+  claimedUntil?: true
+  lastErrorCode?: true
+  lastStatusCode?: true
   createdAt?: true
 }
 
@@ -101,6 +172,15 @@ export type CampaignRecipientCountAggregateInputType = {
   failedReason?: true
   resendEmailId?: true
   convertedAt?: true
+  attempts?: true
+  nextAttemptAt?: true
+  lastAttemptAt?: true
+  idempotencyGen?: true
+  uncertainSince?: true
+  claimToken?: true
+  claimedUntil?: true
+  lastErrorCode?: true
+  lastStatusCode?: true
   createdAt?: true
   _all?: true
 }
@@ -143,6 +223,18 @@ export type CampaignRecipientAggregateArgs<ExtArgs extends runtime.Types.Extensi
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: CampaignRecipientAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: CampaignRecipientSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: CampaignRecipientMinAggregateInputType
@@ -173,6 +265,8 @@ export type CampaignRecipientGroupByArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   _count?: CampaignRecipientCountAggregateInputType | true
+  _avg?: CampaignRecipientAvgAggregateInputType
+  _sum?: CampaignRecipientSumAggregateInputType
   _min?: CampaignRecipientMinAggregateInputType
   _max?: CampaignRecipientMaxAggregateInputType
 }
@@ -187,8 +281,19 @@ export type CampaignRecipientGroupByOutputType = {
   failedReason: string | null
   resendEmailId: string | null
   convertedAt: Date | null
+  attempts: number
+  nextAttemptAt: Date | null
+  lastAttemptAt: Date | null
+  idempotencyGen: number
+  uncertainSince: Date | null
+  claimToken: string | null
+  claimedUntil: Date | null
+  lastErrorCode: string | null
+  lastStatusCode: number | null
   createdAt: Date
   _count: CampaignRecipientCountAggregateOutputType | null
+  _avg: CampaignRecipientAvgAggregateOutputType | null
+  _sum: CampaignRecipientSumAggregateOutputType | null
   _min: CampaignRecipientMinAggregateOutputType | null
   _max: CampaignRecipientMaxAggregateOutputType | null
 }
@@ -221,6 +326,15 @@ export type CampaignRecipientWhereInput = {
   failedReason?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
   resendEmailId?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
   convertedAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  attempts?: Prisma.IntFilter<"CampaignRecipient"> | number
+  nextAttemptAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  lastAttemptAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  idempotencyGen?: Prisma.IntFilter<"CampaignRecipient"> | number
+  uncertainSince?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  claimToken?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
+  claimedUntil?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  lastErrorCode?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
+  lastStatusCode?: Prisma.IntNullableFilter<"CampaignRecipient"> | number | null
   createdAt?: Prisma.DateTimeFilter<"CampaignRecipient"> | Date | string
   campaign?: Prisma.XOR<Prisma.CampaignScalarRelationFilter, Prisma.CampaignWhereInput>
   schoolMember?: Prisma.XOR<Prisma.SchoolMemberScalarRelationFilter, Prisma.SchoolMemberWhereInput>
@@ -236,6 +350,15 @@ export type CampaignRecipientOrderByWithRelationInput = {
   failedReason?: Prisma.SortOrderInput | Prisma.SortOrder
   resendEmailId?: Prisma.SortOrderInput | Prisma.SortOrder
   convertedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  idempotencyGen?: Prisma.SortOrder
+  uncertainSince?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastErrorCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastStatusCode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   campaign?: Prisma.CampaignOrderByWithRelationInput
   schoolMember?: Prisma.SchoolMemberOrderByWithRelationInput
@@ -255,6 +378,15 @@ export type CampaignRecipientWhereUniqueInput = Prisma.AtLeast<{
   failedReason?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
   resendEmailId?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
   convertedAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  attempts?: Prisma.IntFilter<"CampaignRecipient"> | number
+  nextAttemptAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  lastAttemptAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  idempotencyGen?: Prisma.IntFilter<"CampaignRecipient"> | number
+  uncertainSince?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  claimToken?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
+  claimedUntil?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  lastErrorCode?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
+  lastStatusCode?: Prisma.IntNullableFilter<"CampaignRecipient"> | number | null
   createdAt?: Prisma.DateTimeFilter<"CampaignRecipient"> | Date | string
   campaign?: Prisma.XOR<Prisma.CampaignScalarRelationFilter, Prisma.CampaignWhereInput>
   schoolMember?: Prisma.XOR<Prisma.SchoolMemberScalarRelationFilter, Prisma.SchoolMemberWhereInput>
@@ -270,10 +402,21 @@ export type CampaignRecipientOrderByWithAggregationInput = {
   failedReason?: Prisma.SortOrderInput | Prisma.SortOrder
   resendEmailId?: Prisma.SortOrderInput | Prisma.SortOrder
   convertedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  idempotencyGen?: Prisma.SortOrder
+  uncertainSince?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastErrorCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastStatusCode?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.CampaignRecipientCountOrderByAggregateInput
+  _avg?: Prisma.CampaignRecipientAvgOrderByAggregateInput
   _max?: Prisma.CampaignRecipientMaxOrderByAggregateInput
   _min?: Prisma.CampaignRecipientMinOrderByAggregateInput
+  _sum?: Prisma.CampaignRecipientSumOrderByAggregateInput
 }
 
 export type CampaignRecipientScalarWhereWithAggregatesInput = {
@@ -289,6 +432,15 @@ export type CampaignRecipientScalarWhereWithAggregatesInput = {
   failedReason?: Prisma.StringNullableWithAggregatesFilter<"CampaignRecipient"> | string | null
   resendEmailId?: Prisma.StringNullableWithAggregatesFilter<"CampaignRecipient"> | string | null
   convertedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CampaignRecipient"> | Date | string | null
+  attempts?: Prisma.IntWithAggregatesFilter<"CampaignRecipient"> | number
+  nextAttemptAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CampaignRecipient"> | Date | string | null
+  lastAttemptAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CampaignRecipient"> | Date | string | null
+  idempotencyGen?: Prisma.IntWithAggregatesFilter<"CampaignRecipient"> | number
+  uncertainSince?: Prisma.DateTimeNullableWithAggregatesFilter<"CampaignRecipient"> | Date | string | null
+  claimToken?: Prisma.StringNullableWithAggregatesFilter<"CampaignRecipient"> | string | null
+  claimedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"CampaignRecipient"> | Date | string | null
+  lastErrorCode?: Prisma.StringNullableWithAggregatesFilter<"CampaignRecipient"> | string | null
+  lastStatusCode?: Prisma.IntNullableWithAggregatesFilter<"CampaignRecipient"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"CampaignRecipient"> | Date | string
 }
 
@@ -300,6 +452,15 @@ export type CampaignRecipientCreateInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
   campaign: Prisma.CampaignCreateNestedOneWithoutRecipientsInput
   schoolMember: Prisma.SchoolMemberCreateNestedOneWithoutCampaignRecipientsInput
@@ -315,6 +476,15 @@ export type CampaignRecipientUncheckedCreateInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
 }
 
@@ -326,6 +496,15 @@ export type CampaignRecipientUpdateInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutRecipientsNestedInput
   schoolMember?: Prisma.SchoolMemberUpdateOneRequiredWithoutCampaignRecipientsNestedInput
@@ -341,6 +520,15 @@ export type CampaignRecipientUncheckedUpdateInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -354,6 +542,15 @@ export type CampaignRecipientCreateManyInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
 }
 
@@ -365,6 +562,15 @@ export type CampaignRecipientUpdateManyMutationInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -378,6 +584,15 @@ export type CampaignRecipientUncheckedUpdateManyInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -406,7 +621,22 @@ export type CampaignRecipientCountOrderByAggregateInput = {
   failedReason?: Prisma.SortOrder
   resendEmailId?: Prisma.SortOrder
   convertedAt?: Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrder
+  idempotencyGen?: Prisma.SortOrder
+  uncertainSince?: Prisma.SortOrder
+  claimToken?: Prisma.SortOrder
+  claimedUntil?: Prisma.SortOrder
+  lastErrorCode?: Prisma.SortOrder
+  lastStatusCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type CampaignRecipientAvgOrderByAggregateInput = {
+  attempts?: Prisma.SortOrder
+  idempotencyGen?: Prisma.SortOrder
+  lastStatusCode?: Prisma.SortOrder
 }
 
 export type CampaignRecipientMaxOrderByAggregateInput = {
@@ -419,6 +649,15 @@ export type CampaignRecipientMaxOrderByAggregateInput = {
   failedReason?: Prisma.SortOrder
   resendEmailId?: Prisma.SortOrder
   convertedAt?: Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrder
+  idempotencyGen?: Prisma.SortOrder
+  uncertainSince?: Prisma.SortOrder
+  claimToken?: Prisma.SortOrder
+  claimedUntil?: Prisma.SortOrder
+  lastErrorCode?: Prisma.SortOrder
+  lastStatusCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -432,7 +671,22 @@ export type CampaignRecipientMinOrderByAggregateInput = {
   failedReason?: Prisma.SortOrder
   resendEmailId?: Prisma.SortOrder
   convertedAt?: Prisma.SortOrder
+  attempts?: Prisma.SortOrder
+  nextAttemptAt?: Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrder
+  idempotencyGen?: Prisma.SortOrder
+  uncertainSince?: Prisma.SortOrder
+  claimToken?: Prisma.SortOrder
+  claimedUntil?: Prisma.SortOrder
+  lastErrorCode?: Prisma.SortOrder
+  lastStatusCode?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type CampaignRecipientSumOrderByAggregateInput = {
+  attempts?: Prisma.SortOrder
+  idempotencyGen?: Prisma.SortOrder
+  lastStatusCode?: Prisma.SortOrder
 }
 
 export type CampaignRecipientCreateNestedManyWithoutSchoolMemberInput = {
@@ -531,6 +785,15 @@ export type CampaignRecipientCreateWithoutSchoolMemberInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
   campaign: Prisma.CampaignCreateNestedOneWithoutRecipientsInput
 }
@@ -544,6 +807,15 @@ export type CampaignRecipientUncheckedCreateWithoutSchoolMemberInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
 }
 
@@ -586,6 +858,15 @@ export type CampaignRecipientScalarWhereInput = {
   failedReason?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
   resendEmailId?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
   convertedAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  attempts?: Prisma.IntFilter<"CampaignRecipient"> | number
+  nextAttemptAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  lastAttemptAt?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  idempotencyGen?: Prisma.IntFilter<"CampaignRecipient"> | number
+  uncertainSince?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  claimToken?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
+  claimedUntil?: Prisma.DateTimeNullableFilter<"CampaignRecipient"> | Date | string | null
+  lastErrorCode?: Prisma.StringNullableFilter<"CampaignRecipient"> | string | null
+  lastStatusCode?: Prisma.IntNullableFilter<"CampaignRecipient"> | number | null
   createdAt?: Prisma.DateTimeFilter<"CampaignRecipient"> | Date | string
 }
 
@@ -597,6 +878,15 @@ export type CampaignRecipientCreateWithoutCampaignInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
   schoolMember: Prisma.SchoolMemberCreateNestedOneWithoutCampaignRecipientsInput
 }
@@ -610,6 +900,15 @@ export type CampaignRecipientUncheckedCreateWithoutCampaignInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
 }
 
@@ -648,6 +947,15 @@ export type CampaignRecipientCreateManySchoolMemberInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
 }
 
@@ -659,6 +967,15 @@ export type CampaignRecipientUpdateWithoutSchoolMemberInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   campaign?: Prisma.CampaignUpdateOneRequiredWithoutRecipientsNestedInput
 }
@@ -672,6 +989,15 @@ export type CampaignRecipientUncheckedUpdateWithoutSchoolMemberInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -684,6 +1010,15 @@ export type CampaignRecipientUncheckedUpdateManyWithoutSchoolMemberInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -696,6 +1031,15 @@ export type CampaignRecipientCreateManyCampaignInput = {
   failedReason?: string | null
   resendEmailId?: string | null
   convertedAt?: Date | string | null
+  attempts?: number
+  nextAttemptAt?: Date | string | null
+  lastAttemptAt?: Date | string | null
+  idempotencyGen?: number
+  uncertainSince?: Date | string | null
+  claimToken?: string | null
+  claimedUntil?: Date | string | null
+  lastErrorCode?: string | null
+  lastStatusCode?: number | null
   createdAt?: Date | string
 }
 
@@ -707,6 +1051,15 @@ export type CampaignRecipientUpdateWithoutCampaignInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   schoolMember?: Prisma.SchoolMemberUpdateOneRequiredWithoutCampaignRecipientsNestedInput
 }
@@ -720,6 +1073,15 @@ export type CampaignRecipientUncheckedUpdateWithoutCampaignInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -732,6 +1094,15 @@ export type CampaignRecipientUncheckedUpdateManyWithoutCampaignInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resendEmailId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   convertedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  nextAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  idempotencyGen?: Prisma.IntFieldUpdateOperationsInput | number
+  uncertainSince?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  claimToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastErrorCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastStatusCode?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -747,6 +1118,15 @@ export type CampaignRecipientSelect<ExtArgs extends runtime.Types.Extensions.Int
   failedReason?: boolean
   resendEmailId?: boolean
   convertedAt?: boolean
+  attempts?: boolean
+  nextAttemptAt?: boolean
+  lastAttemptAt?: boolean
+  idempotencyGen?: boolean
+  uncertainSince?: boolean
+  claimToken?: boolean
+  claimedUntil?: boolean
+  lastErrorCode?: boolean
+  lastStatusCode?: boolean
   createdAt?: boolean
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
   schoolMember?: boolean | Prisma.SchoolMemberDefaultArgs<ExtArgs>
@@ -762,6 +1142,15 @@ export type CampaignRecipientSelectCreateManyAndReturn<ExtArgs extends runtime.T
   failedReason?: boolean
   resendEmailId?: boolean
   convertedAt?: boolean
+  attempts?: boolean
+  nextAttemptAt?: boolean
+  lastAttemptAt?: boolean
+  idempotencyGen?: boolean
+  uncertainSince?: boolean
+  claimToken?: boolean
+  claimedUntil?: boolean
+  lastErrorCode?: boolean
+  lastStatusCode?: boolean
   createdAt?: boolean
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
   schoolMember?: boolean | Prisma.SchoolMemberDefaultArgs<ExtArgs>
@@ -777,6 +1166,15 @@ export type CampaignRecipientSelectUpdateManyAndReturn<ExtArgs extends runtime.T
   failedReason?: boolean
   resendEmailId?: boolean
   convertedAt?: boolean
+  attempts?: boolean
+  nextAttemptAt?: boolean
+  lastAttemptAt?: boolean
+  idempotencyGen?: boolean
+  uncertainSince?: boolean
+  claimToken?: boolean
+  claimedUntil?: boolean
+  lastErrorCode?: boolean
+  lastStatusCode?: boolean
   createdAt?: boolean
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
   schoolMember?: boolean | Prisma.SchoolMemberDefaultArgs<ExtArgs>
@@ -792,10 +1190,19 @@ export type CampaignRecipientSelectScalar = {
   failedReason?: boolean
   resendEmailId?: boolean
   convertedAt?: boolean
+  attempts?: boolean
+  nextAttemptAt?: boolean
+  lastAttemptAt?: boolean
+  idempotencyGen?: boolean
+  uncertainSince?: boolean
+  claimToken?: boolean
+  claimedUntil?: boolean
+  lastErrorCode?: boolean
+  lastStatusCode?: boolean
   createdAt?: boolean
 }
 
-export type CampaignRecipientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "campaignId" | "schoolMemberId" | "statusAtSend" | "status" | "sentAt" | "failedReason" | "resendEmailId" | "convertedAt" | "createdAt", ExtArgs["result"]["campaignRecipient"]>
+export type CampaignRecipientOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "campaignId" | "schoolMemberId" | "statusAtSend" | "status" | "sentAt" | "failedReason" | "resendEmailId" | "convertedAt" | "attempts" | "nextAttemptAt" | "lastAttemptAt" | "idempotencyGen" | "uncertainSince" | "claimToken" | "claimedUntil" | "lastErrorCode" | "lastStatusCode" | "createdAt", ExtArgs["result"]["campaignRecipient"]>
 export type CampaignRecipientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
   schoolMember?: boolean | Prisma.SchoolMemberDefaultArgs<ExtArgs>
@@ -825,6 +1232,15 @@ export type $CampaignRecipientPayload<ExtArgs extends runtime.Types.Extensions.I
     failedReason: string | null
     resendEmailId: string | null
     convertedAt: Date | null
+    attempts: number
+    nextAttemptAt: Date | null
+    lastAttemptAt: Date | null
+    idempotencyGen: number
+    uncertainSince: Date | null
+    claimToken: string | null
+    claimedUntil: Date | null
+    lastErrorCode: string | null
+    lastStatusCode: number | null
     createdAt: Date
   }, ExtArgs["result"]["campaignRecipient"]>
   composites: {}
@@ -1260,6 +1676,15 @@ export interface CampaignRecipientFieldRefs {
   readonly failedReason: Prisma.FieldRef<"CampaignRecipient", 'String'>
   readonly resendEmailId: Prisma.FieldRef<"CampaignRecipient", 'String'>
   readonly convertedAt: Prisma.FieldRef<"CampaignRecipient", 'DateTime'>
+  readonly attempts: Prisma.FieldRef<"CampaignRecipient", 'Int'>
+  readonly nextAttemptAt: Prisma.FieldRef<"CampaignRecipient", 'DateTime'>
+  readonly lastAttemptAt: Prisma.FieldRef<"CampaignRecipient", 'DateTime'>
+  readonly idempotencyGen: Prisma.FieldRef<"CampaignRecipient", 'Int'>
+  readonly uncertainSince: Prisma.FieldRef<"CampaignRecipient", 'DateTime'>
+  readonly claimToken: Prisma.FieldRef<"CampaignRecipient", 'String'>
+  readonly claimedUntil: Prisma.FieldRef<"CampaignRecipient", 'DateTime'>
+  readonly lastErrorCode: Prisma.FieldRef<"CampaignRecipient", 'String'>
+  readonly lastStatusCode: Prisma.FieldRef<"CampaignRecipient", 'Int'>
   readonly createdAt: Prisma.FieldRef<"CampaignRecipient", 'DateTime'>
 }
     

@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Bell, Percent, Award, Sun, Gift, Pencil, ChevronLeft, Send, CheckCircle } from 'lucide-react'
 import { useT, useLanguage } from '../../../lib/i18n/LanguageContext'
+import { pollCampaignProcess } from '../../../lib/campaignPolling'
+import { campaignWaitMessage } from '../../../lib/campaignDeliveryLabels'
 import { CAMPAIGN_PRESETS } from '../../../lib/email/campaignPresets'
 import type { CampaignType } from '../../../lib/prisma-client/enums'
 import { matchesSearch } from '../../../lib/search'
@@ -85,7 +87,7 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [progress, setProgress] = useState({ sent: 0, failed: 0, total: 0 })
-  const [summary, setSummary] = useState<{ sent: number; failed: number; skipped: number; campaignId: string } | null>(null)
+  const [summary, setSummary] = useState<{ sent: number; failed: number; skipped: number; pending: number; waiting: { reason: string; until: string } | null; campaignId: string } | null>(null)
 
   const [allMembers, setAllMembers] = useState<ComposerStudent[]>([])
   const [loadingMembers, setLoadingMembers] = useState(isPicker)
@@ -218,24 +220,18 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
       }
 
       const totalToSend = totalRecipients - skipped
-      let totalSent = 0
-      let totalFailed = 0
       setProgress({ sent: 0, failed: 0, total: totalToSend })
 
-      // Poll /process until every PENDING recipient has been handled — this is
-      // the interactive send path, independent of the daily safety-net cron.
-      for (;;) {
-        const res = await fetch(`/api/dashboard/campaigns/${finalCampaignId}/process`, { method: 'POST' })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok) throw new Error(data.error || 'Failed to send')
-        totalSent += data.sent
-        totalFailed += data.failed
-        setProgress({ sent: totalSent, failed: totalFailed, total: totalToSend })
-        if (data.remaining === 0) break
-        await new Promise(r => setTimeout(r, 250))
-      }
+      // Poll /process while there's work due now; the server paces and retries.
+      // Long waits (quota) end the loop — the campaign-send cron resumes them.
+      const outcome = await pollCampaignProcess(finalCampaignId, p => {
+        setProgress({ sent: p.sent, failed: p.failed + p.uncertain, total: totalToSend })
+      })
 
-      setSummary({ sent: totalSent, failed: totalFailed, skipped, campaignId: finalCampaignId })
+      setSummary({
+        sent: outcome.sent, failed: outcome.failed + outcome.uncertain, skipped,
+        pending: outcome.remaining, waiting: outcome.waiting, campaignId: finalCampaignId,
+      })
       setStep('summary')
       onSaved('sent')
     } catch (e: unknown) {
@@ -417,13 +413,24 @@ export default function CampaignComposerModal({ preselectedStudents, campaignId,
 
           {step === 'summary' && summary && (
             <div style={{ padding: '12px 0', textAlign: 'center' }}>
-              <CheckCircle size={32} style={{ color: '#16A34A', margin: '0 auto 12px' }} />
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 14 }}>{t.campaigns.summaryHeading}</p>
+              <CheckCircle size={32} style={{ color: summary.pending > 0 ? '#2563EB' : '#16A34A', margin: '0 auto 12px' }} />
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 14 }}>
+                {summary.pending > 0 ? t.campaigns.summaryInProgressHeading : t.campaigns.summaryHeading}
+              </p>
               <div className="flex justify-center gap-6">
                 <div><p style={{ fontSize: 20, fontWeight: 700, color: '#16A34A' }}>{summary.sent}</p><p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.campaigns.summarySentWord}</p></div>
                 <div><p style={{ fontSize: 20, fontWeight: 700, color: '#DC2626' }}>{summary.failed}</p><p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.campaigns.summaryFailedWord}</p></div>
+                {summary.pending > 0 && (
+                  <div><p style={{ fontSize: 20, fontWeight: 700, color: '#2563EB' }}>{summary.pending}</p><p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.campaigns.summaryPendingWord}</p></div>
+                )}
                 <div><p style={{ fontSize: 20, fontWeight: 700, color: '#9CA3AF' }}>{summary.skipped}</p><p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.campaigns.summarySkippedWord}</p></div>
               </div>
+              {summary.pending > 0 && (
+                <p style={{ fontSize: 12, color: '#6B7280', marginTop: 14 }}>
+                  {summary.waiting ? campaignWaitMessage(t, summary.waiting) : t.campaigns.summaryContinuesNote}
+                </p>
+              )}
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 10 }}>{t.campaigns.deliveryNote}</p>
             </div>
           )}
         </div>

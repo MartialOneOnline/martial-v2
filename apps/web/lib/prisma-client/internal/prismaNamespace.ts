@@ -414,6 +414,7 @@ export const ModelName = {
   StaffRole: 'StaffRole',
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
+  EmailRateLimit: 'EmailRateLimit',
   SchoolClaim: 'SchoolClaim',
   GradingSystem: 'GradingSystem',
   GradingTemplate: 'GradingTemplate',
@@ -463,7 +464,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest" | "accountMerge" | "accountMergeClaim" | "accountMergeAuthPin"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "emailRateLimit" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest" | "accountMerge" | "accountMergeClaim" | "accountMergeAuthPin"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2684,6 +2685,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CampaignRecipientCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CampaignRecipientCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmailRateLimit: {
+      payload: Prisma.$EmailRateLimitPayload<ExtArgs>
+      fields: Prisma.EmailRateLimitFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmailRateLimitFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmailRateLimitFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>
+        }
+        findFirst: {
+          args: Prisma.EmailRateLimitFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmailRateLimitFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>
+        }
+        findMany: {
+          args: Prisma.EmailRateLimitFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>[]
+        }
+        create: {
+          args: Prisma.EmailRateLimitCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>
+        }
+        createMany: {
+          args: Prisma.EmailRateLimitCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EmailRateLimitCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>[]
+        }
+        delete: {
+          args: Prisma.EmailRateLimitDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>
+        }
+        update: {
+          args: Prisma.EmailRateLimitUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmailRateLimitDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmailRateLimitUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EmailRateLimitUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>[]
+        }
+        upsert: {
+          args: Prisma.EmailRateLimitUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailRateLimitPayload>
+        }
+        aggregate: {
+          args: Prisma.EmailRateLimitAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmailRateLimit>
+        }
+        groupBy: {
+          args: Prisma.EmailRateLimitGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailRateLimitGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmailRateLimitCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailRateLimitCountAggregateOutputType> | number
         }
       }
     }
@@ -5815,10 +5890,31 @@ export const CampaignRecipientScalarFieldEnum = {
   failedReason: 'failedReason',
   resendEmailId: 'resendEmailId',
   convertedAt: 'convertedAt',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  lastAttemptAt: 'lastAttemptAt',
+  idempotencyGen: 'idempotencyGen',
+  uncertainSince: 'uncertainSince',
+  claimToken: 'claimToken',
+  claimedUntil: 'claimedUntil',
+  lastErrorCode: 'lastErrorCode',
+  lastStatusCode: 'lastStatusCode',
   createdAt: 'createdAt'
 } as const
 
 export type CampaignRecipientScalarFieldEnum = (typeof CampaignRecipientScalarFieldEnum)[keyof typeof CampaignRecipientScalarFieldEnum]
+
+
+export const EmailRateLimitScalarFieldEnum = {
+  key: 'key',
+  nextSlotAt: 'nextSlotAt',
+  pausedUntil: 'pausedUntil',
+  pauseReason: 'pauseReason',
+  pauseDetail: 'pauseDetail',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmailRateLimitScalarFieldEnum = (typeof EmailRateLimitScalarFieldEnum)[keyof typeof EmailRateLimitScalarFieldEnum]
 
 
 export const SchoolClaimScalarFieldEnum = {
@@ -7240,6 +7336,7 @@ export type GlobalOmitConfig = {
   staffRole?: Prisma.StaffRoleOmit
   campaign?: Prisma.CampaignOmit
   campaignRecipient?: Prisma.CampaignRecipientOmit
+  emailRateLimit?: Prisma.EmailRateLimitOmit
   schoolClaim?: Prisma.SchoolClaimOmit
   gradingSystem?: Prisma.GradingSystemOmit
   gradingTemplate?: Prisma.GradingTemplateOmit

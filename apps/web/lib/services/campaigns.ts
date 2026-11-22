@@ -1,110 +1,18 @@
 import { prisma } from '@/lib/db'
-import { getResend } from '@/lib/email/resend'
-import { renderCampaignTokens, buildCampaignEmail, buildCampaignText, campaignFrom } from '@/lib/email/templates/campaign'
+import { deliverCampaign, type DeliveryResult } from '@/lib/services/campaignDelivery'
 
-const CONCURRENCY = 5
+export type ProcessResult = DeliveryResult
 
-async function runInChunks<T>(items: T[], size: number, worker: (item: T) => Promise<void>) {
-  for (let i = 0; i < items.length; i += size) {
-    await Promise.all(items.slice(i, i + size).map(worker))
-  }
-}
-
-export type ProcessResult = { processed: number; sent: number; failed: number; remaining: number }
-
-// Sends up to `limit` PENDING recipients of a campaign, with bounded
-// concurrency (unlike leads/bulk-email's unbounded Promise.all, which isn't
-// safe at the scale a reactivation campaign runs at — hundreds of recipients
-// would blow past Resend's rate limit and the route's own timeout). Called
-// both interactively (composer polls this after creating the campaign) and
-// from the campaign-send cron as a safety net for sends left mid-way.
-export async function processPendingCampaignRecipients(campaignId: string, limit = 40): Promise<ProcessResult> {
-  const campaign = await prisma.campaign.findUnique({
-    where: { id: campaignId },
-    select: {
-      id: true, status: true, subject: true, bodyHtml: true, language: true,
-      school: { select: { name: true, email: true, logoUrl: true, language: true } },
-    },
-  })
-  // DRAFT must go through /queue first — never sent implicitly just because
-  // a recipient row happens to be PENDING (e.g. right after an edit).
-  if (!campaign || campaign.status === 'COMPLETED' || campaign.status === 'CANCELLED' || campaign.status === 'DRAFT') {
-    return { processed: 0, sent: 0, failed: 0, remaining: 0 }
-  }
-
-  if (campaign.status === 'QUEUED') {
-    await prisma.campaign.update({ where: { id: campaignId }, data: { status: 'SENDING', sentAt: new Date() } })
-  }
-
-  const recipients = await prisma.campaignRecipient.findMany({
-    where: { campaignId, status: 'PENDING' },
-    take: limit,
-    include: {
-      schoolMember: {
-        select: { belt: true, user: { select: { name: true, email: true } } },
-      },
-    },
-  })
-
-  let sent = 0
-  let failed = 0
-  const resend = getResend()
-  const schoolName = campaign.school.name
-  // Sender shows the school's name on the shared verified address; replies go
-  // to the school's own inbox when it has one.
-  const from = campaignFrom(schoolName)
-  const replyTo = campaign.school.email?.trim() || undefined
-  // The campaign's language is the one its copy was written in (snapshot of
-  // School.language at creation) — the envelope/footer follows it.
-  const language = campaign.language || campaign.school.language
-
-  await runInChunks(recipients, CONCURRENCY, async recipient => {
-    const email = recipient.schoolMember.user.email
-    const studentName = recipient.schoolMember.user.name
-    const tokens = { nombre: studentName ?? '', escuela: schoolName, cinturon: recipient.schoolMember.belt ?? undefined }
-    const message = renderCampaignTokens(campaign.bodyHtml, tokens)
-    const subject = renderCampaignTokens(campaign.subject, tokens)
-    const html = buildCampaignEmail({ schoolName, schoolLogoUrl: campaign.school.logoUrl, message, language })
-    const text = buildCampaignText({ schoolName, message, language })
-
-    try {
-      const { data, error } = await resend.emails.send({ from, to: email, subject, html, text, ...(replyTo ? { replyTo } : {}) })
-      if (error) {
-        failed++
-        await prisma.campaignRecipient.update({
-          where: { id: recipient.id },
-          data: { status: 'FAILED', failedReason: error.message, sentAt: new Date() },
-        })
-        return
-      }
-      sent++
-      await prisma.campaignRecipient.update({
-        where: { id: recipient.id },
-        data: { status: 'SENT', sentAt: new Date(), resendEmailId: data?.id },
-      })
-    } catch (err) {
-      failed++
-      const msg = err instanceof Error ? err.message : 'Unknown error'
-      await prisma.campaignRecipient.update({
-        where: { id: recipient.id },
-        data: { status: 'FAILED', failedReason: msg, sentAt: new Date() },
-      })
-    }
-  })
-
-  if (sent > 0 || failed > 0) {
-    await prisma.campaign.update({
-      where: { id: campaignId },
-      data: { sentCount: { increment: sent }, failedCount: { increment: failed } },
-    })
-  }
-
-  const remaining = await prisma.campaignRecipient.count({ where: { campaignId, status: 'PENDING' } })
-  if (remaining === 0) {
-    await prisma.campaign.update({ where: { id: campaignId }, data: { status: 'COMPLETED', completedAt: new Date() } })
-  }
-
-  return { processed: recipients.length, sent, failed, remaining }
+// Sends the next PENDING recipients of a campaign that are due. Paced by the
+// shared Resend limiter, retried durably and idempotently — see
+// lib/services/campaignDelivery.ts. Called interactively (the composer / the
+// detail page poll /process) and from the campaign-send cron, which picks up
+// sends left mid-way (browser closed, function timeout, quota wait).
+export async function processPendingCampaignRecipients(
+  campaignId: string,
+  opts: { limit?: number; budgetMs?: number } = {},
+): Promise<ProcessResult> {
+  return deliverCampaign(campaignId, opts)
 }
 
 const CHURNED_STATUSES = ['ARCHIVED', 'INACTIVE', 'LEAD', 'FROZEN'] as const
