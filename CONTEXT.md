@@ -323,7 +323,8 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 - Enlaces antiguos inventariados en producción (2 invitaciones, ambas aceptadas; ningún enlace `/onboarding?token=` se generó nunca) y con mensaje y salida para quien llegue con uno. Eliminado `lib/email/sendInvite.ts` (sin llamadas, generaba el enlace antiguo).
 - Tests contra PostgreSQL 17 real y desechable (`claimOwnershipFlow.pg.test.ts`, opcional con `CLAIMS_PG_URL` local): cadena completa de migraciones aplicada y sin drift, concurrencia, rollback y ventana de reintento; 9/9 ×5; los dos `FOR UPDATE` demostrados necesarios por mutación.
 - 55 vs 57: dos tests de `main` (`absencesReportRoute`, `paymentsReportRoute`) fallan entre las 23:00 y las 24:00 por el cambio de hora; hoy rama y base 55/55 idénticos.
-- Pendiente: auditoría formal de Codex, saneado del historial de la rama (datos personales en `8f46ca5`), navegador con Auth/Resend reales (necesita un entorno Supabase de pruebas), aplicar migración, recuperación de Guidos.
+- Historial saneado (autorizado): la rama remota es un único commit `fb18ad6` sobre `a51a98f`, mismo árbol, sin datos personales (verificado por recuento); los SHA antiguos siguen accesibles en GitHub hasta que Soporte los purgue (petición pendiente del usuario, ver PROJECT-AUDIT Lote AD punto 8). Backup local sin publicar: `backup/claim-ownership-pre-squash`.
+- Pendiente: auditoría formal de Codex, navegador con Auth/Resend reales (necesita un entorno Supabase de pruebas), aplicar migración, recuperación de Guidos.
 
 ### Sesión — 2026-11-22 (rama `claude/claim-ownership` — recorrido completo de titularidad de escuela, Lote AD; migración `20261122120000_claim_request_ownership_flow` **sin aplicar**; pendiente de Project Audit)
 
