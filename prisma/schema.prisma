@@ -667,35 +667,37 @@ model School {
   claimedAt   DateTime?
 
   // Relations
-  staff              User[]              @relation("SchoolStaff")
-  impersonationLogs  ImpersonationLog[]
-  disciplines        SchoolDiscipline[]
-  facilityCatalog    SchoolFacility[]
-  classes            Class[]
-  events             Event[]
-  memberships        Membership[]
-  camps              Camp[]
-  instructors        Instructor[]
-  membershipPlans    MembershipPlan[]
-  reviews            Review[]
-  members            SchoolMember[]
-  staffRoles         StaffRole[]
-  claims             SchoolClaim[]
-  gradings           Grading[]
-  gradingSystems     GradingSystem[]
-  leads              Lead[]
-  affiliates         Affiliate[]
-  waivers            Waiver[]
-  transactions       Transaction[]
-  invitations        SchoolInvitation[]
-  notifications      Notification[]
-  campaigns          Campaign[]
-  productCategories  ProductCategory[]
-  products           Product[]
-  orders             Order[]
-  limitedCollections LimitedCollection[]
-  curriculums        Curriculum[]
-  curriculumLessons  CurriculumLesson[]
+  staff                User[]              @relation("SchoolStaff")
+  impersonationLogs    ImpersonationLog[]
+  disciplines          SchoolDiscipline[]
+  facilityCatalog      SchoolFacility[]
+  classes              Class[]
+  events               Event[]
+  memberships          Membership[]
+  camps                Camp[]
+  instructors          Instructor[]
+  membershipPlans      MembershipPlan[]
+  reviews              Review[]
+  members              SchoolMember[]
+  staffRoles           StaffRole[]
+  claims               SchoolClaim[]
+  gradings             Grading[]
+  gradingSystems       GradingSystem[]
+  leads                Lead[]
+  affiliates           Affiliate[]
+  waivers              Waiver[]
+  transactions         Transaction[]
+  invitations          SchoolInvitation[]
+  claimRequests        ClaimRequest[]      @relation("ClaimRequestSchool")
+  sourcedClaimRequests ClaimRequest[]      @relation("ClaimRequestSource")
+  notifications        Notification[]
+  campaigns            Campaign[]
+  productCategories    ProductCategory[]
+  products             Product[]
+  orders               Order[]
+  limitedCollections   LimitedCollection[]
+  curriculums          Curriculum[]
+  curriculumLessons    CurriculumLesson[]
 
   // Martial SaaS billing — school paying the platform (separate from the
   // school's own Stripe keys above, which they use to charge their members)
@@ -1552,6 +1554,14 @@ enum InvitationStatus {
   DECLINED // School declined or unsubscribed
 }
 
+enum InvitationDeliveryStatus {
+  PREPARED // Token issued, nothing sent yet
+  SENDING // A send is in flight (lock; stale after a few minutes = UNCERTAIN)
+  ACCEPTED // Resend accepted the email (not proof of delivery)
+  FAILED // Resend definitively rejected it — nothing was sent
+  UNCERTAIN // Network error/timeout/5xx — may or may not have been sent
+}
+
 enum InvitationSource {
   MANUAL // Admin typed name + email
   IMPORT // Bulk CSV/Excel import
@@ -1601,9 +1611,32 @@ model SchoolInvitation {
   usedAt      DateTime?
   revokedAt   DateTime?
 
+  // Ownership request this invitation answers (null for pipeline/manual invites).
+  claimRequestId String?
+  claimRequest   ClaimRequest? @relation(fields: [claimRequestId], references: [id], onDelete: SetNull)
+
+  // Delivery tracking, separate from `status` (the invitee's progress).
+  // The raw token is HMAC(secret, id:tokenNonce) so a technical retry can
+  // resend the identical email under the same Resend Idempotency-Key.
+  // deliveryPayload freezes the email (from/to/subject/html/text, with the
+  // link as a placeholder — the raw token is never stored) the first time a
+  // key is used; deliveryKeyAt is when that key was first sent. A same-key
+  // retry reuses the frozen payload and is refused once the key is older
+  // than Resend's 24 h idempotency window (lib/claims/invitations.ts).
+  tokenNonce        String?
+  deliveryStatus    InvitationDeliveryStatus?
+  deliveryAttempt   Int                       @default(0)
+  deliveryStartedAt DateTime?
+  deliveryKeyAt     DateTime?
+  deliveryPayload   Json?
+  deliveryError     String?
+  providerMessageId String?
+  acceptedUserId    String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([claimRequestId])
   @@index([schoolId, isActive])
   @@index([tokenHash])
   @@map("school_invitations")
@@ -2274,6 +2307,7 @@ model ClaimRequest {
   id     String             @id @default(cuid())
   status ClaimRequestStatus @default(PENDING)
 
+  // What the requester wrote — never edited afterwards (the original record).
   schoolName String
   city       String?
 
@@ -2281,17 +2315,60 @@ model ClaimRequest {
   contactEmail String
   phone        String?
   message      String?
+  // Locale of the public form when submitted — used for the requester's emails.
+  locale       String?
+
+  // School page the request was started from (Explore → school profile),
+  // validated server-side at submission. A hint for the reviewer only: it
+  // never proves ownership and never grants access.
+  sourceSchoolId String?
+  sourceSchool   School? @relation("ClaimRequestSource", fields: [sourceSchoolId], references: [id], onDelete: SetNull)
+
+  // School a super admin explicitly linked after review (existing or created
+  // for this request). Never set automatically.
+  schoolId   String?
+  school     School?   @relation("ClaimRequestSchool", fields: [schoolId], references: [id], onDelete: SetNull)
+  linkedById String?
+  linkedAt   DateTime?
+
+  rejectReason String?
+
+  // Set only when OWNER access was actually granted to a verified identity.
+  completedAt     DateTime?
+  completedUserId String?
 
   createdAt  DateTime  @default(now())
+  updatedAt  DateTime? @updatedAt
   resolvedAt DateTime?
 
+  events      ClaimRequestEvent[]
+  invitations SchoolInvitation[]
+
+  @@index([status, createdAt])
+  @@index([schoolId])
   @@map("claim_requests")
 }
 
 enum ClaimRequestStatus {
-  PENDING
-  RESOLVED
-  DISMISSED
+  PENDING // New, not reviewed yet
+  IN_PROGRESS // School linked; invitation being prepared/sent/awaiting acceptance
+  COMPLETED // OWNER access granted to the verified invitee
+  RESOLVED // LEGACY: old "Mark resolved" — no recorded association, needs review
+  DISMISSED // Rejected by a super admin (see rejectReason)
+}
+
+// Audit trail of a claim request: who did what, when, with what context.
+model ClaimRequestEvent {
+  id             String       @id @default(cuid())
+  claimRequestId String
+  claimRequest   ClaimRequest @relation(fields: [claimRequestId], references: [id], onDelete: Cascade)
+  type           String // see lib/claims/events.ts
+  actorUserId    String? // null = system / the requester / the invitee
+  data           Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([claimRequestId, createdAt])
+  @@map("claim_request_events")
 }
 
 model SchoolSubscription {

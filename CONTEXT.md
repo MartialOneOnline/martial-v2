@@ -230,6 +230,19 @@ Tablas en Supabase: todas sincronizadas con `prisma db push`
 
 ---
 
+## Flujo de titularidad de escuela (solicitud → invitación → propietario)
+
+Desde 2026-11-22 (Lote AD, rama `claude/claim-ownership`). Código en `apps/web/lib/claims/`.
+
+1. **Solicitud** — `/claim` (o `/claim?school=<slug>&name=…` desde el enlace «¿Diriges esta escuela?» de la ficha pública, solo en fichas sin propietario) → `POST /api/claim/request`. Se guarda `ClaimRequest` **antes** de cualquier email; `sourceSchoolId` validado en servidor (pista, nunca prueba). Aviso al super admin con enlace directo a `/admin/claims/<id>` e `Idempotency-Key`; si falla queda el evento `ADMIN_NOTIFY_FAILED`.
+2. **Revisión** — Admin → Verification Queue → pestaña *Ownership requests* (Pending / In progress / Not reviewed = `RESOLVED` antiguas sin escuela / History + búsqueda) → detalle `/admin/claims/[id]`: datos originales, siguiente paso, historial (`claim_request_events`, con actor), candidatas puntuadas (`lib/claims/candidates.ts`; nunca se vincula sola), vincular / crear escuela (aviso de duplicados obligatorio, escuela `UNVERIFIED`, email público vacío), rechazar con motivo, reabrir (también las `RESOLVED` antiguas). «Mark resolved» ya no existe.
+3. **Invitación** — una sola abierta por escuela; nunca si ya hay propietario (`OWNER_EXISTS`). Destinatario confirmado por el admin (por defecto el email de la solicitud, **no** `School.email`, que no se toca). Token = HMAC(`CLAIM_INVITE_SECRET` ‖ fallback `SUPABASE_SECRET_KEY`, `id:tokenNonce`), en BD solo `tokenHash`. Entrega separada del estado del invitado: `deliveryStatus` PREPARED/SENDING/ACCEPTED/FAILED/UNCERTAIN. *Retry* tras resultado incierto = misma `Idempotency-Key` y el email congelado en `deliveryPayload` (enlace como marcador, token nunca guardado), solo durante 20 h desde `deliveryKeyAt` (Resend guarda la clave 24 h); después `RETRY_WINDOW_PASSED` y solo cabe *Resend*. *Retry* tras rechazo de Resend = clave nueva. *Resend* = token nuevo, caduca en 7 días, el anterior muere. Usadas/revocadas no se reactivan. Ninguna transacción abierta durante Resend/Supabase.
+4. **Aceptación** — `/claim/[token]`: GET solo lee (marca OPENED). Sin sesión → `POST …/verify` envía **al email invitado** un enlace a la propia página `/claim/<token>?verify=<hashed_token>&vt=invite|magiclink` (`generateLink` `invite` si es nuevo, `magiclink` si ya existe: contraseña intacta). La persona pulsa «Confirmar» → `POST …/session` canjea el token en servidor con `verifyOtp` y escribe las cookies (nunca el `action_link` de Supabase: redirige con `#access_token` implícito, que el cliente PKCE de `@supabase/ssr` rechaza — fallo P1 de la auditoría `ad6777f`; el clic evita que un escáner de correo consuma el token). Con sesión del email invitado y email confirmado → botón Aceptar → `POST …/complete`: bloqueo de fila (invitación, escuela y solicitud — mismo orden que «Reject»; una solicitud que no esté `IN_PROGRESS` y vinculada a esa escuela invalida la invitación), cuenta borrada (`deletedAt`) → `ACCOUNT_DELETED` sin consumir, una aceptación a la vez por identidad Auth (bloqueo consultivo), consumo condicional de un solo uso, OWNER solo en la escuela vinculada, nunca re-apunta un `User` ligado a otra cuenta Auth (`ACCOUNT_CONFLICT`), propietario existente → `OWNER_CONFLICT` sin sustituir. Estado de escuela: solo `UNVERIFIED → CLAIMED`; VERIFIED/PARTNER/UNDER_REVIEW no cambian. Rol global solo sube STUDENT/INSTRUCTOR → SCHOOL_OWNER. Cookie `currentSchoolId` de la escuela correcta. Repetir aceptación = éxito idempotente.
+5. **Fin** — la solicitud pasa a `COMPLETED` solo al conceder el acceso. All Schools → «Invite owner…» y Admin → Invitations usan la misma librería (las del pipeline sin escuela crean la escuela una vez al aceptar). Enlaces antiguos `/claim/<id>` → mensaje explicativo («ya aceptada → inicia sesión» / «email antiguo → pide una nueva», evento `LEGACY_LINK_OPENED`), nunca acceso; `/onboarding` → página explicativa; `/api/onboarding/{validate,complete}` → 410. `SchoolClaim` sigue sin usarse.
+6. **Contadores** — `lib/claims/queue.ts` es la única definición de cada cola: dashboard admin (`/api/admin/stats`), pestañas de la cola y sus listas leen de ahí, así que cada número coincide con la lista que abre. Invitaciones: «needing action» (abierta pero inservible), aceptadas este mes (UTC), conversión aceptadas/enviadas histórica.
+
+---
+
 ## Flujo de confirmación de email (registro self-serve)
 
 Distinto del flujo de invitación de arriba — este es para quien se registra solo en `/register` (estudiante o escuela), no para quien es invitado por un admin.
@@ -302,6 +315,40 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 ---
 
 ## Historial de sesiones
+
+### Sesión — 2026-11-23 (tarde, 2) (rama `claude/claim-ownership` — pendientes de la reauditoría `APROBADO CON PENDIENTES` sobre `2fcb966`; migración sigue **sin aplicar**)
+
+- Kit de integración aislado en `scripts/claims-e2e/` (guardián de configuración efectiva + lista de destinatarios precargada + setup + runbook); probado en local, no ejecutado contra Supabase real todavía. Se lanza desde un worktree con `node scripts/claims-e2e/dev.mjs` (puerto 3100). Kit reauditado en `65683eb` → **`APROBADO`** por Codex; siguiente paso: el usuario crea el proyecto Supabase de pruebas, la clave Resend dedicada y las dos bandejas, rellena `apps/web/.env.local` del worktree (sin compartir secretos) y se ejecuta el RUNBOOK.
+- Resultado: Codex reaudita `dde9233` → **`APROBADO CON PENDIENTES` de integración**, sin correcciones de código pendientes. Antes de producción: navegador con un proyecto Supabase de pruebas + correo real, aplicar la migración antes del deploy; recuperación de Guidos y merge solo con autorización. Rama local `backup/claim-ownership-pre-squash` (no publicada, contiene los datos personales del historial antiguo) pendiente de borrar con OK del usuario.
+
+- Enlace caducado: `retry` responde `LINK_EXPIRED` y All Schools / pipeline / Leads ofrecen un enlace nuevo con confirmación (igual que tras la ventana de 20 h); en el detalle de solicitud «expired» tiene prioridad sobre «failed»/«uncertain».
+- Aceptación: bloqueo consultivo por identidad Auth al inicio de la transacción (`pg_advisory_xact_lock`) + `FOR UPDATE` sobre el usuario; dos escuelas aceptadas a la vez por la misma persona ya no dan deadlock ni chocan al crear el usuario.
+
+### Sesión — 2026-11-23 (tarde) (rama `claude/claim-ownership` — corrección del `RECHAZADO` de Codex sobre `ad6777f`; migración sigue **sin aplicar**)
+
+- P1 verificación incompatible con PKCE: el enlace ya no es el `action_link` de Supabase sino `/claim/<token>?verify=<hashed_token>&vt=…`; un clic canjea el token con `verifyOtp` en servidor (`app/api/claim/[token]/session/route.ts`). Sin cambios en `/auth/confirm`.
+- P1 solicitud rechazada concedía OWNER: bloqueo de fila de `claim_requests` en preparar, rechazar y aceptar (orden invitaciones → escuela → solicitud); enviar y aceptar exigen solicitud `IN_PROGRESS` vinculada a la escuela.
+- P2 All Schools y pipeline tras 20 h: ofrecen un enlace nuevo explícito tras confirmación (`newLink: true` / `action: 'new_link'`, `lib/claims/pipelineSend.ts`).
+- P2 cuenta borrada: la aceptación responde `ACCOUNT_DELETED`, no consume la invitación ni crea nada.
+- Posible problema ajeno, **no verificado ni tocado**: registro y otros flujos que envían el `action_link` de `generateLink` a `/auth/confirm` podrían sufrir el mismo rechazo PKCE con la versión actual de `@supabase/ssr`.
+
+### Sesión — 2026-11-23 (rama `claude/claim-ownership` — seguimiento de la revisión preliminar de Codex sobre `b1af17d`; migración sigue **sin aplicar**)
+
+- Dashboard admin: contaba solo escuelas `UNDER_REVIEW` (0 con una solicitud pendiente). Ahora usa `lib/claims/queue.ts`, compartido con la cola; indicadores de invitaciones y sus periodos redefinidos (ver «Flujo de titularidad», punto 6). Enlaces del dashboard abren la vista exacta (`?view=`, `?tab=`).
+- Reintentos: ventana de 20 h para la misma clave de Resend y email congelado (`deliveryKeyAt`, `deliveryPayload`, añadidos a la misma migración no aplicada).
+- Enlaces antiguos inventariados en producción (2 invitaciones, ambas aceptadas; ningún enlace `/onboarding?token=` se generó nunca) y con mensaje y salida para quien llegue con uno. Eliminado `lib/email/sendInvite.ts` (sin llamadas, generaba el enlace antiguo).
+- Tests contra PostgreSQL 17 real y desechable (`claimOwnershipFlow.pg.test.ts`, opcional con `CLAIMS_PG_URL` local): cadena completa de migraciones aplicada y sin drift, concurrencia, rollback y ventana de reintento; 9/9 ×5; los dos `FOR UPDATE` demostrados necesarios por mutación.
+- 55 vs 57: dos tests de `main` (`absencesReportRoute`, `paymentsReportRoute`) fallan entre las 23:00 y las 24:00 por el cambio de hora; hoy rama y base 55/55 idénticos.
+- Historial saneado (autorizado): la rama remota es un único commit `fb18ad6` sobre `a51a98f`, mismo árbol, sin datos personales (verificado por recuento); los SHA antiguos siguen accesibles en GitHub hasta que Soporte los purgue (petición pendiente del usuario, ver PROJECT-AUDIT Lote AD punto 8). Backup local sin publicar: `backup/claim-ownership-pre-squash`.
+- Pendiente: auditoría formal de Codex, navegador con Auth/Resend reales (necesita un entorno Supabase de pruebas), aplicar migración, recuperación de Guidos.
+
+### Sesión — 2026-11-22 (rama `claude/claim-ownership` — recorrido completo de titularidad de escuela, Lote AD; migración `20261122120000_claim_request_ownership_flow` **sin aplicar**; pendiente de Project Audit)
+
+- Incidente: la solicitud de «Guidos martial arts» (Clovis, 22/11 02:45 UTC) se cerró con «Mark resolved» a las 06:48:58 (hubo un login de super admin a las 06:48:14, pero el modelo antiguo no registraba quién resolvía: la coincidencia no prueba quién pulsó); desapareció de la cola sin escuela, invitación, usuario ni cuenta Auth (comprobado en solo lectura). No existe ninguna escuela candidata (las 29 de producción son VERIFIED). Dry-run: `scripts/recover-claim-request.mjs --email …` → plan: reabrir, crear escuela tras revisar, invitar.
+- Rediseño completo del flujo (ver «Flujo de titularidad de escuela» arriba). Sustituye el claim por id de invitación (`email_confirm: true`, OWNER inmediato, degradaba VERIFIED → CLAIMED). Retoma el diseño de la rama nunca mergeada `fix/claim-invitation-hardening-v2` (token hasheado + verificación real del email), corrigiendo que re-apuntaba `supabaseAuthId` y cambiaba el estado de verificación.
+- Migración aditiva: enum `ClaimRequestStatus` + `IN_PROGRESS`/`COMPLETED`; `claim_requests` + `schoolId`, `sourceSchoolId`, `locale`, `linkedById/At`, `rejectReason`, `completedAt/UserId`, `updatedAt`; tabla `claim_request_events`; `school_invitations` + `claimRequestId`, `tokenNonce`, `deliveryStatus` (enum nuevo), `deliveryAttempt`, `deliveryStartedAt`, `deliveryError`, `providerMessageId`, `acceptedUserId`. **Hay que aplicarla antes de desplegar** (el formulario público y el admin escriben columnas nuevas).
+- Tests: `claimOwnershipFlow.test.ts` (39, BD en memoria con rollback y bloqueos, Resend/Auth simulados) sustituye `claimSchoolSecurity.test.ts`; mutaciones de 4 guardas detectadas. Suite: 1462 pasan / 57 fallan, los mismos 57 que `origin/main` por archivo y nombre. `tsc` y ESLint sin errores.
+- No hecho: navegador real (la BD local es la de producción y la migración no está aplicada), correos reales, aplicación de la migración, recuperación del caso real.
 
 ### Sesión — 2026-11-18 (rama `claude/duplicates-partial-name` — posibles duplicados por nombre parcial; sin migración; Lote AC **`APROBADO`** por Project Audit en `5301335`; pendiente: merge)
 

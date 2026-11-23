@@ -1,36 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { NextResponse } from 'next/server'
 
-// GET /api/onboarding/validate?token=xxx
-// Returns invitation details if token is valid and not yet used
-export async function GET(req: NextRequest) {
-  const token = req.nextUrl.searchParams.get('token')
-  if (!token) return NextResponse.json({ error: 'Token required' }, { status: 400 })
-
-  const invitation = await prisma.schoolInvitation.findUnique({
-    where: { token },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      city: true,
-      country: true,
-      activities: true,
-      website: true,
-      status: true,
-    },
-  })
-
-  if (!invitation) return NextResponse.json({ error: 'Invalid or expired invitation' }, { status: 404 })
-  if (invitation.status === 'REGISTERED') return NextResponse.json({ error: 'This invitation has already been used' }, { status: 410 })
-  if (invitation.status === 'DECLINED') return NextResponse.json({ error: 'This invitation has been declined' }, { status: 410 })
-
-  // Mark as opened if first time
-  await prisma.schoolInvitation.updateMany({
-    where: { token, status: { in: ['PENDING', 'SENT'] } },
-    data: { status: 'OPENED', openedAt: new Date() },
-  })
-
-  return NextResponse.json(invitation)
+// Retired (2026-11-22). This legacy onboarding endpoint trusted the old
+// guessable `token` column and a client-supplied email. School owners now
+// accept invitations only through /claim/[token] (lib/claims/accept.ts),
+// which requires a verified login for the invited address.
+function gone() {
+  return NextResponse.json({ error: 'This onboarding link is no longer valid. Ask Martial support for a new invitation.' }, { status: 410 })
 }
+
+export const GET = gone
+export const POST = gone

@@ -633,6 +633,8 @@ export type SchoolWhereInput = {
   waivers?: Prisma.WaiverListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   invitations?: Prisma.SchoolInvitationListRelationFilter
+  claimRequests?: Prisma.ClaimRequestListRelationFilter
+  sourcedClaimRequests?: Prisma.ClaimRequestListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
   productCategories?: Prisma.ProductCategoryListRelationFilter
@@ -722,6 +724,8 @@ export type SchoolOrderByWithRelationInput = {
   waivers?: Prisma.WaiverOrderByRelationAggregateInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   invitations?: Prisma.SchoolInvitationOrderByRelationAggregateInput
+  claimRequests?: Prisma.ClaimRequestOrderByRelationAggregateInput
+  sourcedClaimRequests?: Prisma.ClaimRequestOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   campaigns?: Prisma.CampaignOrderByRelationAggregateInput
   productCategories?: Prisma.ProductCategoryOrderByRelationAggregateInput
@@ -814,6 +818,8 @@ export type SchoolWhereUniqueInput = Prisma.AtLeast<{
   waivers?: Prisma.WaiverListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
   invitations?: Prisma.SchoolInvitationListRelationFilter
+  claimRequests?: Prisma.ClaimRequestListRelationFilter
+  sourcedClaimRequests?: Prisma.ClaimRequestListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
   productCategories?: Prisma.ProductCategoryListRelationFilter
@@ -1018,6 +1024,8 @@ export type SchoolCreateInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -1104,6 +1112,8 @@ export type SchoolUncheckedCreateInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -1190,6 +1200,8 @@ export type SchoolUpdateInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -1276,6 +1288,8 @@ export type SchoolUncheckedUpdateInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -2270,6 +2284,38 @@ export type SchoolUpdateOneRequiredWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutNotificationsInput, Prisma.SchoolUpdateWithoutNotificationsInput>, Prisma.SchoolUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type SchoolCreateNestedOneWithoutSourcedClaimRequestsInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutSourcedClaimRequestsInput, Prisma.SchoolUncheckedCreateWithoutSourcedClaimRequestsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutSourcedClaimRequestsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolCreateNestedOneWithoutClaimRequestsInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutClaimRequestsInput, Prisma.SchoolUncheckedCreateWithoutClaimRequestsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutClaimRequestsInput
+  connect?: Prisma.SchoolWhereUniqueInput
+}
+
+export type SchoolUpdateOneWithoutSourcedClaimRequestsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutSourcedClaimRequestsInput, Prisma.SchoolUncheckedCreateWithoutSourcedClaimRequestsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutSourcedClaimRequestsInput
+  upsert?: Prisma.SchoolUpsertWithoutSourcedClaimRequestsInput
+  disconnect?: Prisma.SchoolWhereInput | boolean
+  delete?: Prisma.SchoolWhereInput | boolean
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutSourcedClaimRequestsInput, Prisma.SchoolUpdateWithoutSourcedClaimRequestsInput>, Prisma.SchoolUncheckedUpdateWithoutSourcedClaimRequestsInput>
+}
+
+export type SchoolUpdateOneWithoutClaimRequestsNestedInput = {
+  create?: Prisma.XOR<Prisma.SchoolCreateWithoutClaimRequestsInput, Prisma.SchoolUncheckedCreateWithoutClaimRequestsInput>
+  connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutClaimRequestsInput
+  upsert?: Prisma.SchoolUpsertWithoutClaimRequestsInput
+  disconnect?: Prisma.SchoolWhereInput | boolean
+  delete?: Prisma.SchoolWhereInput | boolean
+  connect?: Prisma.SchoolWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SchoolUpdateToOneWithWhereWithoutClaimRequestsInput, Prisma.SchoolUpdateWithoutClaimRequestsInput>, Prisma.SchoolUncheckedUpdateWithoutClaimRequestsInput>
+}
+
 export type SchoolCreateNestedOneWithoutSubscriptionInput = {
   create?: Prisma.XOR<Prisma.SchoolCreateWithoutSubscriptionInput, Prisma.SchoolUncheckedCreateWithoutSubscriptionInput>
   connectOrCreate?: Prisma.SchoolCreateOrConnectWithoutSubscriptionInput
@@ -2358,6 +2404,8 @@ export type SchoolCreateWithoutAffiliationInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -2443,6 +2491,8 @@ export type SchoolUncheckedCreateWithoutAffiliationInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -2613,6 +2663,8 @@ export type SchoolCreateWithoutCurriculumsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -2698,6 +2750,8 @@ export type SchoolUncheckedCreateWithoutCurriculumsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -2799,6 +2853,8 @@ export type SchoolUpdateWithoutCurriculumsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -2884,6 +2940,8 @@ export type SchoolUncheckedUpdateWithoutCurriculumsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -2969,6 +3027,8 @@ export type SchoolCreateWithoutCurriculumLessonsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -3054,6 +3114,8 @@ export type SchoolUncheckedCreateWithoutCurriculumLessonsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -3155,6 +3217,8 @@ export type SchoolUpdateWithoutCurriculumLessonsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -3240,6 +3304,8 @@ export type SchoolUncheckedUpdateWithoutCurriculumLessonsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3324,6 +3390,8 @@ export type SchoolCreateWithoutStaffInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -3409,6 +3477,8 @@ export type SchoolUncheckedCreateWithoutStaffInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -3499,6 +3569,8 @@ export type SchoolCreateWithoutClaimedByInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -3584,6 +3656,8 @@ export type SchoolUncheckedCreateWithoutClaimedByInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -3690,6 +3764,8 @@ export type SchoolUpdateWithoutStaffInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -3775,6 +3851,8 @@ export type SchoolUncheckedUpdateWithoutStaffInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -3876,6 +3954,8 @@ export type SchoolCreateWithoutDisciplinesInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -3961,6 +4041,8 @@ export type SchoolUncheckedCreateWithoutDisciplinesInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -4062,6 +4144,8 @@ export type SchoolUpdateWithoutDisciplinesInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -4147,6 +4231,8 @@ export type SchoolUncheckedUpdateWithoutDisciplinesInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4232,6 +4318,8 @@ export type SchoolCreateWithoutFacilityCatalogInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -4317,6 +4405,8 @@ export type SchoolUncheckedCreateWithoutFacilityCatalogInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -4418,6 +4508,8 @@ export type SchoolUpdateWithoutFacilityCatalogInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -4503,6 +4595,8 @@ export type SchoolUncheckedUpdateWithoutFacilityCatalogInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -4588,6 +4682,8 @@ export type SchoolCreateWithoutBranchesInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -4673,6 +4769,8 @@ export type SchoolUncheckedCreateWithoutBranchesInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -4763,6 +4861,8 @@ export type SchoolCreateWithoutParentInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -4848,6 +4948,8 @@ export type SchoolUncheckedCreateWithoutParentInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -4954,6 +5056,8 @@ export type SchoolUpdateWithoutBranchesInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -5039,6 +5143,8 @@ export type SchoolUncheckedUpdateWithoutBranchesInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5140,6 +5246,8 @@ export type SchoolCreateWithoutInstructorsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -5225,6 +5333,8 @@ export type SchoolUncheckedCreateWithoutInstructorsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -5326,6 +5436,8 @@ export type SchoolUpdateWithoutInstructorsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -5411,6 +5523,8 @@ export type SchoolUncheckedUpdateWithoutInstructorsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5496,6 +5610,8 @@ export type SchoolCreateWithoutMembershipPlansInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -5581,6 +5697,8 @@ export type SchoolUncheckedCreateWithoutMembershipPlansInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -5682,6 +5800,8 @@ export type SchoolUpdateWithoutMembershipPlansInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -5767,6 +5887,8 @@ export type SchoolUncheckedUpdateWithoutMembershipPlansInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -5852,6 +5974,8 @@ export type SchoolCreateWithoutReviewsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -5937,6 +6061,8 @@ export type SchoolUncheckedCreateWithoutReviewsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -6038,6 +6164,8 @@ export type SchoolUpdateWithoutReviewsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -6123,6 +6251,8 @@ export type SchoolUncheckedUpdateWithoutReviewsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6208,6 +6338,8 @@ export type SchoolCreateWithoutClassesInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -6293,6 +6425,8 @@ export type SchoolUncheckedCreateWithoutClassesInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -6394,6 +6528,8 @@ export type SchoolUpdateWithoutClassesInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -6479,6 +6615,8 @@ export type SchoolUncheckedUpdateWithoutClassesInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6564,6 +6702,8 @@ export type SchoolCreateWithoutEventsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -6649,6 +6789,8 @@ export type SchoolUncheckedCreateWithoutEventsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -6750,6 +6892,8 @@ export type SchoolUpdateWithoutEventsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -6835,6 +6979,8 @@ export type SchoolUncheckedUpdateWithoutEventsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -6920,6 +7066,8 @@ export type SchoolCreateWithoutMembershipsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -7005,6 +7153,8 @@ export type SchoolUncheckedCreateWithoutMembershipsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -7106,6 +7256,8 @@ export type SchoolUpdateWithoutMembershipsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -7191,6 +7343,8 @@ export type SchoolUncheckedUpdateWithoutMembershipsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7276,6 +7430,8 @@ export type SchoolCreateWithoutCampsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -7361,6 +7517,8 @@ export type SchoolUncheckedCreateWithoutCampsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -7462,6 +7620,8 @@ export type SchoolUpdateWithoutCampsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -7547,6 +7707,8 @@ export type SchoolUncheckedUpdateWithoutCampsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7632,6 +7794,8 @@ export type SchoolCreateWithoutMembersInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -7717,6 +7881,8 @@ export type SchoolUncheckedCreateWithoutMembersInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -7818,6 +7984,8 @@ export type SchoolUpdateWithoutMembersInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -7903,6 +8071,8 @@ export type SchoolUncheckedUpdateWithoutMembersInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -7988,6 +8158,8 @@ export type SchoolCreateWithoutStaffRolesInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -8073,6 +8245,8 @@ export type SchoolUncheckedCreateWithoutStaffRolesInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -8174,6 +8348,8 @@ export type SchoolUpdateWithoutStaffRolesInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -8259,6 +8435,8 @@ export type SchoolUncheckedUpdateWithoutStaffRolesInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8345,6 +8523,8 @@ export type SchoolCreateWithoutCampaignsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
@@ -8430,6 +8610,8 @@ export type SchoolUncheckedCreateWithoutCampaignsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
@@ -8531,6 +8713,8 @@ export type SchoolUpdateWithoutCampaignsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
@@ -8616,6 +8800,8 @@ export type SchoolUncheckedUpdateWithoutCampaignsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
@@ -8700,6 +8886,8 @@ export type SchoolCreateWithoutClaimsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -8785,6 +8973,8 @@ export type SchoolUncheckedCreateWithoutClaimsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -8886,6 +9076,8 @@ export type SchoolUpdateWithoutClaimsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -8971,6 +9163,8 @@ export type SchoolUncheckedUpdateWithoutClaimsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9056,6 +9250,8 @@ export type SchoolCreateWithoutGradingSystemsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -9141,6 +9337,8 @@ export type SchoolUncheckedCreateWithoutGradingSystemsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -9242,6 +9440,8 @@ export type SchoolUpdateWithoutGradingSystemsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -9327,6 +9527,8 @@ export type SchoolUncheckedUpdateWithoutGradingSystemsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9412,6 +9614,8 @@ export type SchoolCreateWithoutGradingsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -9497,6 +9701,8 @@ export type SchoolUncheckedCreateWithoutGradingsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -9598,6 +9804,8 @@ export type SchoolUpdateWithoutGradingsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -9683,6 +9891,8 @@ export type SchoolUncheckedUpdateWithoutGradingsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -9768,6 +9978,8 @@ export type SchoolCreateWithoutLeadsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -9853,6 +10065,8 @@ export type SchoolUncheckedCreateWithoutLeadsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -9954,6 +10168,8 @@ export type SchoolUpdateWithoutLeadsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -10039,6 +10255,8 @@ export type SchoolUncheckedUpdateWithoutLeadsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -10124,6 +10342,8 @@ export type SchoolCreateWithoutAffiliatesInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -10209,6 +10429,8 @@ export type SchoolUncheckedCreateWithoutAffiliatesInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -10310,6 +10532,8 @@ export type SchoolUpdateWithoutAffiliatesInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -10395,6 +10619,8 @@ export type SchoolUncheckedUpdateWithoutAffiliatesInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -10480,6 +10706,8 @@ export type SchoolCreateWithoutInvitationsInput = {
   affiliates?: Prisma.AffiliateCreateNestedManyWithoutSchoolInput
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -10565,6 +10793,8 @@ export type SchoolUncheckedCreateWithoutInvitationsInput = {
   affiliates?: Prisma.AffiliateUncheckedCreateNestedManyWithoutSchoolInput
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -10666,6 +10896,8 @@ export type SchoolUpdateWithoutInvitationsInput = {
   affiliates?: Prisma.AffiliateUpdateManyWithoutSchoolNestedInput
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -10751,6 +10983,8 @@ export type SchoolUncheckedUpdateWithoutInvitationsInput = {
   affiliates?: Prisma.AffiliateUncheckedUpdateManyWithoutSchoolNestedInput
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -10836,6 +11070,8 @@ export type SchoolCreateWithoutWaiversInput = {
   affiliates?: Prisma.AffiliateCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -10921,6 +11157,8 @@ export type SchoolUncheckedCreateWithoutWaiversInput = {
   affiliates?: Prisma.AffiliateUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -11022,6 +11260,8 @@ export type SchoolUpdateWithoutWaiversInput = {
   affiliates?: Prisma.AffiliateUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -11107,6 +11347,8 @@ export type SchoolUncheckedUpdateWithoutWaiversInput = {
   affiliates?: Prisma.AffiliateUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -11192,6 +11434,8 @@ export type SchoolCreateWithoutImpersonationLogsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -11277,6 +11521,8 @@ export type SchoolUncheckedCreateWithoutImpersonationLogsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -11378,6 +11624,8 @@ export type SchoolUpdateWithoutImpersonationLogsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -11463,6 +11711,8 @@ export type SchoolUncheckedUpdateWithoutImpersonationLogsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -11548,6 +11798,8 @@ export type SchoolCreateWithoutTransactionsInput = {
   affiliates?: Prisma.AffiliateCreateNestedManyWithoutSchoolInput
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -11633,6 +11885,8 @@ export type SchoolUncheckedCreateWithoutTransactionsInput = {
   affiliates?: Prisma.AffiliateUncheckedCreateNestedManyWithoutSchoolInput
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -11734,6 +11988,8 @@ export type SchoolUpdateWithoutTransactionsInput = {
   affiliates?: Prisma.AffiliateUpdateManyWithoutSchoolNestedInput
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -11819,6 +12075,8 @@ export type SchoolUncheckedUpdateWithoutTransactionsInput = {
   affiliates?: Prisma.AffiliateUncheckedUpdateManyWithoutSchoolNestedInput
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -11905,6 +12163,8 @@ export type SchoolCreateWithoutProductCategoriesInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
@@ -11990,6 +12250,8 @@ export type SchoolUncheckedCreateWithoutProductCategoriesInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
@@ -12091,6 +12353,8 @@ export type SchoolUpdateWithoutProductCategoriesInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
@@ -12176,6 +12440,8 @@ export type SchoolUncheckedUpdateWithoutProductCategoriesInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
@@ -12261,6 +12527,8 @@ export type SchoolCreateWithoutProductsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -12346,6 +12614,8 @@ export type SchoolUncheckedCreateWithoutProductsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -12447,6 +12717,8 @@ export type SchoolUpdateWithoutProductsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -12532,6 +12804,8 @@ export type SchoolUncheckedUpdateWithoutProductsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -12617,6 +12891,8 @@ export type SchoolCreateWithoutOrdersInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -12702,6 +12978,8 @@ export type SchoolUncheckedCreateWithoutOrdersInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -12803,6 +13081,8 @@ export type SchoolUpdateWithoutOrdersInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -12888,6 +13168,8 @@ export type SchoolUncheckedUpdateWithoutOrdersInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -12973,6 +13255,8 @@ export type SchoolCreateWithoutLimitedCollectionsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -13058,6 +13342,8 @@ export type SchoolUncheckedCreateWithoutLimitedCollectionsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -13159,6 +13445,8 @@ export type SchoolUpdateWithoutLimitedCollectionsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -13244,6 +13532,8 @@ export type SchoolUncheckedUpdateWithoutLimitedCollectionsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -13329,6 +13619,8 @@ export type SchoolCreateWithoutNotificationsInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
@@ -13414,6 +13706,8 @@ export type SchoolUncheckedCreateWithoutNotificationsInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
@@ -13515,6 +13809,8 @@ export type SchoolUpdateWithoutNotificationsInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
@@ -13600,6 +13896,736 @@ export type SchoolUncheckedUpdateWithoutNotificationsInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
+  productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
+  limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculums?: Prisma.CurriculumUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumLessons?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolCreateWithoutSourcedClaimRequestsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  coverPosY?: number
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
+  branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  affiliates?: Prisma.AffiliateCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
+  productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
+  products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
+  orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
+  limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculums?: Prisma.CurriculumCreateNestedManyWithoutSchoolInput
+  curriculumLessons?: Prisma.CurriculumLessonCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutSourcedClaimRequestsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  coverPosY?: number
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentId?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  affiliates?: Prisma.AffiliateUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
+  productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
+  limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculums?: Prisma.CurriculumUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumLessons?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutSourcedClaimRequestsInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutSourcedClaimRequestsInput, Prisma.SchoolUncheckedCreateWithoutSourcedClaimRequestsInput>
+}
+
+export type SchoolCreateWithoutClaimRequestsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  coverPosY?: number
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  affiliation?: Prisma.AffiliationCreateNestedOneWithoutSchoolsInput
+  parent?: Prisma.SchoolCreateNestedOneWithoutBranchesInput
+  branches?: Prisma.SchoolCreateNestedManyWithoutParentInput
+  claimedBy?: Prisma.UserCreateNestedOneWithoutClaimedSchoolsInput
+  staff?: Prisma.UserCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadCreateNestedManyWithoutSchoolInput
+  affiliates?: Prisma.AffiliateCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
+  productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
+  products?: Prisma.ProductCreateNestedManyWithoutSchoolInput
+  orders?: Prisma.OrderCreateNestedManyWithoutSchoolInput
+  limitedCollections?: Prisma.LimitedCollectionCreateNestedManyWithoutSchoolInput
+  curriculums?: Prisma.CurriculumCreateNestedManyWithoutSchoolInput
+  curriculumLessons?: Prisma.CurriculumLessonCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolUncheckedCreateWithoutClaimRequestsInput = {
+  id?: string
+  name: string
+  slug: string
+  status?: $Enums.SchoolStatus
+  source?: $Enums.SchoolSource
+  type?: $Enums.SchoolType
+  affiliationId?: string | null
+  country?: string | null
+  city?: string | null
+  address?: string | null
+  postcode?: string | null
+  lat?: number | null
+  lng?: number | null
+  phone?: string | null
+  email?: string | null
+  website?: string | null
+  language?: string
+  instagram?: string | null
+  facebook?: string | null
+  youtube?: string | null
+  tiktok?: string | null
+  description?: string | null
+  tagline?: string | null
+  logoUrl?: string | null
+  coverUrl?: string | null
+  coverPosY?: number
+  photos?: Prisma.SchoolCreatephotosInput | string[]
+  priceFrom?: number | null
+  hasFreeTrialCls?: boolean
+  facilities?: Prisma.SchoolCreatefacilitiesInput | string[]
+  foundedYear?: number | null
+  totalStudents?: number | null
+  googleRating?: number | null
+  googleReviews?: number | null
+  googlePlaceId?: string | null
+  v1UserId?: number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: string | null
+  stripeSecretKey?: string | null
+  stripeWebhookSecret?: string | null
+  revolutPublicKey?: string | null
+  revolutSecretKey?: string | null
+  revolutWebhookSecret?: string | null
+  parentId?: string | null
+  parentRelationshipType?: $Enums.SchoolRelationshipType | null
+  leadStage?: $Enums.LeadStage | null
+  claimedById?: string | null
+  claimedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  branches?: Prisma.SchoolUncheckedCreateNestedManyWithoutParentInput
+  staff?: Prisma.UserUncheckedCreateNestedManyWithoutSchoolInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedCreateNestedManyWithoutSchoolInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedCreateNestedManyWithoutSchoolInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedCreateNestedManyWithoutSchoolInput
+  classes?: Prisma.ClassUncheckedCreateNestedManyWithoutSchoolInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutSchoolInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutSchoolInput
+  camps?: Prisma.CampUncheckedCreateNestedManyWithoutSchoolInput
+  instructors?: Prisma.InstructorUncheckedCreateNestedManyWithoutSchoolInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedCreateNestedManyWithoutSchoolInput
+  reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutSchoolInput
+  members?: Prisma.SchoolMemberUncheckedCreateNestedManyWithoutSchoolInput
+  staffRoles?: Prisma.StaffRoleUncheckedCreateNestedManyWithoutSchoolInput
+  claims?: Prisma.SchoolClaimUncheckedCreateNestedManyWithoutSchoolInput
+  gradings?: Prisma.GradingUncheckedCreateNestedManyWithoutSchoolInput
+  gradingSystems?: Prisma.GradingSystemUncheckedCreateNestedManyWithoutSchoolInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutSchoolInput
+  affiliates?: Prisma.AffiliateUncheckedCreateNestedManyWithoutSchoolInput
+  waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
+  productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutSchoolInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutSchoolInput
+  limitedCollections?: Prisma.LimitedCollectionUncheckedCreateNestedManyWithoutSchoolInput
+  curriculums?: Prisma.CurriculumUncheckedCreateNestedManyWithoutSchoolInput
+  curriculumLessons?: Prisma.CurriculumLessonUncheckedCreateNestedManyWithoutSchoolInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedCreateNestedOneWithoutSchoolInput
+}
+
+export type SchoolCreateOrConnectWithoutClaimRequestsInput = {
+  where: Prisma.SchoolWhereUniqueInput
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutClaimRequestsInput, Prisma.SchoolUncheckedCreateWithoutClaimRequestsInput>
+}
+
+export type SchoolUpsertWithoutSourcedClaimRequestsInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutSourcedClaimRequestsInput, Prisma.SchoolUncheckedUpdateWithoutSourcedClaimRequestsInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutSourcedClaimRequestsInput, Prisma.SchoolUncheckedCreateWithoutSourcedClaimRequestsInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutSourcedClaimRequestsInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutSourcedClaimRequestsInput, Prisma.SchoolUncheckedUpdateWithoutSourcedClaimRequestsInput>
+}
+
+export type SchoolUpdateWithoutSourcedClaimRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
+  branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  affiliates?: Prisma.AffiliateUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
+  productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
+  products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
+  limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculums?: Prisma.CurriculumUpdateManyWithoutSchoolNestedInput
+  curriculumLessons?: Prisma.CurriculumLessonUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutSourcedClaimRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  affiliates?: Prisma.AffiliateUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
+  productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutSchoolNestedInput
+  limitedCollections?: Prisma.LimitedCollectionUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculums?: Prisma.CurriculumUncheckedUpdateManyWithoutSchoolNestedInput
+  curriculumLessons?: Prisma.CurriculumLessonUncheckedUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUncheckedUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUpsertWithoutClaimRequestsInput = {
+  update: Prisma.XOR<Prisma.SchoolUpdateWithoutClaimRequestsInput, Prisma.SchoolUncheckedUpdateWithoutClaimRequestsInput>
+  create: Prisma.XOR<Prisma.SchoolCreateWithoutClaimRequestsInput, Prisma.SchoolUncheckedCreateWithoutClaimRequestsInput>
+  where?: Prisma.SchoolWhereInput
+}
+
+export type SchoolUpdateToOneWithWhereWithoutClaimRequestsInput = {
+  where?: Prisma.SchoolWhereInput
+  data: Prisma.XOR<Prisma.SchoolUpdateWithoutClaimRequestsInput, Prisma.SchoolUncheckedUpdateWithoutClaimRequestsInput>
+}
+
+export type SchoolUpdateWithoutClaimRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  affiliation?: Prisma.AffiliationUpdateOneWithoutSchoolsNestedInput
+  parent?: Prisma.SchoolUpdateOneWithoutBranchesNestedInput
+  branches?: Prisma.SchoolUpdateManyWithoutParentNestedInput
+  claimedBy?: Prisma.UserUpdateOneWithoutClaimedSchoolsNestedInput
+  staff?: Prisma.UserUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutSchoolNestedInput
+  affiliates?: Prisma.AffiliateUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
+  productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
+  products?: Prisma.ProductUpdateManyWithoutSchoolNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutSchoolNestedInput
+  limitedCollections?: Prisma.LimitedCollectionUpdateManyWithoutSchoolNestedInput
+  curriculums?: Prisma.CurriculumUpdateManyWithoutSchoolNestedInput
+  curriculumLessons?: Prisma.CurriculumLessonUpdateManyWithoutSchoolNestedInput
+  subscription?: Prisma.SchoolSubscriptionUpdateOneWithoutSchoolNestedInput
+}
+
+export type SchoolUncheckedUpdateWithoutClaimRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumSchoolStatusFieldUpdateOperationsInput | $Enums.SchoolStatus
+  source?: Prisma.EnumSchoolSourceFieldUpdateOperationsInput | $Enums.SchoolSource
+  type?: Prisma.EnumSchoolTypeFieldUpdateOperationsInput | $Enums.SchoolType
+  affiliationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  website?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  language?: Prisma.StringFieldUpdateOperationsInput | string
+  instagram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  facebook?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  youtube?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tiktok?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverPosY?: Prisma.FloatFieldUpdateOperationsInput | number
+  photos?: Prisma.SchoolUpdatephotosInput | string[]
+  priceFrom?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hasFreeTrialCls?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  facilities?: Prisma.SchoolUpdatefacilitiesInput | string[]
+  foundedYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  totalStudents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googleRating?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  googleReviews?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  googlePlaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  v1UserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  defaultBookingSettings?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  cancelPolicy?: Prisma.StringFieldUpdateOperationsInput | string
+  modules?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  stripePublishableKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutPublicKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutSecretKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revolutWebhookSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  parentRelationshipType?: Prisma.NullableEnumSchoolRelationshipTypeFieldUpdateOperationsInput | $Enums.SchoolRelationshipType | null
+  leadStage?: Prisma.NullableEnumLeadStageFieldUpdateOperationsInput | $Enums.LeadStage | null
+  claimedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  branches?: Prisma.SchoolUncheckedUpdateManyWithoutParentNestedInput
+  staff?: Prisma.UserUncheckedUpdateManyWithoutSchoolNestedInput
+  impersonationLogs?: Prisma.ImpersonationLogUncheckedUpdateManyWithoutSchoolNestedInput
+  disciplines?: Prisma.SchoolDisciplineUncheckedUpdateManyWithoutSchoolNestedInput
+  facilityCatalog?: Prisma.SchoolFacilityUncheckedUpdateManyWithoutSchoolNestedInput
+  classes?: Prisma.ClassUncheckedUpdateManyWithoutSchoolNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutSchoolNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutSchoolNestedInput
+  camps?: Prisma.CampUncheckedUpdateManyWithoutSchoolNestedInput
+  instructors?: Prisma.InstructorUncheckedUpdateManyWithoutSchoolNestedInput
+  membershipPlans?: Prisma.MembershipPlanUncheckedUpdateManyWithoutSchoolNestedInput
+  reviews?: Prisma.ReviewUncheckedUpdateManyWithoutSchoolNestedInput
+  members?: Prisma.SchoolMemberUncheckedUpdateManyWithoutSchoolNestedInput
+  staffRoles?: Prisma.StaffRoleUncheckedUpdateManyWithoutSchoolNestedInput
+  claims?: Prisma.SchoolClaimUncheckedUpdateManyWithoutSchoolNestedInput
+  gradings?: Prisma.GradingUncheckedUpdateManyWithoutSchoolNestedInput
+  gradingSystems?: Prisma.GradingSystemUncheckedUpdateManyWithoutSchoolNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutSchoolNestedInput
+  affiliates?: Prisma.AffiliateUncheckedUpdateManyWithoutSchoolNestedInput
+  waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutSchoolNestedInput
@@ -13685,6 +14711,8 @@ export type SchoolCreateWithoutSubscriptionInput = {
   waivers?: Prisma.WaiverCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryCreateNestedManyWithoutSchoolInput
@@ -13770,6 +14798,8 @@ export type SchoolUncheckedCreateWithoutSubscriptionInput = {
   waivers?: Prisma.WaiverUncheckedCreateNestedManyWithoutSchoolInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutSchoolInput
   invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutSchoolInput
+  claimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutSchoolInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutSchoolInput
   productCategories?: Prisma.ProductCategoryUncheckedCreateNestedManyWithoutSchoolInput
@@ -13871,6 +14901,8 @@ export type SchoolUpdateWithoutSubscriptionInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -13956,6 +14988,8 @@ export type SchoolUncheckedUpdateWithoutSubscriptionInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -14094,6 +15128,8 @@ export type SchoolUpdateWithoutAffiliationInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -14179,6 +15215,8 @@ export type SchoolUncheckedUpdateWithoutAffiliationInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -14372,6 +15410,8 @@ export type SchoolUpdateWithoutClaimedByInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -14457,6 +15497,8 @@ export type SchoolUncheckedUpdateWithoutClaimedByInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -14650,6 +15692,8 @@ export type SchoolUpdateWithoutParentInput = {
   waivers?: Prisma.WaiverUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUpdateManyWithoutSchoolNestedInput
@@ -14735,6 +15779,8 @@ export type SchoolUncheckedUpdateWithoutParentInput = {
   waivers?: Prisma.WaiverUncheckedUpdateManyWithoutSchoolNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutSchoolNestedInput
   invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutSchoolNestedInput
+  claimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput
+  sourcedClaimRequests?: Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutSchoolNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutSchoolNestedInput
   productCategories?: Prisma.ProductCategoryUncheckedUpdateManyWithoutSchoolNestedInput
@@ -14828,6 +15874,8 @@ export type SchoolCountOutputType = {
   waivers: number
   transactions: number
   invitations: number
+  claimRequests: number
+  sourcedClaimRequests: number
   notifications: number
   campaigns: number
   productCategories: number
@@ -14861,6 +15909,8 @@ export type SchoolCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   waivers?: boolean | SchoolCountOutputTypeCountWaiversArgs
   transactions?: boolean | SchoolCountOutputTypeCountTransactionsArgs
   invitations?: boolean | SchoolCountOutputTypeCountInvitationsArgs
+  claimRequests?: boolean | SchoolCountOutputTypeCountClaimRequestsArgs
+  sourcedClaimRequests?: boolean | SchoolCountOutputTypeCountSourcedClaimRequestsArgs
   notifications?: boolean | SchoolCountOutputTypeCountNotificationsArgs
   campaigns?: boolean | SchoolCountOutputTypeCountCampaignsArgs
   productCategories?: boolean | SchoolCountOutputTypeCountProductCategoriesArgs
@@ -15038,6 +16088,20 @@ export type SchoolCountOutputTypeCountInvitationsArgs<ExtArgs extends runtime.Ty
 /**
  * SchoolCountOutputType without action
  */
+export type SchoolCountOutputTypeCountClaimRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClaimRequestWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
+export type SchoolCountOutputTypeCountSourcedClaimRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClaimRequestWhereInput
+}
+
+/**
+ * SchoolCountOutputType without action
+ */
 export type SchoolCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.NotificationWhereInput
 }
@@ -15170,6 +16234,8 @@ export type SchoolSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   waivers?: boolean | Prisma.School$waiversArgs<ExtArgs>
   transactions?: boolean | Prisma.School$transactionsArgs<ExtArgs>
   invitations?: boolean | Prisma.School$invitationsArgs<ExtArgs>
+  claimRequests?: boolean | Prisma.School$claimRequestsArgs<ExtArgs>
+  sourcedClaimRequests?: boolean | Prisma.School$sourcedClaimRequestsArgs<ExtArgs>
   notifications?: boolean | Prisma.School$notificationsArgs<ExtArgs>
   campaigns?: boolean | Prisma.School$campaignsArgs<ExtArgs>
   productCategories?: boolean | Prisma.School$productCategoriesArgs<ExtArgs>
@@ -15380,6 +16446,8 @@ export type SchoolInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   waivers?: boolean | Prisma.School$waiversArgs<ExtArgs>
   transactions?: boolean | Prisma.School$transactionsArgs<ExtArgs>
   invitations?: boolean | Prisma.School$invitationsArgs<ExtArgs>
+  claimRequests?: boolean | Prisma.School$claimRequestsArgs<ExtArgs>
+  sourcedClaimRequests?: boolean | Prisma.School$sourcedClaimRequestsArgs<ExtArgs>
   notifications?: boolean | Prisma.School$notificationsArgs<ExtArgs>
   campaigns?: boolean | Prisma.School$campaignsArgs<ExtArgs>
   productCategories?: boolean | Prisma.School$productCategoriesArgs<ExtArgs>
@@ -15430,6 +16498,8 @@ export type $SchoolPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     waivers: Prisma.$WaiverPayload<ExtArgs>[]
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     invitations: Prisma.$SchoolInvitationPayload<ExtArgs>[]
+    claimRequests: Prisma.$ClaimRequestPayload<ExtArgs>[]
+    sourcedClaimRequests: Prisma.$ClaimRequestPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     campaigns: Prisma.$CampaignPayload<ExtArgs>[]
     productCategories: Prisma.$ProductCategoryPayload<ExtArgs>[]
@@ -15912,6 +16982,8 @@ export interface Prisma__SchoolClient<T, Null = never, ExtArgs extends runtime.T
   waivers<T extends Prisma.School$waiversArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$waiversArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WaiverPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.School$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.School$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  claimRequests<T extends Prisma.School$claimRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$claimRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sourcedClaimRequests<T extends Prisma.School$sourcedClaimRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$sourcedClaimRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.School$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   campaigns<T extends Prisma.School$campaignsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$campaignsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   productCategories<T extends Prisma.School$productCategoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.School$productCategoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -16985,6 +18057,54 @@ export type School$invitationsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.SchoolInvitationScalarFieldEnum | Prisma.SchoolInvitationScalarFieldEnum[]
+}
+
+/**
+ * School.claimRequests
+ */
+export type School$claimRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClaimRequest
+   */
+  select?: Prisma.ClaimRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClaimRequest
+   */
+  omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
+  where?: Prisma.ClaimRequestWhereInput
+  orderBy?: Prisma.ClaimRequestOrderByWithRelationInput | Prisma.ClaimRequestOrderByWithRelationInput[]
+  cursor?: Prisma.ClaimRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClaimRequestScalarFieldEnum | Prisma.ClaimRequestScalarFieldEnum[]
+}
+
+/**
+ * School.sourcedClaimRequests
+ */
+export type School$sourcedClaimRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClaimRequest
+   */
+  select?: Prisma.ClaimRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClaimRequest
+   */
+  omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
+  where?: Prisma.ClaimRequestWhereInput
+  orderBy?: Prisma.ClaimRequestOrderByWithRelationInput | Prisma.ClaimRequestOrderByWithRelationInput[]
+  cursor?: Prisma.ClaimRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClaimRequestScalarFieldEnum | Prisma.ClaimRequestScalarFieldEnum[]
 }
 
 /**

@@ -8,6 +8,7 @@ import {
   Globe, MapPin, Menu,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { sendPipelineInvite } from '@/lib/claims/pipelineSend'
 import { useAdminShell } from '../AdminLayoutClient'
 
 type Invitation = {
@@ -70,12 +71,9 @@ export default function LeadsClient() {
 
   const sendInvite = async (id: string) => {
     setSending(id)
-    await fetch('/api/admin/invitations', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action: 'send' }),
-    })
+    const r = await sendPipelineInvite(adminFetch, id, m => window.confirm(m))
     setSending(null)
+    if (!r.ok && r.message) window.alert(r.message)
     load()
   }
 

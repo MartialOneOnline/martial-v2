@@ -790,6 +790,13 @@ export type EnumInvitationSourceFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumInvitationSourceFilter<$PrismaModel> | $Enums.InvitationSource
 }
 
+export type EnumInvitationDeliveryStatusNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.InvitationDeliveryStatus | Prisma.EnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.InvitationDeliveryStatus[] | Prisma.ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.InvitationDeliveryStatus[] | Prisma.ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumInvitationDeliveryStatusNullableFilter<$PrismaModel> | $Enums.InvitationDeliveryStatus | null
+}
+
 export type EnumInvitationStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.InvitationStatus | Prisma.EnumInvitationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.InvitationStatus[] | Prisma.ListEnumInvitationStatusFieldRefInput<$PrismaModel>
@@ -808,6 +815,16 @@ export type EnumInvitationSourceWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumInvitationSourceFilter<$PrismaModel>
   _max?: Prisma.NestedEnumInvitationSourceFilter<$PrismaModel>
+}
+
+export type EnumInvitationDeliveryStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.InvitationDeliveryStatus | Prisma.EnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.InvitationDeliveryStatus[] | Prisma.ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.InvitationDeliveryStatus[] | Prisma.ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumInvitationDeliveryStatusNullableWithAggregatesFilter<$PrismaModel> | $Enums.InvitationDeliveryStatus | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumInvitationDeliveryStatusNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumInvitationDeliveryStatusNullableFilter<$PrismaModel>
 }
 
 export type EnumRoleNullableFilter<$PrismaModel = never> = {
@@ -1786,6 +1803,13 @@ export type NestedEnumInvitationSourceFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumInvitationSourceFilter<$PrismaModel> | $Enums.InvitationSource
 }
 
+export type NestedEnumInvitationDeliveryStatusNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.InvitationDeliveryStatus | Prisma.EnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.InvitationDeliveryStatus[] | Prisma.ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.InvitationDeliveryStatus[] | Prisma.ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumInvitationDeliveryStatusNullableFilter<$PrismaModel> | $Enums.InvitationDeliveryStatus | null
+}
+
 export type NestedEnumInvitationStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.InvitationStatus | Prisma.EnumInvitationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.InvitationStatus[] | Prisma.ListEnumInvitationStatusFieldRefInput<$PrismaModel>
@@ -1804,6 +1828,16 @@ export type NestedEnumInvitationSourceWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumInvitationSourceFilter<$PrismaModel>
   _max?: Prisma.NestedEnumInvitationSourceFilter<$PrismaModel>
+}
+
+export type NestedEnumInvitationDeliveryStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.InvitationDeliveryStatus | Prisma.EnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.InvitationDeliveryStatus[] | Prisma.ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.InvitationDeliveryStatus[] | Prisma.ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumInvitationDeliveryStatusNullableWithAggregatesFilter<$PrismaModel> | $Enums.InvitationDeliveryStatus | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumInvitationDeliveryStatusNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumInvitationDeliveryStatusNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumRoleNullableFilter<$PrismaModel = never> = {

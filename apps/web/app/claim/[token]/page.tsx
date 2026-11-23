@@ -1,0 +1,248 @@
+'use client'
+
+import Link from 'next/link'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { CheckCircle, Loader2, ShieldCheck, Mail, AlertCircle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
+
+// Owner invitation landing page. Opening it never accepts anything:
+// acceptance is an explicit click, and only works while signed in with the
+// invited address (proven by an existing login or by the confirmation link
+// POST /verify emails to that inbox — which brings the person back here with
+// ?verify=<hashed token>&vt=<type>; one click redeems it server-side).
+
+type InvitationView = {
+  schoolName: string
+  city: string | null
+  country: string | null
+  logoUrl: string | null
+  maskedEmail: string
+  session: 'none' | 'match' | 'other'
+}
+
+type Phase =
+  | { kind: 'loading' }
+  | { kind: 'invalid'; reason: string }
+  | { kind: 'ready'; data: InvitationView }
+  | { kind: 'done'; schoolName: string }
+
+export default function ClaimInvitationPage() {
+  const { token } = useParams<{ token: string }>()
+  const { t, locale } = useLanguage()
+  const c = t.claimFlow
+
+  const [phase, setPhase] = useState<Phase>({ kind: 'loading' })
+  const [busy, setBusy] = useState(false)
+  const [linkSent, setLinkSent] = useState(false)
+  const [error, setError] = useState('')
+  const inFlight = useRef(false)
+  // One-time Supabase token from the verification email. Redeemed only on an
+  // explicit click, so a mail scanner opening the link cannot consume it.
+  const [verify, setVerify] = useState<{ tokenHash: string; type: string } | null>(null)
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    const tokenHash = q.get('verify'), type = q.get('vt')
+    if (tokenHash && type) setVerify({ tokenHash, type })
+  }, [])
+
+  const dropVerifyParams = () => {
+    setVerify(null)
+    window.history.replaceState(null, '', window.location.pathname)
+  }
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/claim/${encodeURIComponent(token)}`, { cache: 'no-store' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setPhase({ kind: 'invalid', reason: typeof data.error === 'string' ? data.error : 'NOT_FOUND' }); return }
+      setPhase({ kind: 'ready', data })
+    } catch {
+      setPhase({ kind: 'invalid', reason: 'NOT_FOUND' })
+    }
+  }, [token])
+
+  useEffect(() => { load() }, [load])
+
+  const errText = (code: string) => (c as Record<string, string>)[`err_${code}`] ?? c.err_generic
+
+  async function sendLink() {
+    if (inFlight.current) return
+    inFlight.current = true; setBusy(true); setError('')
+    try {
+      const res = await fetch(`/api/claim/${encodeURIComponent(token)}/verify`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locale }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (res.status === 404 || res.status === 410) { setPhase({ kind: 'invalid', reason: data.error ?? 'NOT_FOUND' }); return }
+        setError(errText(data.error ?? 'generic')); return
+      }
+      setLinkSent(true)
+    } catch {
+      setError(c.err_generic)
+    } finally {
+      inFlight.current = false; setBusy(false)
+    }
+  }
+
+  async function confirmEmail() {
+    if (inFlight.current || !verify) return
+    inFlight.current = true; setBusy(true); setError('')
+    try {
+      const res = await fetch(`/api/claim/${encodeURIComponent(token)}/session`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(verify),
+      })
+      const data = await res.json().catch(() => ({}))
+      dropVerifyParams()
+      if (!res.ok) {
+        if (res.status === 404 || (res.status === 410 && data.error !== 'verify_expired')) { setPhase({ kind: 'invalid', reason: data.error ?? 'NOT_FOUND' }); return }
+        setError(errText(data.error ?? 'generic')); return
+      }
+      await load()
+    } catch {
+      setError(c.err_generic)
+    } finally {
+      inFlight.current = false; setBusy(false)
+    }
+  }
+
+  async function accept(schoolName: string) {
+    if (inFlight.current) return
+    inFlight.current = true; setBusy(true); setError('')
+    try {
+      const res = await fetch(`/api/claim/${encodeURIComponent(token)}/complete`, { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.ok) { setPhase({ kind: 'done', schoolName }); return }
+      if (data.error === 'INVALID_LINK') { setPhase({ kind: 'invalid', reason: data.reason ?? 'NOT_FOUND' }); return }
+      if (data.error === 'WRONG_ACCOUNT' || data.error === 'NOT_AUTHENTICATED') { await load(); return }
+      setError(errText(data.error ?? 'generic'))
+    } catch {
+      // Lost response: the server may have granted access. Accepting again is
+      // safe (same person → success), so just let the person retry.
+      setError(c.err_generic)
+    } finally {
+      inFlight.current = false; setBusy(false)
+    }
+  }
+
+  async function signOut() {
+    setBusy(true)
+    try { await createClient().auth.signOut() } finally { setBusy(false); setLinkSent(false); load() }
+  }
+
+  return (
+    <main className="min-h-screen bg-[#F9FAFB] flex items-start sm:items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <p className="text-center text-xs font-extrabold tracking-[0.18em] text-[#0E3A7A] mb-6">MARTIAL</p>
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+          {phase.kind === 'loading' && (
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-400">
+              <Loader2 className="w-4 h-4 animate-spin" /> {c.loading}
+            </div>
+          )}
+
+          {phase.kind === 'invalid' && (
+            <div className="text-center py-6">
+              <AlertCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-[#101828]">
+                {(c as Record<string, string>)[`invalid_${phase.reason}`] ?? c.invalid_NOT_FOUND}
+              </p>
+              {(phase.reason === 'USED' || phase.reason === 'LEGACY_USED') ? (
+                <a href="/login?redirect=/dashboard" className="inline-flex items-center justify-center mt-5 h-11 px-6 rounded-full bg-[#0870E2] text-white text-sm font-semibold">{c.signIn}</a>
+              ) : phase.reason !== 'SCHOOL_NOT_CLAIMABLE' && (
+                <Link href="/claim" prefetch={false} className="inline-flex items-center justify-center mt-5 h-11 px-6 rounded-full bg-[#0870E2] text-white text-sm font-semibold">{c.requestNew}</Link>
+              )}
+              <p className="text-xs text-gray-400 mt-3">{c.contactSupport}</p>
+            </div>
+          )}
+
+          {phase.kind === 'done' && (
+            <div className="text-center py-6">
+              <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+              <p className="text-lg font-bold text-[#101828]">{c.doneTitle}</p>
+              <p className="text-sm text-gray-500 mt-1">{c.doneBody.replace('{school}', phase.schoolName)}</p>
+              <a href="/dashboard" className="inline-flex items-center justify-center mt-6 h-11 px-6 rounded-full bg-[#0870E2] text-white text-sm font-semibold">
+                {c.goDashboard}
+              </a>
+            </div>
+          )}
+
+          {phase.kind === 'ready' && (
+            <>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden">
+                  {phase.data.logoUrl
+                    ? <img src={phase.data.logoUrl} alt="" className="w-12 h-12 object-cover" />
+                    : <ShieldCheck className="w-6 h-6 text-[#0870E2]" />}
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-lg font-bold text-[#101828] break-words">{c.inviteTitle.replace('{school}', phase.data.schoolName)}</h1>
+                  {(phase.data.city || phase.data.country) && (
+                    <p className="text-xs text-gray-400">{[phase.data.city, phase.data.country].filter(Boolean).join(', ')}</p>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-4 break-words">{c.inviteFor.replace('{email}', phase.data.maskedEmail)}</p>
+
+              {phase.data.session === 'match' && (
+                <>
+                  <p className="text-sm text-gray-600 mb-4">{c.signedInAs}</p>
+                  <button onClick={() => accept(phase.data.schoolName)} disabled={busy}
+                    className="w-full h-11 rounded-full bg-[#0870E2] text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
+                    {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{c.accepting}</> : c.accept}
+                  </button>
+                </>
+              )}
+
+              {verify && phase.data.session !== 'match' && (
+                <>
+                  <p className="text-sm text-gray-600 mb-4">{c.confirmIntro}</p>
+                  <button onClick={confirmEmail} disabled={busy}
+                    className="w-full h-11 rounded-full bg-[#0870E2] text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
+                    {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{c.confirming}</> : c.confirmContinue}
+                  </button>
+                </>
+              )}
+
+              {!verify && phase.data.session === 'other' && (
+                <>
+                  <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-4">{c.wrongAccount}</p>
+                  <button onClick={signOut} disabled={busy}
+                    className="w-full h-11 rounded-full border border-gray-200 text-sm font-semibold text-gray-700 disabled:opacity-60">
+                    {c.signOut}
+                  </button>
+                </>
+              )}
+
+              {!verify && phase.data.session === 'none' && (
+                linkSent ? (
+                  <div className="text-center">
+                    <Mail className="w-8 h-8 text-[#0870E2] mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">{c.linkSent.replace('{email}', phase.data.maskedEmail)}</p>
+                    <button onClick={sendLink} disabled={busy} className="mt-4 text-sm font-semibold text-[#0870E2] disabled:opacity-60">
+                      {busy ? c.sending : c.resendLink}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 mb-4">{c.stepVerify}</p>
+                    <button onClick={sendLink} disabled={busy}
+                      className="w-full h-11 rounded-full bg-[#0870E2] text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
+                      {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{c.sending}</> : c.sendLink}
+                    </button>
+                  </>
+                )
+              )}
+
+              {error && <p className="mt-4 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
+              <p className="text-xs text-gray-400 mt-6 text-center">{c.contactSupport}</p>
+            </>
+          )}
+        </div>
+      </div>
+    </main>
+  )
+}
