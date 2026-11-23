@@ -318,6 +318,8 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ### Sesión — 2026-11-23 (tarde, 2) (rama `claude/claim-ownership` — pendientes de la reauditoría `APROBADO CON PENDIENTES` sobre `2fcb966`; migración sigue **sin aplicar**)
 
+- Resultado: Codex reaudita `dde9233` → **`APROBADO CON PENDIENTES` de integración**, sin correcciones de código pendientes. Antes de producción: navegador con un proyecto Supabase de pruebas + correo real, aplicar la migración antes del deploy; recuperación de Guidos y merge solo con autorización. Rama local `backup/claim-ownership-pre-squash` (no publicada, contiene los datos personales del historial antiguo) pendiente de borrar con OK del usuario.
+
 - Enlace caducado: `retry` responde `LINK_EXPIRED` y All Schools / pipeline / Leads ofrecen un enlace nuevo con confirmación (igual que tras la ventana de 20 h); en el detalle de solicitud «expired» tiene prioridad sobre «failed»/«uncertain».
 - Aceptación: bloqueo consultivo por identidad Auth al inicio de la transacción (`pg_advisory_xact_lock`) + `FOR UPDATE` sobre el usuario; dos escuelas aceptadas a la vez por la misma persona ya no dan deadlock ni chocan al crear el usuario.
 
