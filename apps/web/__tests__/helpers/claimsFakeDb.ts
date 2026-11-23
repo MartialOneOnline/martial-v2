@@ -206,9 +206,7 @@ export function createFakeDb() {
     for (const t of Object.keys(tables)) c[t] = model(t)
     c.$queryRaw = async (strings: TemplateStringsArray, ...values: any[]) => {
       const sql = strings.join('?')
-      const lockMatch = /FROM (schools|school_invitations) WHERE id = \? FOR UPDATE/.exec(sql)
-      if (lockMatch) {
-        const id = `${lockMatch[1]}:${values[0] as string}`
+      const take = async (id: string) => {
         if (held && !held.includes(id)) {
           while (locks.has(id)) await locks.get(id)
           let release!: () => void
@@ -216,9 +214,23 @@ export function createFakeDb() {
           held.push(id)
           ;(c.__releases ??= []).push(() => { locks.delete(id); release() })
         }
+      }
+      const byRequest = /FROM school_invitations WHERE "claimRequestId" = \? ORDER BY id FOR UPDATE/.exec(sql)
+      if (byRequest) {
+        const rows = tables.schoolInvitation!.filter(x => x.claimRequestId === values[0]).sort((x, y) => (x.id < y.id ? -1 : 1))
+        for (const r of rows) await take(`school_invitations:${r.id}`)
+        return rows.map(x => ({ id: x.id }))
+      }
+      const lockMatch = /FROM (schools|school_invitations|claim_requests) WHERE id = \? FOR UPDATE/.exec(sql)
+      if (lockMatch) {
+        await take(`${lockMatch[1]}:${values[0] as string}`)
         if (lockMatch[1] === 'school_invitations') return tables.schoolInvitation!.filter(x => x.id === values[0]).map(x => ({ id: x.id }))
+        if (lockMatch[1] === 'claim_requests') return tables.claimRequest!.filter(x => x.id === values[0]).map(x => ({ id: x.id, status: x.status, schoolId: x.schoolId ?? null }))
         const s = tables.school!.find(x => x.id === values[0])
         return s ? [{ id: s.id, status: s.status, name: s.name }] : []
+      }
+      if (/SELECT "deletedAt" FROM users WHERE id = \? FOR SHARE/.test(sql)) {
+        return tables.user!.filter(x => x.id === values[0]).map(x => ({ deletedAt: x.deletedAt ?? null }))
       }
       throw new Error(`fake $queryRaw: unsupported SQL ${sql}`)
     }

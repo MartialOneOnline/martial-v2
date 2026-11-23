@@ -34,6 +34,15 @@ export async function lockSchool(tx: Tx, schoolId: string): Promise<{ id: string
   return rows[0] ?? null
 }
 
+// Row lock on an ownership request. Lock order everywhere: invitation(s) →
+// school → request. Rejecting a request locks the same row, so a request can
+// never be dismissed while an invitation for it is being prepared or accepted
+// (and vice versa): whichever commits second sees the other's result.
+export async function lockClaimRequest(tx: Tx, requestId: string): Promise<{ id: string; status: string; schoolId: string | null } | null> {
+  const rows = await tx.$queryRaw<{ id: string; status: string; schoolId: string | null }[]>`SELECT id, status::text AS status, "schoolId" FROM claim_requests WHERE id = ${requestId} FOR UPDATE`
+  return rows[0] ?? null
+}
+
 // ── Prepare ──────────────────────────────────────────────────────────────────
 
 export type PrepareInput = {
@@ -58,7 +67,7 @@ export async function prepareInvitation(input: PrepareInput): Promise<{ invitati
     if (UNCLAIMABLE.includes(school.status)) throw new ClaimError('SCHOOL_NOT_CLAIMABLE', `The school is ${school.status.toLowerCase()} — restore it before inviting an owner`)
 
     if (input.claimRequestId) {
-      const request = await tx.claimRequest.findUnique({ where: { id: input.claimRequestId }, select: { status: true, schoolId: true } })
+      const request = await lockClaimRequest(tx, input.claimRequestId)
       if (!request) throw new ClaimError('NOT_FOUND', 'Request not found')
       if (request.status !== 'IN_PROGRESS' || request.schoolId !== input.schoolId) {
         throw new ClaimError('SCHOOL_NOT_LINKED', 'Link this school to the request before inviting')
@@ -170,6 +179,14 @@ export async function deliverInvitation(invitationId: string, mode: DeliveryMode
   if (!isInvitationOpen(inv)) throw new ClaimError('INVITATION_CLOSED', 'This invitation was already accepted or revoked — it cannot be sent again. Prepare a new one if needed.')
   if (!inv.deliveryStatus || !inv.tokenNonce) throw new ClaimError('INVALID_TRANSITION', 'Prepare the invitation before sending it')
   if (inv.school && UNCLAIMABLE.includes(inv.school.status)) throw new ClaimError('SCHOOL_NOT_CLAIMABLE', 'The school is suspended or archived')
+  if (inv.claimRequestId) {
+    // Never email a link for a request that was rejected/closed meanwhile
+    // (acceptance re-checks this under a lock as well).
+    const request = await prisma.claimRequest.findUnique({ where: { id: inv.claimRequestId }, select: { status: true, schoolId: true } })
+    if (!request || request.status !== 'IN_PROGRESS' || request.schoolId !== inv.schoolId) {
+      throw new ClaimError('INVITATION_CLOSED', 'The ownership request is no longer in progress — nothing was sent.')
+    }
+  }
   if (inv.schoolId && (await schoolOwnerIds(prisma, inv.schoolId)).length > 0) {
     await recordClaimEventSafe(prisma, inv.claimRequestId, 'OWNER_CONFLICT', { actorUserId, data: { invitationId, at: 'send' } })
     throw new ClaimError('OWNER_EXISTS', 'This school already has an owner. Nothing was sent.')

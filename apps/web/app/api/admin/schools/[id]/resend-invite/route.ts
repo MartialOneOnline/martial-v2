@@ -10,13 +10,15 @@ import { isInvitationOpen } from '@/lib/claims/status'
 // "Invite owner"). Same canonical path as requests: one open invitation per
 // school, never when an owner exists, recipient confirmed by the admin (NOT
 // silently School.email), School.email never changed, and "sent" only when
-// Resend accepted it. An open invitation is re-delivered (retry if the last
-// outcome was unknown/failed, otherwise a new link).
+// Resend accepted it. An open invitation is re-delivered: retry if the last
+// outcome was unknown/failed, otherwise a new link. A retry after Resend's
+// idempotency window answers 409 RETRY_WINDOW_PASSED; the admin then confirms
+// an explicit new link with { newLink: true } (old link disabled).
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await guardSuperadminUser(req)
   if (admin instanceof NextResponse) return admin
   const { id } = await params
-  const body = await req.json().catch(() => ({})) as { recipientEmail?: unknown; recipientName?: unknown }
+  const body = await req.json().catch(() => ({})) as { recipientEmail?: unknown; recipientName?: unknown; newLink?: unknown }
   if (typeof body.recipientEmail !== 'string' || !body.recipientEmail.trim()) {
     return NextResponse.json({ error: 'Enter the recipient email', code: 'INVALID_INPUT' }, { status: 400 })
   }
@@ -30,7 +32,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     let result
     if (existing && existing.deliveryStatus !== 'PREPARED') {
-      const mode = existing.deliveryStatus === 'FAILED' || existing.deliveryStatus === 'UNCERTAIN' || existing.deliveryStatus === 'SENDING' ? 'retry' : 'resend'
+      const mode = body.newLink === true ? 'resend'
+        : existing.deliveryStatus === 'FAILED' || existing.deliveryStatus === 'UNCERTAIN' || existing.deliveryStatus === 'SENDING' ? 'retry' : 'resend'
       result = await deliverInvitation(existing.id, mode, admin.id)
     } else {
       const { invitationId } = await prepareInvitation({

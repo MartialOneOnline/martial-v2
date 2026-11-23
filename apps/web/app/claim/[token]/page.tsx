@@ -10,7 +10,8 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 // Owner invitation landing page. Opening it never accepts anything:
 // acceptance is an explicit click, and only works while signed in with the
 // invited address (proven by an existing login or by the confirmation link
-// POST /verify emails to that inbox — which brings the person back here).
+// POST /verify emails to that inbox — which brings the person back here with
+// ?verify=<hashed token>&vt=<type>; one click redeems it server-side).
 
 type InvitationView = {
   schoolName: string
@@ -37,6 +38,20 @@ export default function ClaimInvitationPage() {
   const [linkSent, setLinkSent] = useState(false)
   const [error, setError] = useState('')
   const inFlight = useRef(false)
+  // One-time Supabase token from the verification email. Redeemed only on an
+  // explicit click, so a mail scanner opening the link cannot consume it.
+  const [verify, setVerify] = useState<{ tokenHash: string; type: string } | null>(null)
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    const tokenHash = q.get('verify'), type = q.get('vt')
+    if (tokenHash && type) setVerify({ tokenHash, type })
+  }, [])
+
+  const dropVerifyParams = () => {
+    setVerify(null)
+    window.history.replaceState(null, '', window.location.pathname)
+  }
 
   const load = useCallback(async () => {
     try {
@@ -66,6 +81,27 @@ export default function ClaimInvitationPage() {
         setError(errText(data.error ?? 'generic')); return
       }
       setLinkSent(true)
+    } catch {
+      setError(c.err_generic)
+    } finally {
+      inFlight.current = false; setBusy(false)
+    }
+  }
+
+  async function confirmEmail() {
+    if (inFlight.current || !verify) return
+    inFlight.current = true; setBusy(true); setError('')
+    try {
+      const res = await fetch(`/api/claim/${encodeURIComponent(token)}/session`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(verify),
+      })
+      const data = await res.json().catch(() => ({}))
+      dropVerifyParams()
+      if (!res.ok) {
+        if (res.status === 404 || (res.status === 410 && data.error !== 'verify_expired')) { setPhase({ kind: 'invalid', reason: data.error ?? 'NOT_FOUND' }); return }
+        setError(errText(data.error ?? 'generic')); return
+      }
+      await load()
     } catch {
       setError(c.err_generic)
     } finally {
@@ -161,7 +197,17 @@ export default function ClaimInvitationPage() {
                 </>
               )}
 
-              {phase.data.session === 'other' && (
+              {verify && phase.data.session !== 'match' && (
+                <>
+                  <p className="text-sm text-gray-600 mb-4">{c.confirmIntro}</p>
+                  <button onClick={confirmEmail} disabled={busy}
+                    className="w-full h-11 rounded-full bg-[#0870E2] text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
+                    {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{c.confirming}</> : c.confirmContinue}
+                  </button>
+                </>
+              )}
+
+              {!verify && phase.data.session === 'other' && (
                 <>
                   <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-4">{c.wrongAccount}</p>
                   <button onClick={signOut} disabled={busy}
@@ -171,7 +217,7 @@ export default function ClaimInvitationPage() {
                 </>
               )}
 
-              {phase.data.session === 'none' && (
+              {!verify && phase.data.session === 'none' && (
                 linkSent ? (
                   <div className="text-center">
                     <Mail className="w-8 h-8 text-[#0870E2] mx-auto mb-2" />

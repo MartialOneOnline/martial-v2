@@ -19,6 +19,7 @@ process.env.CLAIM_INVITE_SECRET = 'test-secret'
 const h = vi.hoisted(() => ({
   send: vi.fn<(payload: any, opts?: any) => Promise<any>>(),
   generateLink: vi.fn<(args: any) => Promise<any>>(),
+  verifyOtp: vi.fn<(args: any) => Promise<any>>(),
   identity: { current: null as null | { id: string; email: string; emailConfirmedAt: string | null } },
   admin: { allowed: true, id: 'admin-1' },
 }))
@@ -31,6 +32,20 @@ vi.mock('@/lib/email/resend', () => ({
 }))
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ auth: { admin: { generateLink: h.generateLink } } }) }))
 vi.mock('@/lib/claims/session', () => ({ getAuthIdentity: async () => h.identity.current }))
+// Server-side Supabase client used by POST /api/claim/[token]/session: a
+// successful verifyOtp writes a session cookie through the adapter, like the
+// real @supabase/ssr client does.
+vi.mock('@supabase/ssr', () => ({
+  createServerClient: (_u: string, _k: string, opts: any) => ({
+    auth: {
+      verifyOtp: async (args: any) => {
+        const r = await h.verifyOtp(args)
+        if (r?.data?.user) opts.cookies.setAll([{ name: 'sb-test-auth-token', value: `session-for-${r.data.user.email}`, options: { path: '/' } }])
+        return r
+      },
+    },
+  }),
+}))
 vi.mock('@/lib/auth/server', async () => {
   const { NextResponse } = await import('next/server')
   return {
@@ -44,6 +59,8 @@ const requestRoute = await import('@/app/api/claim/request/route')
 const tokenRoute = await import('@/app/api/claim/[token]/route')
 const verifyRoute = await import('@/app/api/claim/[token]/verify/route')
 const completeRoute = await import('@/app/api/claim/[token]/complete/route')
+const sessionRoute = await import('@/app/api/claim/[token]/session/route')
+const { sendPipelineInvite } = await import('@/lib/claims/pipelineSend')
 const adminList = await import('@/app/api/admin/claim-requests/route')
 const adminDetail = await import('@/app/api/admin/claim-requests/[id]/route')
 const adminCandidates = await import('@/app/api/admin/claim-requests/[id]/candidates/route')
@@ -114,7 +131,11 @@ beforeEach(() => {
   resetFakeDb()
   __resetRateLimitsForTests()
   h.send.mockReset().mockResolvedValue(accepted())
-  h.generateLink.mockReset().mockResolvedValue({ data: { properties: { action_link: 'https://supabase.test/verify?x' } }, error: null })
+  h.generateLink.mockReset().mockImplementation(async (args: any) => ({
+    data: { properties: { action_link: 'https://supabase.test/auth/v1/verify?implicit', hashed_token: `hashed-${args.type}`, verification_type: args.type } },
+    error: null,
+  }))
+  h.verifyOtp.mockReset().mockResolvedValue({ data: { user: null, session: null }, error: { message: 'Token has expired or is invalid' } })
   h.identity.current = null
   h.admin.allowed = true
   T.platformSettings!.push({ id: 'singleton', superAdminEmail: 'boss@martialapp.com' })
@@ -446,8 +467,11 @@ describe('acceptance', () => {
     const r = await verifyRoute.POST(req({ locale: 'es' }), p('token', token))
     expect(r.status).toBe(200)
     expect(h.generateLink.mock.calls.map(c => [c[0].type, c[0].email])).toEqual([['invite', 'alex.owner1@outlook.com'], ['magiclink', 'alex.owner1@outlook.com']])
-    expect(h.generateLink.mock.calls[0]![0].options.redirectTo).toBe(`https://app.test/auth/confirm?redirect=${encodeURIComponent(`/claim/${token}`)}`)
     const mail = h.send.mock.calls.at(-1)![0]
+    // Our own page + the hashed token, redeemed server-side after a click —
+    // never Supabase's implicit-flow action_link (PKCE client rejects it).
+    expect(mail.html).toContain(`https://app.test/claim/${token}?verify=hashed-magiclink&amp;vt=magiclink`)
+    expect(mail.html).not.toContain('supabase.test')
     expect(mail.to).toBe('alex.owner1@outlook.com')
     expect(mail.subject).toMatch(/Confirma tu email/)
   })
@@ -791,5 +815,163 @@ describe('old links are explained, never granted', () => {
   it('anything else is a plain invalid link', async () => {
     expect((await json(await tokenRoute.GET(req(), p('token', 'cmnotarealinvitationid0000')))).body.error).toBe('NOT_FOUND')
     expect((await json(await tokenRoute.GET(req(), p('token', 'garbage')))).body.error).toBe('NOT_FOUND')
+  })
+})
+
+// ── Project Audit ad6777f (Codex, 2026-11-23) ───────────────────────────────
+function sessionReq(body: unknown) {
+  return { json: async () => body, headers: { get: () => null }, cookies: { getAll: () => [] } } as unknown as NextRequest
+}
+
+describe('audit ad6777f · P1 email verification works with the PKCE client', () => {
+  it('no previous session: email link → confirm click → server-side verifyOtp → session → accept', async () => {
+    const { school, token } = await invited()
+    expect((await verifyRoute.POST(req({}), p('token', token))).status).toBe(200)
+    const mail = h.send.mock.calls.at(-1)![0]
+    const link = new URL(/href="([^"]+verify=[^"]+)"/.exec(mail.html)![1]!.replaceAll('&amp;', '&'))
+    expect(link.pathname).toBe(`/claim/${token}`)
+    expect(h.generateLink.mock.calls[0]![0]).toEqual({ type: 'invite', email: 'alex.owner1@outlook.com' }) // no redirectTo / implicit link
+
+    h.verifyOtp.mockResolvedValueOnce({ data: { user: { id: 'auth-alex', email: 'alex.owner1@outlook.com' }, session: {} }, error: null })
+    const res = await sessionRoute.POST(sessionReq({ tokenHash: link.searchParams.get('verify'), type: link.searchParams.get('vt') }), p('token', token))
+    expect(res.status).toBe(200)
+    expect(h.verifyOtp).toHaveBeenCalledWith({ type: 'invite', token_hash: 'hashed-invite' })
+    expect(res.headers.get('set-cookie')).toContain('sb-test-auth-token=session-for-alex.owner1')
+    // Redeeming the link signs in; it never accepts on its own.
+    expect(T.schoolMember).toHaveLength(0)
+
+    h.identity.current = alex // the cookie above, as the next request sees it
+    const r = await json(await completeRoute.POST(req(), p('token', token)))
+    expect(r).toMatchObject({ status: 200, body: { ok: true, schoolId: school.id } })
+  })
+
+  it('expired/used token, bad type, closed invitation and a token for another address never leave a session', async () => {
+    const { token, inv } = await invited()
+    const expired = await sessionRoute.POST(sessionReq({ tokenHash: 'hashed-invite', type: 'invite' }), p('token', token))
+    expect([expired.status, (await expired.json()).error]).toEqual([410, 'verify_expired'])
+    expect(expired.headers.get('set-cookie')).toBeNull()
+
+    expect((await sessionRoute.POST(sessionReq({ tokenHash: 'x', type: 'recovery' }), p('token', token))).status).toBe(400)
+
+    h.verifyOtp.mockResolvedValueOnce({ data: { user: { id: 'auth-eve', email: 'eve@example.com' }, session: {} }, error: null })
+    const other = await sessionRoute.POST(sessionReq({ tokenHash: 'hashed-invite', type: 'invite' }), p('token', token))
+    expect(other.status).toBe(403)
+    expect(other.headers.get('set-cookie')).toBeNull()
+
+    inv.revokedAt = new Date(); inv.isActive = false
+    h.verifyOtp.mockClear()
+    expect((await sessionRoute.POST(sessionReq({ tokenHash: 'hashed-invite', type: 'invite' }), p('token', token))).status).toBe(410)
+    expect(h.verifyOtp).not.toHaveBeenCalled()
+  })
+})
+
+describe('audit ad6777f · P1 a rejected request never grants OWNER', () => {
+  it('request DISMISSED while its invitation is still open (the race outcome): no send, no accept, no owner', async () => {
+    const { request, inv, token } = await invited()
+    // State the race used to leave behind: request rejected, invitation not revoked.
+    T.claimRequest!.find(r => r.id === request.id)!.status = 'DISMISSED'
+    h.identity.current = alex
+    const r = await json(await completeRoute.POST(req(), p('token', token)))
+    expect(r).toMatchObject({ status: 410, body: { error: 'INVALID_LINK', reason: 'REVOKED' } })
+    expect(T.schoolMember).toHaveLength(0)
+    expect(T.user).toHaveLength(0) // rolled back, nothing created
+    expect(inv.usedAt).toBeNull()
+
+    const calls = h.send.mock.calls.length
+    const again = await action(request.id, { action: 'resend_invitation', invitationId: inv.id })
+    expect(again.body.code).toBe('INVITATION_CLOSED')
+    expect(h.send.mock.calls.length).toBe(calls)
+  })
+
+  it('reject racing with send_invitation: whatever the order, no open invitation survives for a DISMISSED request', async () => {
+    for (let i = 0; i < 6; i++) {
+      resetFakeDb(); T.platformSettings!.push({ id: 'singleton', superAdminEmail: 'boss@martialapp.com' })
+      const { request } = await linkedRequest()
+      const send = action(request.id, { action: 'send_invitation', recipientEmail: request.contactEmail })
+      const reject = action(request.id, { action: 'reject', reason: 'Not the owner' })
+      const [a, b] = i % 2 ? [await reject, await send] : await Promise.all([send, reject])
+      void a; void b
+      const row = T.claimRequest!.find(r => r.id === request.id)!
+      if (row.status === 'DISMISSED') {
+        expect(T.schoolInvitation!.filter(x => !x.revokedAt && x.isActive && !x.usedAt)).toHaveLength(0)
+      }
+    }
+  })
+
+  it('a rejection after acceptance is refused (COMPLETED stays COMPLETED)', async () => {
+    const { request, token } = await invited()
+    h.identity.current = alex
+    expect((await completeRoute.POST(req(), p('token', token))).status).toBe(200)
+    expect((await action(request.id, { action: 'reject', reason: 'late' })).status).toBe(409)
+    expect(T.claimRequest!.find(r => r.id === request.id)!.status).toBe('COMPLETED')
+  })
+})
+
+describe('audit ad6777f · P2 All Schools and pipeline offer an explicit new link after the retry window', () => {
+  it('All Schools: retry past 20 h → 409; confirmed newLink → new token, old link dead', async () => {
+    const school = addSchool({ status: 'UNVERIFIED' })
+    h.send.mockResolvedValueOnce({ data: null, error: { name: 'application_error', message: 'fetch failed', statusCode: null } })
+    await schoolInvite.POST(req({ recipientEmail: 'owner@guidos.example' }), p('id', school.id))
+    const inv = T.schoolInvitation![0]!
+    expect(inv.deliveryStatus).toBe('UNCERTAIN')
+    const oldToken = currentToken(inv.id)
+    inv.deliveryKeyAt = new Date(Date.now() - 21 * HOUR)
+
+    const calls = h.send.mock.calls.length
+    const refused = await json(await schoolInvite.POST(req({ recipientEmail: 'owner@guidos.example' }), p('id', school.id)))
+    expect(refused).toMatchObject({ status: 409, body: { code: 'RETRY_WINDOW_PASSED' } })
+    expect(h.send.mock.calls.length).toBe(calls)
+
+    const renewed = await json(await schoolInvite.POST(req({ recipientEmail: 'owner@guidos.example', newLink: true }), p('id', school.id)))
+    expect(renewed.body.ok).toBe(true)
+    expect(currentToken(inv.id)).not.toBe(oldToken)
+    expect((await json(await tokenRoute.GET(req(), p('token', oldToken)))).status).toBe(404)
+    expect(T.schoolInvitation).toHaveLength(1)
+  })
+
+  it('pipeline: the Send button asks before a new link, and does nothing if the admin declines', async () => {
+    h.send.mockResolvedValueOnce({ data: null, error: { name: 'application_error', message: 'fetch failed', statusCode: null } })
+    await pipeline.POST(req({ name: 'New Dojo', email: 'new@dojo.example' }))
+    const inv = T.schoolInvitation![0]!
+    expect(inv.deliveryStatus).toBe('UNCERTAIN')
+    inv.deliveryKeyAt = new Date(Date.now() - 21 * HOUR)
+    const oldNonce = inv.tokenNonce
+    const fetcher = async (_url: string, init?: RequestInit) => pipeline.PATCH(req(JSON.parse(String(init!.body))))
+
+    const asked: string[] = []
+    const declined = await sendPipelineInvite(fetcher, inv.id, m => { asked.push(m); return false })
+    expect(declined.ok).toBe(false)
+    expect(asked[0]).toMatch(/20 hours/)
+    expect(inv.tokenNonce).toBe(oldNonce)
+
+    const sent = await sendPipelineInvite(fetcher, inv.id, () => true)
+    expect(sent).toEqual({ ok: true })
+    expect(inv.tokenNonce).not.toBe(oldNonce)
+    expect(inv.deliveryStatus).toBe('ACCEPTED')
+  })
+})
+
+describe('audit ad6777f · P2 a deleted account cannot consume the invitation', () => {
+  it('signed-in identity belongs to a deleted user → ACCOUNT_DELETED, invitation still usable, nothing granted', async () => {
+    const ghost = addUser({ email: 'deleted+x@anon.invalid', supabaseAuthId: 'auth-alex', deletedAt: new Date('2026-11-01') })
+    const { request, inv, token } = await invited()
+    h.identity.current = alex
+    const r = await json(await completeRoute.POST(req(), p('token', token)))
+    expect(r).toMatchObject({ status: 409, body: { error: 'ACCOUNT_DELETED' } })
+    expect(inv.usedAt).toBeNull()
+    expect(inv.status).not.toBe('REGISTERED')
+    expect(T.schoolMember).toHaveLength(0)
+    expect(ghost.role).toBe('STUDENT')
+    expect(T.claimRequest!.find(x => x.id === request.id)!.status).toBe('IN_PROGRESS')
+    expect(T.claimRequestEvent!.some(e => e.type === 'IDENTITY_CONFLICT')).toBe(true)
+  })
+
+  it('a deleted, never-linked user with the same email is not revived either', async () => {
+    addUser({ email: 'alex.owner1@outlook.com', supabaseAuthId: null, deletedAt: new Date('2026-11-01') })
+    const { inv, token } = await invited()
+    h.identity.current = alex
+    expect((await json(await completeRoute.POST(req(), p('token', token)))).body.error).toBe('ACCOUNT_DELETED')
+    expect(inv.usedAt).toBeNull()
+    expect(T.user!.every(u => u.supabaseAuthId === null)).toBe(true) // link rolled back
   })
 })

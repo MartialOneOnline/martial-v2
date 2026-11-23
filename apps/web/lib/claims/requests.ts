@@ -6,7 +6,7 @@ import { recordClaimEvent, recordClaimEventSafe } from './events'
 import { findCandidateSchools } from './candidates'
 import { isValidEmail, normalizeEmail } from './token'
 import { isInvitationOpen } from './status'
-import { lockSchool, schoolOwnerIds } from './invitations'
+import { lockClaimRequest, lockSchool, schoolOwnerIds } from './invitations'
 
 const DEFAULT_ADMIN_EMAIL = 'support@martialapp.com'
 
@@ -190,6 +190,13 @@ export async function rejectRequest(requestId: string, reason: unknown, actorUse
     throw new ClaimError('INVALID_TRANSITION', request.status === 'COMPLETED' ? 'Access was already granted — this request can no longer be rejected' : 'Already rejected')
   }
   await prisma.$transaction(async tx => {
+    // Same lock order as acceptance (invitations → request): an acceptance in
+    // flight finishes first and this sees COMPLETED; a preparation in flight
+    // (it holds the request row) commits first and its invitation is revoked
+    // below; anything that starts after us sees DISMISSED.
+    await tx.$queryRaw`SELECT id FROM school_invitations WHERE "claimRequestId" = ${requestId} ORDER BY id FOR UPDATE`
+    const locked = await lockClaimRequest(tx, requestId)
+    if (locked?.status !== request.status) throw new ClaimError('CHANGED_CONCURRENTLY', 'The request changed meanwhile. Refresh and try again.')
     const res = await tx.claimRequest.updateMany({
       where: { id: requestId, status: request.status },
       data: { status: 'DISMISSED', rejectReason: text, resolvedAt: new Date() },

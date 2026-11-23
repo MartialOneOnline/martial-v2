@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db'
 import { recordClaimEvent, recordClaimEventSafe } from './events'
 import { hashInvitationToken, normalizeEmail } from './token'
-import { lockSchool, schoolOwnerIds } from './invitations'
+import { lockClaimRequest, lockSchool, schoolOwnerIds } from './invitations'
 
 // Public side of the owner invitation: /claim/[token].
 //
@@ -85,7 +85,7 @@ export type AuthIdentity = { id: string; email: string | null | undefined; email
 export type AcceptResult =
   | { ok: true; schoolId: string; already: boolean }
   | { ok: false; code: 'INVALID_LINK'; reason: TokenRejection }
-  | { ok: false; code: 'NOT_AUTHENTICATED' | 'EMAIL_NOT_CONFIRMED' | 'WRONG_ACCOUNT' | 'ACCOUNT_CONFLICT' | 'OWNER_CONFLICT' | 'ALREADY_USED' }
+  | { ok: false; code: 'NOT_AUTHENTICATED' | 'EMAIL_NOT_CONFIRMED' | 'WRONG_ACCOUNT' | 'ACCOUNT_CONFLICT' | 'ACCOUNT_DELETED' | 'OWNER_CONFLICT' | 'ALREADY_USED' }
 
 class Abort extends Error { constructor(readonly result: AcceptResult) { super(result.ok ? 'ok' : result.code) } }
 
@@ -133,26 +133,42 @@ export async function acceptInvitation(rawToken: string, auth: AuthIdentity | nu
       if (inv.tokenHash !== hashInvitationToken(rawToken)) throw new Abort({ ok: false, code: 'INVALID_LINK', reason: 'REVOKED' })
       const again = rejectionFor(inv)
       if (again) throw new Abort({ ok: false, code: 'INVALID_LINK', reason: again })
+      // An invitation answering an ownership request is only valid while that
+      // request is in progress and linked to this school. Locked (after
+      // invitation and school, same order as rejectRequest) so a rejection
+      // cannot slip in between this check and the grant.
+      if (inv.claimRequestId) {
+        const request = await lockClaimRequest(tx, inv.claimRequestId)
+        if (!request || request.status !== 'IN_PROGRESS' || request.schoolId !== inv.schoolId) {
+          throw new Abort({ ok: false, code: 'INVALID_LINK', reason: 'REVOKED' })
+        }
+      }
 
       // Identity: never re-point a Prisma user that is linked to a different
       // Auth account, never touch passwords or global roles.
-      let user = await tx.user.findFirst({ where: { supabaseAuthId: auth.id }, select: { id: true, email: true } })
+      let user = await tx.user.findFirst({ where: { supabaseAuthId: auth.id }, select: { id: true, email: true, deletedAt: true } })
       if (!user) {
-        const byEmail = await tx.user.findFirst({ where: { email: { equals: expected, mode: 'insensitive' } }, select: { id: true, email: true, supabaseAuthId: true } })
+        const byEmail = await tx.user.findFirst({ where: { email: { equals: expected, mode: 'insensitive' } }, select: { id: true, email: true, supabaseAuthId: true, deletedAt: true } })
         if (byEmail?.supabaseAuthId && byEmail.supabaseAuthId !== auth.id) {
           throw new Abort({ ok: false, code: 'ACCOUNT_CONFLICT' })
         }
         if (byEmail) {
           const linked = await tx.user.updateMany({ where: { id: byEmail.id, supabaseAuthId: null }, data: { supabaseAuthId: auth.id } })
           if (linked.count !== 1) throw new Abort({ ok: false, code: 'ACCOUNT_CONFLICT' })
-          user = { id: byEmail.id, email: byEmail.email }
+          user = { id: byEmail.id, email: byEmail.email, deletedAt: byEmail.deletedAt }
         } else {
           user = await tx.user.create({
             data: { supabaseAuthId: auth.id, email: expected, name: inv.name, role: 'SCHOOL_OWNER' },
-            select: { id: true, email: true },
+            select: { id: true, email: true, deletedAt: true },
           })
         }
       }
+      // A deleted (anonymized) or merged-away account is rejected by every
+      // authenticated route (resolveDbUser), so granting it OWNER would burn
+      // the invitation for nothing. Checked under a share lock so a deletion
+      // committing meanwhile is seen, and before anything is written.
+      const live = await tx.$queryRaw<{ deletedAt: Date | null }[]>`SELECT "deletedAt" FROM users WHERE id = ${user.id} FOR SHARE`
+      if (user.deletedAt || live[0]?.deletedAt) throw new Abort({ ok: false, code: 'ACCOUNT_DELETED' })
 
       // Keep the global role consistent with /onboarding/school (owners show
       // up in Admin → School Owners). Only ever raised from STUDENT or
@@ -204,10 +220,13 @@ export async function acceptInvitation(rawToken: string, auth: AuthIdentity | nu
       })
 
       if (inv.claimRequestId) {
-        await tx.claimRequest.updateMany({
+        const completed = await tx.claimRequest.updateMany({
           where: { id: inv.claimRequestId, status: 'IN_PROGRESS', schoolId },
           data: { status: 'COMPLETED', completedAt: now, completedUserId: user.id, resolvedAt: now },
         })
+        // Locked and checked above; anything else means the request moved and
+        // the whole grant is rolled back.
+        if (completed.count !== 1) throw new Abort({ ok: false, code: 'INVALID_LINK', reason: 'REVOKED' })
         await recordClaimEvent(tx, inv.claimRequestId, 'ACCESS_GRANTED', {
           data: { invitationId: inv.id, schoolId, userId: user.id, email: expected, schoolStatusBefore: inv.school?.status ?? null },
         })
@@ -216,9 +235,9 @@ export async function acceptInvitation(rawToken: string, auth: AuthIdentity | nu
     })
   } catch (err) {
     if (err instanceof Abort) {
-      if (!err.result.ok && (err.result.code === 'OWNER_CONFLICT' || err.result.code === 'ACCOUNT_CONFLICT')) {
+      if (!err.result.ok && (err.result.code === 'OWNER_CONFLICT' || err.result.code === 'ACCOUNT_CONFLICT' || err.result.code === 'ACCOUNT_DELETED')) {
         await recordClaimEventSafe(prisma, found.claimRequestId, err.result.code === 'OWNER_CONFLICT' ? 'OWNER_CONFLICT' : 'IDENTITY_CONFLICT', {
-          data: { invitationId: found.id, at: 'accept', authUserId: auth.id },
+          data: { invitationId: found.id, at: 'accept', authUserId: auth.id, ...(err.result.code === 'ACCOUNT_DELETED' ? { reason: 'account_deleted' } : {}) },
         })
       }
       return err.result

@@ -870,11 +870,19 @@ export default function AllSchoolsClient() {
     if (actionId) return
     setActionId(school.id)
     try {
-      const res = await adminFetch(`/api/admin/schools/${school.id}/resend-invite`, {
+      const post = (newLink: boolean) => adminFetch(`/api/admin/schools/${school.id}/resend-invite`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientEmail, recipientName }),
+        body: JSON.stringify({ recipientEmail, recipientName, newLink }),
       })
-      const data = await res.json().catch(() => ({}))
+      let res = await post(false)
+      let data = await res.json().catch(() => ({}))
+      // Past Resend's idempotency window a retry could deliver twice: only an
+      // explicit new link (old one disabled) is allowed, after confirmation.
+      if (res.status === 409 && data.code === 'RETRY_WINDOW_PASSED') {
+        if (!window.confirm(`${data.error}\n\nSend a new link now? The old link will stop working.`)) return
+        res = await post(true)
+        data = await res.json().catch(() => ({}))
+      }
       if (!res.ok || !data.ok) { setBanner({ type: 'error', message: data.error || `Failed (HTTP ${res.status}) — nothing was confirmed` }); return }
       setBanner({ type: 'success', message: `Owner invitation accepted by Resend for ${recipientEmail}` })
       setInviteTarget(null)

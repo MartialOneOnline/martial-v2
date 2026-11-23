@@ -5,30 +5,44 @@ import { buildClaimVerifyEmail, claimLang } from '@/lib/email/templates/claimEma
 import { recordClaimEventSafe } from './events'
 import type { ResolvedInvitation } from './accept'
 
-// Emails a Supabase-signed sign-in link to the invited address. Redeeming it
-// (via /auth/confirm) proves inbox control, confirms the email and brings the
-// person back to /claim/[token] signed in, where they accept explicitly.
+// Emails a sign-in link for the invited address. Opening it and clicking
+// "Confirm" on /claim/[token] proves inbox control: the server redeems the
+// Supabase token with verifyOtp (POST /api/claim/[token]/session), which
+// confirms the email and writes the session cookies, and the person accepts
+// explicitly on the same page.
+//
+// Why not Supabase's action_link: it redirects with an implicit-flow #hash,
+// which the PKCE browser client (@supabase/ssr) refuses, so a person without
+// a previous session ended on /login without accepting. The hashed token is
+// redeemed server-side instead (same as /auth/impersonate), and only after a
+// click — a mail scanner prefetching the link cannot burn the one-time token.
 //
 // New address  → generateLink('invite'): creates an UNCONFIRMED account.
 // Known address → generateLink('magiclink'): signs in, password untouched.
 // We try 'invite' first and fall back to 'magiclink' when the address already
 // exists in Auth (covers Auth users with no linked Prisma row too).
+export const VERIFY_OTP_TYPES = ['invite', 'magiclink'] as const
+export type VerifyOtpType = (typeof VERIFY_OTP_TYPES)[number]
+
+export function claimVerifyUrl(rawToken: string, tokenHash: string, type: VerifyOtpType): string {
+  return `${APP_URL}/claim/${encodeURIComponent(rawToken)}?verify=${encodeURIComponent(tokenHash)}&vt=${type}`
+}
+
 export async function sendClaimVerification(inv: ResolvedInvitation, rawToken: string, uiLocale?: string): Promise<boolean> {
   const email = inv.sentToEmail
   if (!email) return false
   const admin = createAdminClient()
-  const redirectTo = `${APP_URL}/auth/confirm?redirect=${encodeURIComponent(`/claim/${rawToken}`)}`
-
   let link: string | undefined
-  const invite = await admin.auth.admin.generateLink({ type: 'invite', email, options: { redirectTo } })
-  link = invite.data?.properties?.action_link
-  if (invite.error || !link) {
-    const magic = await admin.auth.admin.generateLink({ type: 'magiclink', email, options: { redirectTo } })
-    link = magic.data?.properties?.action_link
-    if (magic.error || !link) {
+  const invite = await admin.auth.admin.generateLink({ type: 'invite', email })
+  if (!invite.error && invite.data?.properties?.hashed_token) {
+    link = claimVerifyUrl(rawToken, invite.data.properties.hashed_token, 'invite')
+  } else {
+    const magic = await admin.auth.admin.generateLink({ type: 'magiclink', email })
+    if (magic.error || !magic.data?.properties?.hashed_token) {
       console.error('[claim/verify] generateLink failed:', invite.error?.message, magic.error?.message)
       return false
     }
+    link = claimVerifyUrl(rawToken, magic.data.properties.hashed_token, 'magiclink')
   }
 
   const lang = claimLang(uiLocale ?? inv.claimRequest?.locale)

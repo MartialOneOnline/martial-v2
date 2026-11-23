@@ -4,7 +4,7 @@ import { getAuthIdentity } from '@/lib/claims/session'
 
 const STATUS: Record<string, number> = {
   NOT_AUTHENTICATED: 401, EMAIL_NOT_CONFIRMED: 403, WRONG_ACCOUNT: 403,
-  ACCOUNT_CONFLICT: 409, OWNER_CONFLICT: 409, ALREADY_USED: 409, INVALID_LINK: 410,
+  ACCOUNT_CONFLICT: 409, ACCOUNT_DELETED: 409, OWNER_CONFLICT: 409, ALREADY_USED: 409, INVALID_LINK: 410,
 }
 
 // POST /api/claim/[token]/complete — the only route that grants OWNER. Uses

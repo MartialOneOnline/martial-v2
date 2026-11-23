@@ -37,6 +37,7 @@ d('ownership flow on real PostgreSQL', () => {
   let L: {
     submit: typeof import('@/lib/claims/requests').submitClaimRequest
     link: typeof import('@/lib/claims/requests').linkSchool
+    reject: typeof import('@/lib/claims/requests').rejectRequest
     prepare: typeof import('@/lib/claims/invitations').prepareInvitation
     deliver: typeof import('@/lib/claims/invitations').deliverInvitation
     accept: typeof import('@/lib/claims/accept').acceptInvitation
@@ -53,7 +54,7 @@ d('ownership flow on real PostgreSQL', () => {
     const req = await import('@/lib/claims/requests')
     const inv = await import('@/lib/claims/invitations')
     L = {
-      submit: req.submitClaimRequest, link: req.linkSchool, prepare: inv.prepareInvitation, deliver: inv.deliverInvitation,
+      submit: req.submitClaimRequest, link: req.linkSchool, reject: req.rejectRequest, prepare: inv.prepareInvitation, deliver: inv.deliverInvitation,
       accept: (await import('@/lib/claims/accept')).acceptInvitation, token: (await import('@/lib/claims/token')).deriveInvitationToken,
       counts: (await import('@/lib/claims/queue')).claimQueueCounts, list: (await import('@/lib/claims/adminViews')).listClaimRequests,
     }
@@ -201,6 +202,106 @@ d('ownership flow on real PostgreSQL', () => {
     const row = await prisma.schoolInvitation.findUniqueOrThrow({ where: { id: invitationId } })
     expect(row.deliveryStatus).toBe('UNCERTAIN')
     expect(row.deliveryPayload).toEqual(frozen)
+  })
+
+  // ── Project Audit ad6777f ──────────────────────────────────────────────
+  // A trigger with pg_sleep holds one side inside its transaction so the other
+  // really runs concurrently (the race Codex reproduced).
+  async function slowInsert(table: string, seconds: number) {
+    await prisma.$executeRawUnsafe(`CREATE OR REPLACE FUNCTION slow_insert() RETURNS trigger AS $$ BEGIN PERFORM pg_sleep(${seconds}); RETURN NEW; END $$ LANGUAGE plpgsql`)
+    await prisma.$executeRawUnsafe(`CREATE TRIGGER slow_ins BEFORE INSERT ON ${table} FOR EACH ROW EXECUTE FUNCTION slow_insert()`)
+    return () => prisma.$executeRawUnsafe(`DROP TRIGGER slow_ins ON ${table}`)
+  }
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+  const openFor = (requestId: string) => prisma.schoolInvitation.findMany({ where: { claimRequestId: requestId, usedAt: null, revokedAt: null, isActive: true } })
+
+  it('reject while an invitation is being prepared: the new invitation is revoked, never left open', async () => {
+    const s = await school()
+    const email = `owner-${uniq()}@example.com`
+    const { id } = await L.submit({ schoolName: 'Guidos', city: 'Clovis', contactName: 'Alex', contactEmail: email })
+    await L.link(id, s.id, adminId)
+    const drop = await slowInsert('school_invitations', 0.4)
+    try {
+      const prep = L.prepare({ schoolId: s.id, claimRequestId: id, recipientEmail: email, recipientName: null, actorUserId: adminId })
+      await sleep(150) // prepare now holds the school + request locks, inserting
+      const rej = L.reject(id, 'Not the owner', adminId)
+      const [p1, r1] = await Promise.allSettled([prep, rej])
+      expect(p1.status).toBe('fulfilled')
+      expect(r1.status).toBe('fulfilled')
+    } finally { await drop() }
+    expect((await prisma.claimRequest.findUniqueOrThrow({ where: { id } })).status).toBe('DISMISSED')
+    expect(await openFor(id)).toHaveLength(0)
+    const inv = await prisma.schoolInvitation.findFirstOrThrow({ where: { claimRequestId: id } })
+    await expect(L.deliver(inv.id, 'send', adminId)).rejects.toMatchObject({ code: 'INVITATION_CLOSED' })
+    expect(await L.accept(L.token(inv.id, inv.tokenNonce!), identity(email))).toMatchObject({ ok: false, code: 'INVALID_LINK' })
+    expect(await prisma.schoolMember.count({ where: { schoolId: s.id } })).toBe(0)
+  })
+
+  it('reject racing an acceptance in flight: never DISMISSED with an owner (either order)', async () => {
+    for (const first of ['accept', 'reject'] as const) {
+      const { token, email, school: s, requestId } = await invitedRequest()
+      const drop = await slowInsert(first === 'accept' ? 'school_members' : 'claim_request_events', 0.4)
+      let results: PromiseSettledResult<unknown>[]
+      try {
+        const a = first === 'accept' ? L.accept(token, identity(email)) : null
+        const r = first === 'reject' ? L.reject(requestId, 'Not the owner', adminId) : null
+        await sleep(150)
+        const b = first === 'accept' ? L.reject(requestId, 'Not the owner', adminId) : L.accept(token, identity(email))
+        results = await Promise.allSettled([a ?? r!, b])
+      } finally { await drop() }
+      const status = (await prisma.claimRequest.findUniqueOrThrow({ where: { id: requestId } })).status
+      const owners = await prisma.schoolMember.count({ where: { schoolId: s.id, role: 'OWNER' } })
+      if (first === 'accept') {
+        expect([status, owners], JSON.stringify(results)).toEqual(['COMPLETED', 1])
+      } else {
+        expect([status, owners], JSON.stringify(results)).toEqual(['DISMISSED', 0])
+        expect(await prisma.user.count({ where: { email } })).toBe(0)
+      }
+    }
+  })
+
+  it('reject and accept interleaved at the worst point finish without a deadlock (same lock order)', async () => {
+    const { token, email, school: s, requestId } = await invitedRequest()
+    // Hold the school row so acceptance stops right after locking the invitation.
+    let release!: () => void
+    const held = new Promise<void>(r => { release = r })
+    const holder = prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM schools WHERE id = ${s.id} FOR UPDATE`
+      await held
+    }, { timeout: 15_000 })
+    await sleep(100)
+    const acc = L.accept(token, identity(email)) // holds the invitation, waits for the school
+    await sleep(150)
+    const rej = L.reject(requestId, 'Not the owner', adminId) // must wait on the invitation before touching the request
+    await sleep(150)
+    release()
+    await holder
+    const [a, r] = await Promise.allSettled([acc, rej])
+    expect(a.status, String((a as PromiseRejectedResult).reason)).toBe('fulfilled')
+    expect((a as PromiseFulfilledResult<any>).value).toMatchObject({ ok: true })
+    // The rejection sees the completed request and is refused cleanly — no deadlock.
+    expect(r.status).toBe('rejected')
+    expect((r as PromiseRejectedResult).reason.code).toBe('CHANGED_CONCURRENTLY')
+    expect((await prisma.claimRequest.findUniqueOrThrow({ where: { id: requestId } })).status).toBe('COMPLETED')
+  })
+
+  it('an invitation whose request is already DISMISSED (left open) is refused under the lock and rolled back', async () => {
+    const { token, email, school: s, requestId, inv } = await invitedRequest()
+    await prisma.claimRequest.update({ where: { id: requestId }, data: { status: 'DISMISSED' } }) // the old race's leftover state
+    expect(await L.accept(token, identity(email))).toMatchObject({ ok: false, code: 'INVALID_LINK', reason: 'REVOKED' })
+    expect((await prisma.schoolInvitation.findUniqueOrThrow({ where: { id: inv.id } })).usedAt).toBeNull()
+    expect(await prisma.schoolMember.count({ where: { schoolId: s.id } })).toBe(0)
+    expect(await prisma.user.count({ where: { email } })).toBe(0)
+  })
+
+  it('a deleted account cannot consume the invitation; the invitation stays usable', async () => {
+    const { token, email, school: s, inv } = await invitedRequest()
+    const authId = randomUUID()
+    await prisma.user.create({ data: { email: `deleted-${uniq()}@anon.invalid`, supabaseAuthId: authId, deletedAt: new Date() } })
+    expect(await L.accept(token, identity(email, authId))).toMatchObject({ ok: false, code: 'ACCOUNT_DELETED' })
+    expect((await prisma.schoolInvitation.findUniqueOrThrow({ where: { id: inv.id } })).usedAt).toBeNull()
+    expect(await prisma.schoolMember.count({ where: { schoolId: s.id } })).toBe(0)
+    expect(await L.accept(token, identity(email))).toMatchObject({ ok: true, already: false }) // a live account still can
   })
 
   it('dashboard counters equal the lists they open', async () => {

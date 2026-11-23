@@ -5,6 +5,7 @@ import NextLink from 'next/link'
 import { X, Plus, Upload, Search, CheckCircle2, Clock, Mail, XCircle, Building2, ChevronDown, MoreHorizontal, Send, Camera, Globe, Link, ExternalLink, Trash2, Loader2, Menu } from 'lucide-react'
 import * as xlsx from 'xlsx'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { sendPipelineInvite } from '@/lib/claims/pipelineSend'
 import { matchesSearch } from '@/lib/search'
 import { useAdminShell } from '../AdminLayoutClient'
 import RowMenu from '@/components/RowMenu'
@@ -623,12 +624,9 @@ export default function SchoolsAdminClient() {
 
   async function handleResend(inv: Invitation) {
     setResendingId(inv.id)
-    await adminFetch('/api/admin/invitations', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: inv.id, action: 'send' }),
-    })
+    const r = await sendPipelineInvite(adminFetch, inv.id, m => window.confirm(m))
     setResendingId(null)
+    if (!r.ok && r.message) window.alert(r.message)
     load()
   }
 

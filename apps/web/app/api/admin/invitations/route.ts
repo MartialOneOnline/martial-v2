@@ -8,11 +8,13 @@ import { isValidEmail, normalizeEmail } from '@/lib/claims/token'
 // Pipeline invitations (Admin → Invitations) share the owner-invitation path
 // in lib/claims: hashed single-use token, Idempotency-Key, honest delivery
 // state. A pipeline row has no school; accepting it creates the school once.
-async function deliver(invitationId: string, actorUserId: string) {
+// newLink: explicit new link (old one disabled) — what the admin confirms
+// after a retry is refused with RETRY_WINDOW_PASSED.
+async function deliver(invitationId: string, actorUserId: string, newLink = false) {
   const inv = await prisma.schoolInvitation.findUnique({ where: { id: invitationId }, select: { deliveryStatus: true } })
   await ensurePrepared(invitationId)
   const mode = !inv?.deliveryStatus || inv.deliveryStatus === 'PREPARED' ? 'send'
-    : inv.deliveryStatus === 'ACCEPTED' ? 'resend' : 'retry'
+    : newLink || inv.deliveryStatus === 'ACCEPTED' ? 'resend' : 'retry'
   return deliverInvitation(invitationId, mode, actorUserId)
 }
 
@@ -60,10 +62,10 @@ export async function PATCH(req: NextRequest) {
   if (admin instanceof NextResponse) return admin
 
   const { id, action } = await req.json()
-  if (!id || action !== 'send') return NextResponse.json({ error: 'Invalid' }, { status: 400 })
+  if (!id || (action !== 'send' && action !== 'new_link')) return NextResponse.json({ error: 'Invalid' }, { status: 400 })
 
   try {
-    const { outcome } = await deliver(id, admin.id)
+    const { outcome } = await deliver(id, admin.id, action === 'new_link')
     if (outcome.kind !== 'accepted') {
       return NextResponse.json({ ok: false, delivery: outcome, error: outcome.kind === 'rejected' ? `Not sent: ${outcome.message}` : 'Unknown whether the email went out — retry is safe' }, { status: 502 })
     }
