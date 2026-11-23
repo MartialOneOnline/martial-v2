@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { sendInviteEmail } from '@/lib/email/sendInvite'
-import { guardSuperadmin } from '@/lib/auth/server'
+import { guardSuperadmin, guardSuperadminUser } from '@/lib/auth/server'
+import { ClaimError } from '@/lib/claims/errors'
+import { deliverInvitation, ensurePrepared } from '@/lib/claims/invitations'
+import { isValidEmail, normalizeEmail } from '@/lib/claims/token'
+
+// Pipeline invitations (Admin → Invitations) share the owner-invitation path
+// in lib/claims: hashed single-use token, Idempotency-Key, honest delivery
+// state. A pipeline row has no school; accepting it creates the school once.
+async function deliver(invitationId: string, actorUserId: string) {
+  const inv = await prisma.schoolInvitation.findUnique({ where: { id: invitationId }, select: { deliveryStatus: true } })
+  await ensurePrepared(invitationId)
+  const mode = !inv?.deliveryStatus || inv.deliveryStatus === 'PREPARED' ? 'send'
+    : inv.deliveryStatus === 'ACCEPTED' ? 'resend' : 'retry'
+  return deliverInvitation(invitationId, mode, actorUserId)
+}
 
 // GET /api/admin/invitations — list invitations with optional search/filter/pagination
 export async function GET(req: NextRequest) {
@@ -29,6 +42,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
+      omit: { token: true, tokenHash: true, tokenNonce: true },
       include: {
         invitedBy: { select: { name: true, email: true } },
         school: { select: { id: true, slug: true, name: true, status: true } },
@@ -40,39 +54,36 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ invitations, total, pages: Math.ceil(total / limit) })
 }
 
-// PATCH /api/admin/invitations — send a pending invite
+// PATCH /api/admin/invitations — send (or re-send) a pipeline invite
 export async function PATCH(req: NextRequest) {
-  const deny = await guardSuperadmin(req)
-  if (deny) return deny
+  const admin = await guardSuperadminUser(req)
+  if (admin instanceof NextResponse) return admin
 
   const { id, action } = await req.json()
   if (!id || action !== 'send') return NextResponse.json({ error: 'Invalid' }, { status: 400 })
 
-  const invitation = await prisma.schoolInvitation.findUnique({ where: { id } })
-  if (!invitation) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-
-  await prisma.schoolInvitation.update({ where: { id }, data: { status: 'SENT', sentAt: new Date() } })
-
-  await sendInviteEmail({
-    invitationId: invitation.id,
-    schoolName: invitation.name,
-    recipientEmail: invitation.email,
-    city: invitation.city,
-  }).catch(() => {})
-
-  return NextResponse.json({ ok: true })
+  try {
+    const { outcome } = await deliver(id, admin.id)
+    if (outcome.kind !== 'accepted') {
+      return NextResponse.json({ ok: false, delivery: outcome, error: outcome.kind === 'rejected' ? `Not sent: ${outcome.message}` : 'Unknown whether the email went out — retry is safe' }, { status: 502 })
+    }
+    return NextResponse.json({ ok: true, delivery: outcome })
+  } catch (err) {
+    if (err instanceof ClaimError) return NextResponse.json({ error: err.message, code: err.code }, { status: err.status })
+    throw err
+  }
 }
 
 // POST /api/admin/invitations — create single invite
 export async function POST(req: NextRequest) {
-  const deny = await guardSuperadmin(req)
-  if (deny) return deny
+  const admin = await guardSuperadminUser(req)
+  if (admin instanceof NextResponse) return admin
 
   const body = await req.json()
   const { name, email, phone, city, country, activities, website, notes } = body
 
-  if (!name || !email) {
-    return NextResponse.json({ error: 'name and email are required' }, { status: 400 })
+  if (!name || !email || !isValidEmail(normalizeEmail(String(email)))) {
+    return NextResponse.json({ error: 'name and a valid email are required' }, { status: 400 })
   }
 
   // Check for existing invite with same email
@@ -84,6 +95,7 @@ export async function POST(req: NextRequest) {
   }
 
   const invitation = await prisma.schoolInvitation.create({
+    omit: { token: true, tokenHash: true, tokenNonce: true },
     data: {
       name: name.trim(),
       email: email.toLowerCase().trim(),
@@ -93,28 +105,22 @@ export async function POST(req: NextRequest) {
       activities: activities || null,
       website: website || null,
       notes: notes || null,
-      status: 'SENT',
+      status: 'PENDING',
       source: 'MANUAL',
-      sentAt: new Date(),
+      invitedById: admin.id,
     },
   })
 
-  // Send invitation email (non-blocking — don't fail the API if email fails)
-  const emailResult = await sendInviteEmail({
-    invitationId: invitation.id,
-    schoolName: invitation.name,
-    recipientEmail: invitation.email,
-    city: invitation.city,
-  })
-
-  if (!emailResult.success) {
-    // Log but still return success — invitation is saved in DB
-    console.warn('[POST /api/admin/invitations] Email failed:', emailResult.error)
-    return NextResponse.json(
-      { ...invitation, emailSent: false, emailError: emailResult.error },
-      { status: 201 }
-    )
+  // Saved first; the email result is reported honestly (never "sent" when
+  // Resend rejected it or the outcome is unknown).
+  try {
+    const { outcome } = await deliver(invitation.id, admin.id)
+    return NextResponse.json({
+      ...invitation, emailSent: outcome.kind === 'accepted',
+      ...(outcome.kind === 'accepted' ? {} : { emailError: outcome.kind === 'rejected' ? outcome.message : 'Unknown whether the email went out — retry is safe' }),
+    }, { status: 201 })
+  } catch (err) {
+    console.warn('[POST /api/admin/invitations] Email failed:', err)
+    return NextResponse.json({ ...invitation, emailSent: false, emailError: err instanceof Error ? err.message : 'Failed' }, { status: 201 })
   }
-
-  return NextResponse.json({ ...invitation, emailSent: true }, { status: 201 })
 }

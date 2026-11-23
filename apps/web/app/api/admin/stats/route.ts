@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { guardSuperadmin } from '@/lib/auth/server'
 import { findMembershipStatusDrift } from '@/lib/services/membership'
+import { claimQueueCounts, invitationIndicators, listingReviewCounts } from '@/lib/claims/queue'
+
+// Every "needs attention" number here comes from lib/claims/queue.ts — the
+// same criteria the Verification Queue lists use — so a counter always equals
+// the length of the list it links to.
 
 export async function GET(req: NextRequest) {
   const deny = await guardSuperadmin(req)
@@ -14,10 +19,9 @@ export async function GET(req: NextRequest) {
     underReviewSchools,
     unverifiedSchools,
     totalUsers,
-    totalInvitations,
-    sentInvitations,
-    registeredInvitations,
-    pendingInvitations,
+    ownership,
+    listings,
+    invitations,
     schoolsByCountry,
     schoolsWithCoords,
     recentSchools,
@@ -30,10 +34,9 @@ export async function GET(req: NextRequest) {
     prisma.school.count({ where: { status: 'UNDER_REVIEW' } }),
     prisma.school.count({ where: { status: 'UNVERIFIED' } }),
     prisma.user.count(),
-    prisma.schoolInvitation.count(),
-    prisma.schoolInvitation.count({ where: { status: 'SENT' } }),
-    prisma.schoolInvitation.count({ where: { status: 'REGISTERED' } }),
-    prisma.schoolInvitation.count({ where: { status: { in: ['PENDING', 'SENT', 'OPENED'] } } }),
+    claimQueueCounts(prisma),
+    listingReviewCounts(prisma),
+    invitationIndicators(prisma),
     prisma.school.groupBy({
       by: ['country'],
       _count: { id: true },
@@ -50,13 +53,10 @@ export async function GET(req: NextRequest) {
       select: { id: true, name: true, city: true, country: true, status: true, createdAt: true },
     }),
     prisma.$queryRaw<{ month: string; count: bigint }[]>`
-      SELECT
-        TO_CHAR("createdAt", 'Mon') as month,
-        COUNT(*) as count
+      SELECT TO_CHAR(DATE_TRUNC('month', "createdAt"), 'YYYY-MM') AS month, COUNT(*) AS count
       FROM school_invitations
-      WHERE "createdAt" >= NOW() - INTERVAL '6 months'
-      GROUP BY TO_CHAR("createdAt", 'Mon'), DATE_TRUNC('month', "createdAt")
-      ORDER BY DATE_TRUNC('month', "createdAt")
+      WHERE "createdAt" >= DATE_TRUNC('month', NOW() AT TIME ZONE 'UTC') - INTERVAL '5 months'
+      GROUP BY 1
     `.catch(() => []),
     findMembershipStatusDrift(),
   ])
@@ -70,22 +70,28 @@ export async function GET(req: NextRequest) {
       unverified: unverifiedSchools,
     },
     users: { total: totalUsers },
-    invitations: {
-      total: totalInvitations,
-      sent: sentInvitations,
-      registered: registeredInvitations,
-      pending: pendingInvitations,
-    },
+    ownership,
+    listings,
+    invitations,
     schoolsByCountry: schoolsByCountry.map(r => ({
       country: r.country || 'Unknown',
       count: r._count.id,
     })),
     schoolsWithCoords,
     recentSchools,
-    invitationsByMonth: invitationsByMonth.map(r => ({
-      month: r.month,
-      count: Number(r.count),
+    // Invitations created per calendar month (UTC), current month + previous 5,
+    // empty months included so the chart's axis is honest.
+    invitationsByMonth: lastMonthsUtc(6).map(m => ({
+      month: m.label,
+      count: Number(invitationsByMonth.find(r => r.month === m.key)?.count ?? 0),
     })),
     membershipDrift: membershipDrift.length,
+  })
+}
+
+function lastMonthsUtc(n: number, now = new Date()) {
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (n - 1 - i), 1))
+    return { key: d.toISOString().slice(0, 7), label: d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }) }
   })
 }

@@ -1,26 +1,35 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Building2, CheckCircle2, XCircle, Clock, MapPin, Mail, Phone,
-  Globe, ExternalLink, RefreshCw, AlertTriangle, AtSign, Inbox, Menu,
+  Globe, ExternalLink, RefreshCw, AlertTriangle, AtSign, Inbox, Menu, Search, ChevronRight,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { useAdminShell } from '../../AdminLayoutClient'
+import {
+  INVITATION_STATE_BADGE, INVITATION_STATE_LABEL, REQUEST_STATUS_BADGE, REQUEST_STATUS_LABEL,
+  type InvitationState, type RequestStatus,
+} from '@/lib/claims/labels'
 
-type ClaimRequest = {
+type ClaimRow = {
   id: string
-  status: 'PENDING' | 'RESOLVED' | 'DISMISSED'
+  status: RequestStatus
   schoolName: string
   city: string | null
   contactName: string
   contactEmail: string
-  phone: string | null
-  message: string | null
   createdAt: string
   resolvedAt: string | null
+  rejectReason: string | null
+  school: { id: string; name: string; status: string } | null
+  invitationState: InvitationState | null
+  needsAssociationReview: boolean
 }
+type ClaimView = 'pending' | 'in_progress' | 'legacy' | 'history'
+const CLAIM_VIEWS: ClaimView[] = ['pending', 'in_progress', 'legacy', 'history']
+type Counts = Record<ClaimView, number>
 
 type School = {
   id: string
@@ -48,50 +57,84 @@ function fmtDate(iso: string) {
 
 export default function VerifyQueueClient() {
   const { menuOpen, setMenuOpen } = useAdminShell()
+  const [tab, setTab] = useState<'ownership' | 'listings'>('ownership')
   const [schools, setSchools] = useState<School[]>([])
-  const [claims, setClaims] = useState<ClaimRequest[]>([])
+  const [schoolsError, setSchoolsError] = useState('')
+  const [claims, setClaims] = useState<ClaimRow[]>([])
+  const [counts, setCounts] = useState<Counts>({ pending: 0, in_progress: 0, legacy: 0, history: 0 })
+  const [view, setView] = useState<ClaimView>('pending')
+  const [q, setQ] = useState('')
+  const [claimsError, setClaimsError] = useState('')
   const [loading, setLoading] = useState(true)
   const [acting, setActing] = useState<string | null>(null)
+  const seq = useRef(0)
 
-  const load = () => {
+  const loadClaims = useCallback(async () => {
+    const mine = ++seq.current
+    setClaimsError('')
+    try {
+      const res = await adminFetch(`/api/admin/claim-requests?view=${view}&q=${encodeURIComponent(q.trim())}`, { cache: 'no-store' })
+      const data = await res.json().catch(() => null)
+      if (mine !== seq.current) return // a newer filter/search already answered
+      if (!res.ok || !data) { setClaimsError('Could not load ownership requests.'); return }
+      setClaims(data.requests ?? [])
+      setCounts(data.counts ?? { pending: 0, in_progress: 0, legacy: 0, history: 0 })
+    } catch {
+      if (mine === seq.current) setClaimsError('Could not load ownership requests — check your connection.')
+    }
+  }, [view, q])
+
+  const loadSchools = useCallback(async () => {
+    setSchoolsError('')
+    try {
+      const res = await adminFetch('/api/admin/schools/verify', { cache: 'no-store' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data) { setSchoolsError('Could not load listings to review.'); return }
+      setSchools(data.schools ?? [])
+    } catch {
+      setSchoolsError('Could not load listings to review — check your connection.')
+    }
+  }, [])
+
+  const load = useCallback(async () => {
     setLoading(true)
-    Promise.all([
-      adminFetch('/api/admin/schools/verify').then(r => r.ok ? r.json() : null),
-      adminFetch('/api/admin/claim-requests').then(r => r.ok ? r.json() : null),
-    ])
-      .then(([schoolsData, claimsData]) => {
-        setSchools(schoolsData?.schools ?? [])
-        setClaims(claimsData?.requests ?? [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }
+    await Promise.all([loadClaims(), loadSchools()])
+    setLoading(false)
+  }, [loadClaims, loadSchools])
 
-  useEffect(() => { load() }, [])
+  // Deep links from the dashboard counters: ?tab=listings, ?view=legacy …
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    if (p.get('tab') === 'listings') setTab('listings')
+    const v = p.get('view') as ClaimView | null
+    if (v && CLAIM_VIEWS.includes(v)) setView(v)
+  }, [])
+
+  useEffect(() => {
+    const t = setTimeout(() => { loadClaims() }, q ? 250 : 0)
+    return () => clearTimeout(t)
+  }, [loadClaims, q])
+  useEffect(() => { loadSchools().finally(() => setLoading(false)) }, [loadSchools])
 
   const act = async (id: string, action: 'verify' | 'suspend') => {
+    if (acting) return
     setActing(id + action)
-    await fetch('/api/admin/schools/verify', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action }),
-    })
-    setActing(null)
-    load()
+    try {
+      const res = await adminFetch('/api/admin/schools/verify', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action }),
+      })
+      if (!res.ok) setSchoolsError(`Could not ${action} the school (HTTP ${res.status}). Nothing was changed.`)
+    } catch {
+      setSchoolsError('Network error — refresh to check whether the change was applied.')
+    } finally {
+      setActing(null)
+      loadSchools()
+    }
   }
 
-  const actClaim = async (id: string, action: 'resolve' | 'dismiss') => {
-    setActing('claim' + id + action)
-    await fetch('/api/admin/claim-requests', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action }),
-    })
-    setActing(null)
-    load()
-  }
-
-  const pendingClaims = claims.filter(c => c.status === 'PENDING')
+  const fmtShort = (iso: string) => fmtDate(iso)
 
   return (
     <div className="min-h-screen">
@@ -104,7 +147,7 @@ export default function VerifyQueueClient() {
           </button>
           <div>
             <h1 className="text-lg font-bold text-[#101828]">Verification Queue</h1>
-            <p className="text-xs text-gray-400">Schools awaiting your review — finished setup, or just claimed and stalled</p>
+            <p className="text-xs text-gray-400">Ownership requests and listings awaiting your review</p>
           </div>
         </div>
         <button
@@ -123,76 +166,68 @@ export default function VerifyQueueClient() {
           </div>
         ) : (
         <>
-        {pendingClaims.length > 0 && (
+        <div className="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1 w-full sm:w-fit">
+          {([['ownership', `Ownership requests${counts.pending ? ` (${counts.pending})` : ''}`], ['listings', `Listing review${schools.length ? ` (${schools.length})` : ''}`]] as const).map(([key, label]) => (
+            <button key={key} onClick={() => setTab(key)}
+              className={`flex-1 sm:flex-none h-8 px-3 rounded-lg text-xs font-semibold transition-colors ${tab === key ? 'bg-white text-[#101828] shadow-sm' : 'text-gray-500'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'ownership' && (
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <Inbox className="w-4 h-4 text-gray-400" />
-              <h2 className="text-sm font-bold text-[#101828]">Claim requests</h2>
-              <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold px-2.5 py-1 rounded-full">
-                {pendingClaims.length} pending
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+              <div className="flex gap-1.5 flex-wrap">
+                {([['pending', 'Pending'], ['in_progress', 'In progress'], ['legacy', 'Not reviewed'], ['history', 'History']] as const).filter(([key]) => key !== 'legacy' || counts.legacy > 0 || view === 'legacy').map(([key, label]) => (
+                  <button key={key} onClick={() => setView(key)}
+                    className={`h-8 px-3 rounded-full text-xs font-semibold border transition-colors ${view === key ? 'bg-[#0E3A7A] text-white border-[#0E3A7A]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+                    {label} <span className="opacity-70">{counts[key]}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="relative sm:ml-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search school, city, contact…"
+                  className="pl-9 pr-3 h-9 rounded-xl border border-gray-200 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-[#0870E2]/20 focus:border-[#0870E2]" />
+              </div>
             </div>
-            <div className="space-y-3">
-              {pendingClaims.map(claim => (
-                <div key={claim.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-[#101828]">{claim.schoolName}</h3>
-                        {claim.city && (
-                          <span className="flex items-center gap-1 text-xs text-gray-400">
-                            <MapPin className="w-3 h-3" /> {claim.city}
-                          </span>
+            {claimsError && <p className="mb-3 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 flex items-center justify-between">{claimsError}<button onClick={loadClaims} className="font-semibold">Retry</button></p>}
+            {claims.length === 0 ? (
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center py-14">
+                <Inbox className="w-10 h-10 text-gray-200 mb-3" />
+                <p className="text-sm text-gray-400">{q ? 'No requests match your search' : view === 'pending' ? 'No pending ownership requests' : view === 'in_progress' ? 'Nothing in progress' : view === 'legacy' ? 'No legacy requests left to review' : 'No closed requests yet'}</p>
+              </div>
+            ) : (
+              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm divide-y divide-gray-50">
+                {claims.map(claim => (
+                  <Link key={claim.id} href={`/admin/claims/${claim.id}`} className="flex items-center gap-3 p-4 hover:bg-gray-50/60 transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm font-bold text-[#101828] break-words">{claim.schoolName}</h3>
+                        {claim.city && <span className="flex items-center gap-1 text-xs text-gray-400"><MapPin className="w-3 h-3" /> {claim.city}</span>}
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${REQUEST_STATUS_BADGE[claim.status]}`}>{REQUEST_STATUS_LABEL[claim.status]}</span>
+                        {claim.invitationState && claim.status === 'IN_PROGRESS' && (
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${INVITATION_STATE_BADGE[claim.invitationState]}`}>{INVITATION_STATE_LABEL[claim.invitationState]}</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 mt-2 flex-wrap">
-                        <span className="text-xs text-gray-500">{claim.contactName}</span>
-                        <a href={`mailto:${claim.contactEmail}`} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#0870E2]">
-                          <Mail className="w-3 h-3" /> {claim.contactEmail}
-                        </a>
-                        {claim.phone && (
-                          <span className="flex items-center gap-1.5 text-xs text-gray-500">
-                            <Phone className="w-3 h-3" /> {claim.phone}
-                          </span>
-                        )}
-                        <span className="flex items-center gap-1 text-xs text-gray-400">
-                          <Clock className="w-3 h-3" /> {fmtDate(claim.createdAt)}
-                        </span>
+                      <div className="flex items-center gap-x-4 gap-y-1 mt-1.5 flex-wrap text-xs text-gray-500">
+                        <span>{claim.contactName}</span>
+                        <span className="flex items-center gap-1 break-all"><Mail className="w-3 h-3 shrink-0" /> {claim.contactEmail}</span>
+                        <span className="flex items-center gap-1 text-gray-400"><Clock className="w-3 h-3" /> {fmtShort(claim.createdAt)}</span>
+                        {claim.school && <span className="flex items-center gap-1 text-gray-500"><Building2 className="w-3 h-3" /> {claim.school.name}</span>}
                       </div>
-                      {claim.message && (
-                        <p className="mt-2 text-xs text-gray-500 line-clamp-2">{claim.message}</p>
-                      )}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Link
-                        href="/admin/schools/all"
-                        className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-                      >
-                        Find school
-                      </Link>
-                      <button
-                        onClick={() => actClaim(claim.id, 'dismiss')}
-                        disabled={!!acting}
-                        className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-red-200 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                      >
-                        {acting === 'claim' + claim.id + 'dismiss' ? '...' : 'Dismiss'}
-                      </button>
-                      <button
-                        onClick={() => actClaim(claim.id, 'resolve')}
-                        disabled={!!acting}
-                        className="flex items-center gap-1.5 h-8 px-4 rounded-lg text-xs font-semibold text-white transition-opacity disabled:opacity-50 hover:opacity-90"
-                        style={{ background: '#0870E2' }}
-                      >
-                        {acting === 'claim' + claim.id + 'resolve' ? '...' : 'Mark resolved'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         )}
-        {schools.length === 0 ? (
+
+        {tab === 'listings' && schoolsError && <p className="mb-3 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{schoolsError}</p>}
+        {tab === 'listings' && (schools.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center justify-center py-20">
             <CheckCircle2 className="w-12 h-12 text-emerald-200 mb-4" />
             <p className="text-base font-semibold text-gray-500">Queue is clear</p>
@@ -311,7 +346,7 @@ export default function VerifyQueueClient() {
               )
             })}
           </div>
-        )}
+        ))}
         </>
         )}
       </div>

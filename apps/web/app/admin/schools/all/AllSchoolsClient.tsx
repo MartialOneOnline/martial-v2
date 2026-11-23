@@ -769,6 +769,38 @@ function DeleteOrArchiveModal({ school, busy, error, onArchive, onDelete, onCanc
   )
 }
 
+// Confirms who receives an owner invitation before anything is sent. The
+// school's public email is only a suggestion and is never changed.
+function InviteOwnerModal({ school, busy, onSend, onCancel }: {
+  school: School; busy: boolean; onSend: (email: string, name: string) => void; onCancel: () => void
+}) {
+  const [email, setEmail] = useState(school.email ?? '')
+  const [name, setName] = useState('')
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onCancel}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+        <h2 className="text-base font-bold text-[#101828] mb-1">Invite an owner</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          For <strong>{school.name}</strong>{school.city ? ` (${school.city})` : ''}. If this comes from an ownership request, send it from the request page in the Verification Queue instead so it stays linked.
+        </p>
+        <label className="text-[11px] font-semibold text-gray-500">Recipient email</label>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full h-9 px-3 mb-3 rounded-xl border border-gray-200 text-sm" />
+        <label className="text-[11px] font-semibold text-gray-500">Recipient name (optional)</label>
+        <input value={name} onChange={e => setName(e.target.value)} className="w-full h-9 px-3 mb-3 rounded-xl border border-gray-200 text-sm" />
+        <p className="text-[11px] text-gray-400 mb-4">Single-use link, valid 7 days. Owner access is granted only after the recipient confirms this address. The school’s public email is not changed.</p>
+        <div className="flex justify-end gap-2">
+          <button onClick={onCancel} className="h-9 px-4 rounded-xl text-xs font-medium text-gray-500 hover:bg-gray-50">Cancel</button>
+          <button onClick={() => onSend(email.trim(), name.trim())} disabled={busy || !email.trim()}
+            className="h-9 px-4 rounded-xl bg-[#0870E2] text-white text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5">
+            {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Send invitation
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function AllSchoolsClient() {
   const { menuOpen, setMenuOpen } = useAdminShell()
@@ -789,6 +821,7 @@ export default function AllSchoolsClient() {
   const [deleteError, setDeleteError] = useState('')
   const [actionId, setActionId] = useState<string | null>(null)
   const [banner, setBanner] = useState<{ type: 'error' | 'success'; message: string } | null>(null)
+  const [inviteTarget, setInviteTarget] = useState<School | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -827,13 +860,29 @@ export default function AllSchoolsClient() {
     load()
   }
 
-  async function handleResendInvite(school: School) {
+  // ?search= lets other admin pages deep-link into a filtered list.
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get('search')
+    if (initial) setSearch(initial.slice(0, 100))
+  }, [])
+
+  async function handleInviteOwner(school: School, recipientEmail: string, recipientName: string) {
+    if (actionId) return
     setActionId(school.id)
-    const res = await adminFetch(`/api/admin/schools/${school.id}/resend-invite`, { method: 'POST' })
-    const data = await res.json().catch(() => ({}))
-    setActionId(null)
-    if (!res.ok) { setBanner({ type: 'error', message: data.error || 'Failed to send invitation' }); return }
-    setBanner({ type: 'success', message: `Claim invitation sent to ${school.email}` })
+    try {
+      const res = await adminFetch(`/api/admin/schools/${school.id}/resend-invite`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientEmail, recipientName }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.ok) { setBanner({ type: 'error', message: data.error || `Failed (HTTP ${res.status}) — nothing was confirmed` }); return }
+      setBanner({ type: 'success', message: `Owner invitation accepted by Resend for ${recipientEmail}` })
+      setInviteTarget(null)
+    } catch {
+      setBanner({ type: 'error', message: 'Network error — unknown whether the invitation went out. Trying again is safe.' })
+    } finally {
+      setActionId(null)
+    }
   }
 
   async function handleImpersonate(school: School) {
@@ -891,6 +940,14 @@ export default function AllSchoolsClient() {
           schoolId={editSchoolId}
           onClose={() => setEditSchoolId(null)}
           onSaved={() => { setBanner({ type: 'success', message: 'School updated' }); load() }}
+        />
+      )}
+      {inviteTarget && (
+        <InviteOwnerModal
+          school={inviteTarget}
+          busy={actionId === inviteTarget.id}
+          onSend={(email, name) => handleInviteOwner(inviteTarget, email, name)}
+          onCancel={() => setInviteTarget(null)}
         />
       )}
       {deleteTarget && (
@@ -1126,10 +1183,10 @@ export default function AllSchoolsClient() {
                           )}
                           {canResendInvite && (
                             <button
-                              onClick={() => handleResendInvite(school)}
+                              onClick={() => setInviteTarget(school)}
                               className="w-full flex items-center gap-2 text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                             >
-                              <Send size={13} /> Resend claim invitation
+                              <Send size={13} /> Invite owner…
                             </button>
                           )}
                           {canImpersonate && (

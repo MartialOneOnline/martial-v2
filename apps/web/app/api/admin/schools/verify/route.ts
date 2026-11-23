@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { guardSuperadmin } from '@/lib/auth/server'
+import { LISTING_REVIEW_STATUSES } from '@/lib/claims/queue'
 
 export async function GET(req: NextRequest) {
   const deny = await guardSuperadmin(req)
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   // step it may never complete; sorted with UNDER_REVIEW first since those
   // are the most actionable.
   const schools = await prisma.school.findMany({
-    where: { status: { in: ['UNDER_REVIEW', 'CLAIMED'] } },
+    where: { status: { in: [...LISTING_REVIEW_STATUSES] } },
     orderBy: { updatedAt: 'desc' },
     select: {
       id: true, name: true, slug: true, status: true, source: true,
