@@ -316,6 +316,11 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-23 (noche) (rama `claude/claim-ownership-rollout` — integración del flujo de titularidad)
+
+- Migración `20261122120000_claim_request_ownership_flow` **aplicada en producción** (antes del deploy) y PR #74 **integrado** (`932fdc3`, deploy Vercel OK). Se omitió el Supabase de pruebas por decisión del usuario.
+- Pendiente: prueba controlada en producción con una escuela de prueba y una bandeja del usuario (solicitud → revisión → invitación → confirmar email → aceptar → dashboard); luego recuperar Guidos; borrar la escuela de prueba. Ambas con autorización.
+
 ### Sesión — 2026-11-23 (tarde, 2) (rama `claude/claim-ownership` — pendientes de la reauditoría `APROBADO CON PENDIENTES` sobre `2fcb966`; migración sigue **sin aplicar**)
 
 - Kit de integración aislado en `scripts/claims-e2e/` (guardián de configuración efectiva + lista de destinatarios precargada + setup + runbook); probado en local, no ejecutado contra Supabase real todavía. Se lanza desde un worktree con `node scripts/claims-e2e/dev.mjs` (puerto 3100). Kit reauditado en `65683eb` → **`APROBADO`** por Codex; siguiente paso: el usuario crea el proyecto Supabase de pruebas, la clave Resend dedicada y las dos bandejas, rellena `apps/web/.env.local` del worktree (sin compartir secretos) y se ejecuta el RUNBOOK.

@@ -503,6 +503,8 @@ Evidencia: `claimsE2eKit.test.ts` 33/33 (solo datos ficticios y red simulada); m
 
 **Kit `65683eb` → `APROBADO` por Codex (2026-11-23).** Los tres fallos quedan cerrados; reverificado de forma independiente: 33/33 tests del kit, suite 1523 / 55 (mismos fallos que la base), TypeScript y ESLint sin errores. Pendiente (integración, no código): proyecto Supabase de pruebas, clave Resend dedicada y las dos bandejas controladas → ejecutar `scripts/claims-e2e/RUNBOOK.md` en navegador con correo real. Sin emails ni operaciones de producción hasta entonces.
 
+**Integración en producción (2026-11-23, autorizada por el usuario; se omitió el entorno Supabase aislado aceptando el riesgo).** Migración `20261122120000_claim_request_ownership_flow` aplicada con `prisma migrate deploy` antes del deploy (verificado: registrada sin rollback, tabla `claim_request_events`, enum con `IN_PROGRESS`/`COMPLETED`, columnas nuevas; solicitudes existentes intactas: 1 PENDING, 1 RESOLVED). PR #74 integrado como `932fdc3`; deploy de Vercel `success`; humo de páginas públicas 200. Pendiente: prueba controlada en producción con escuela de prueba + bandeja del usuario (confirmar email → aceptar → dashboard), después recuperación de Guidos, ambas con autorización; borrar la escuela de prueba al terminar.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
