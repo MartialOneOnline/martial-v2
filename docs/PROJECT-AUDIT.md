@@ -501,6 +501,8 @@ Reauditoría de `dde9233` (Codex): **`APROBADO CON PENDIENTES` de integración**
 
 Evidencia: `claimsE2eKit.test.ts` 33/33 (solo datos ficticios y red simulada); mutaciones: sin evaluación de ficheros con entorno vacío → falla el caso del shell; lector ingenuo de producción → 6+ fallan; filtro con la semántica de `bbcdd70` → 12 fallan. `next dev` real (Postgres local, claves falsas): servidor arrancado con el entorno validado, lista activa en todos sus procesos, BD de prueba confirmada en solo lectura, acuse a un destinatario ajeno bloqueado. `tsc` limpio; ESLint 0 errores (5 avisos `turbo/no-undeclared-env-vars` del test); suite completa 1523 / 55 / 16 con los mismos 55 fallos que `origin/main`. No verificable desde fuera en macOS: el entorno del proceso del servidor (cubierto por el test de proceso nuevo).
 
+**Kit `65683eb` → `APROBADO` por Codex (2026-11-23).** Los tres fallos quedan cerrados; reverificado de forma independiente: 33/33 tests del kit, suite 1523 / 55 (mismos fallos que la base), TypeScript y ESLint sin errores. Pendiente (integración, no código): proyecto Supabase de pruebas, clave Resend dedicada y las dos bandejas controladas → ejecutar `scripts/claims-e2e/RUNBOOK.md` en navegador con correo real. Sin emails ni operaciones de producción hasta entonces.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.
