@@ -12,7 +12,7 @@ import crypto from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
-import { appDir, loadTestEnv, repoRoot } from './guard.mjs'
+import { appDir, loadTestEnv, repoRoot, validatedServerEnv } from './guard.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const root = repoRoot
@@ -20,7 +20,12 @@ const require = createRequire(path.join(appDir, 'package.json'))
 const { Client } = require('pg')
 const dbOnly = process.argv.includes('--db-only')
 
-const env = loadTestEnv()
+let env
+try {
+  loadTestEnv() // the shell as it is
+  // Values used below = what the server will get (files only, no shell variables).
+  env = validatedServerEnv({ PATH: process.env.PATH, HOME: process.env.HOME })
+} catch (e) { console.error(e.message); process.exit(1) }
 console.log('guard: OK')
 
 // 1. Migrations — the full chain, including 20261122120000_claim_request_ownership_flow.

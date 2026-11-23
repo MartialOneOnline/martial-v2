@@ -3,8 +3,9 @@
 Kit in `scripts/claims-e2e/` (no secrets). Only `apps/web/.env.local` and `scripts/claims-e2e/.credentials.txt` hold secrets; both are gitignored.
 
 Safety rails:
-- `guard.mjs` checks the **effective** configuration — the shell's inherited variables plus every `.env` file Next.js loads in `apps/web` — against production (Supabase project, database, every secret value), refuses the main checkout, and requires `NEXT_PUBLIC_APP_URL` on localhost. It runs inside `setup.mjs` and again inside `dev.mjs`, also for the exact minimal environment the server is started with.
-- `dev.mjs` preloads `resend-allowlist.mjs` into the server: any email whose `to`/`cc`/`bcc` is not one of the two test inboxes is blocked locally (the app records it as not sent). It also refuses to start unless the test database's `PlatformSettings.superAdminEmail` is a test inbox.
+- `guard.mjs` evaluates every environment in a **new process** (`next-env-probe.cjs`) with Next.js's own loader (`@next/env`, which caches the environment of its first call, so it is never reused), and checks the effective values, every value written in each `.env` file (also when a shell variable hides it) and the shell's variables against production fingerprints (Supabase project, database, every secret value) read with the same dotenv semantics plus a raw reading; it refuses if those fingerprints cannot be read, refuses the main checkout and requires `NEXT_PUBLIC_APP_URL` on localhost. It runs in `setup.mjs` and in `dev.mjs`.
+- `dev.mjs` starts the server with **exactly** the environment it validated (all values explicit; process variables beat `.env` files), and preloads `resend-allowlist.mjs`: any `POST /emails(/batch)` whose `to`/`cc`/`bcc` is not one of the two test inboxes, any body it cannot read or parse (stream, form data, invalid JSON, no recipients — strings, Buffers, typed arrays, Blobs and `Request` bodies are read), and any other non-GET Resend call is blocked locally (the app records it as not sent). It also refuses to start unless the test database's `PlatformSettings.superAdminEmail` is a test inbox.
+- Automated checks with fictitious values only: `apps/web/__tests__/claimsE2eKit.test.ts`.
 - Supabase Auth sends no email in this flow (links come from `generateLink` and go out through Resend).
 
 ## 0. What you create (once)
