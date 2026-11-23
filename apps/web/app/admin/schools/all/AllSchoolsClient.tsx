@@ -10,6 +10,7 @@ import {
   AlertCircle, CheckCircle2, Circle, Archive, ArchiveRestore, Lock, Camera, Menu, Eye,
 } from 'lucide-react'
 import { adminFetch } from '@/lib/api/adminFetch'
+import { needsNewLink } from '@/lib/claims/pipelineSend'
 import { useAdminShell } from '../../AdminLayoutClient'
 import RowMenu from '@/components/RowMenu'
 
@@ -876,9 +877,10 @@ export default function AllSchoolsClient() {
       })
       let res = await post(false)
       let data = await res.json().catch(() => ({}))
-      // Past Resend's idempotency window a retry could deliver twice: only an
-      // explicit new link (old one disabled) is allowed, after confirmation.
-      if (res.status === 409 && data.code === 'RETRY_WINDOW_PASSED') {
+      // Past Resend's idempotency window a retry could deliver twice, and an
+      // expired link is useless: only an explicit new link (old one
+      // disabled) is allowed, after confirmation.
+      if (res.status === 409 && needsNewLink(data.code)) {
         if (!window.confirm(`${data.error}\n\nSend a new link now? The old link will stop working.`)) return
         res = await post(true)
         data = await res.json().catch(() => ({}))

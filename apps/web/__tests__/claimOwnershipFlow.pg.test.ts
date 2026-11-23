@@ -304,6 +304,57 @@ d('ownership flow on real PostgreSQL', () => {
     expect(await L.accept(token, identity(email))).toMatchObject({ ok: true, already: false }) // a live account still can
   })
 
+  // ── Project Audit 2fcb966 · AD-5 ───────────────────────────────────────
+  async function twoSchoolsFor(email: string) {
+    return Promise.all([1, 2].map(async () => {
+      const s = await school()
+      const { id } = await L.submit({ schoolName: s.name, city: 'Clovis', contactName: 'Alex', contactEmail: email })
+      await L.link(id, s.id, adminId)
+      const { invitationId } = await L.prepare({ schoolId: s.id, claimRequestId: id, recipientEmail: email, recipientName: null, actorUserId: adminId })
+      await L.deliver(invitationId, 'send', adminId)
+      const inv = await prisma.schoolInvitation.findUniqueOrThrow({ where: { id: invitationId } })
+      return { schoolId: s.id, requestId: id, token: L.token(inv.id, inv.tokenNonce!) }
+    }))
+  }
+
+  it('same existing STUDENT accepts two schools at once: no deadlock, two OWNER rows, both requests completed, one user', async () => {
+    const email = `owner-${uniq()}@example.com`
+    const authId = randomUUID()
+    const user = await prisma.user.create({ data: { email, supabaseAuthId: authId, role: 'STUDENT' } })
+    const both = await twoSchoolsFor(email)
+    // Barrier: the user-row UPDATE (role → SCHOOL_OWNER) pauses inside the
+    // first transaction. Without per-account serialization the second one
+    // takes its own lock on the user meanwhile and the two deadlock (40P01).
+    await prisma.$executeRawUnsafe(`CREATE OR REPLACE FUNCTION slow_user_update() RETURNS trigger AS $$ BEGIN PERFORM pg_sleep(0.5); RETURN NEW; END $$ LANGUAGE plpgsql`)
+    await prisma.$executeRawUnsafe(`CREATE TRIGGER slow_upd BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION slow_user_update()`)
+    let results: PromiseSettledResult<any>[]
+    try {
+      results = await Promise.allSettled(both.map(b => L.accept(b.token, identity(email, authId))))
+    } finally {
+      await prisma.$executeRawUnsafe(`DROP TRIGGER slow_upd ON users`)
+    }
+    expect(results.map(r => r.status), JSON.stringify(results.map(r => r.status === 'rejected' ? String(r.reason).slice(0, 200) : r.value))).toEqual(['fulfilled', 'fulfilled'])
+    expect(results.map(r => (r as PromiseFulfilledResult<any>).value)).toEqual([expect.objectContaining({ ok: true, already: false }), expect.objectContaining({ ok: true, already: false })])
+    expect(await prisma.user.count({ where: { email } })).toBe(1)
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).role).toBe('SCHOOL_OWNER')
+    expect(await prisma.schoolMember.count({ where: { userId: user.id, role: 'OWNER', status: 'ACTIVE' } })).toBe(2)
+    for (const b of both) expect((await prisma.claimRequest.findUniqueOrThrow({ where: { id: b.requestId } })).status).toBe('COMPLETED')
+  })
+
+  it('a brand-new person accepts two schools at once: one user is created, both complete', async () => {
+    const email = `new-${uniq()}@example.com`
+    const authId = randomUUID()
+    const both = await twoSchoolsFor(email)
+    const drop = await slowInsert('users', 0.4) // first creator pauses; the second must wait, not collide
+    let results: PromiseSettledResult<any>[]
+    try {
+      results = await Promise.allSettled(both.map(b => L.accept(b.token, identity(email, authId))))
+    } finally { await drop() }
+    expect(results.map(r => r.status === 'fulfilled' && r.value.ok), JSON.stringify(results.map(r => r.status === 'rejected' ? String(r.reason).slice(0, 200) : r.value))).toEqual([true, true])
+    expect(await prisma.user.count({ where: { email } })).toBe(1)
+    expect(await prisma.schoolMember.count({ where: { role: 'OWNER', schoolId: { in: both.map(b => b.schoolId) } } })).toBe(2)
+  })
+
   it('dashboard counters equal the lists they open', async () => {
     await L.submit({ schoolName: 'One', city: null, contactName: 'A', contactEmail: `a-${uniq()}@example.com` })
     await invitedRequest()

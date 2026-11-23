@@ -1,8 +1,10 @@
 // Client helper for the pipeline "Send" buttons (Admin → Schools pipeline and
 // Leads). A plain send/retry is tried first; when the server refuses a retry
-// because Resend's idempotency window has passed (RETRY_WINDOW_PASSED), the
-// admin is asked to confirm an explicit new link — the old link stops working
+// because Resend's idempotency window has passed (RETRY_WINDOW_PASSED) or the
+// link has expired (LINK_EXPIRED), the admin is asked to confirm an explicit new link — the old link stops working
 // and the invitee may receive two emails, only the newest of which works.
+export const needsNewLink = (code: unknown) => code === 'RETRY_WINDOW_PASSED' || code === 'LINK_EXPIRED'
+
 type Fetcher = (input: string, init?: RequestInit) => Promise<Response>
 
 export async function sendPipelineInvite(fetcher: Fetcher, id: string, confirmNewLink: (message: string) => boolean): Promise<{ ok: boolean; message?: string }> {
@@ -14,7 +16,7 @@ export async function sendPipelineInvite(fetcher: Fetcher, id: string, confirmNe
   }
   try {
     let { res, data } = await call('send')
-    if (res.status === 409 && data.code === 'RETRY_WINDOW_PASSED') {
+    if (res.status === 409 && needsNewLink(data.code)) {
       if (!confirmNewLink(`${data.error ?? 'A retry could deliver a duplicate.'}\n\nSend a new link now? The old link will stop working.`)) return { ok: false }
       ;({ res, data } = await call('new_link'))
     }

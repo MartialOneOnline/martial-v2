@@ -224,7 +224,10 @@ export async function deliverInvitation(invitationId: string, mode: DeliveryMode
     })
   } else if (mode === 'retry') {
     if (inv.expiresAt && inv.expiresAt <= now) {
-      throw new ClaimError('NOTHING_TO_RETRY', 'This link has expired. Use “Resend” to send a new one.')
+      // Not retryable: the link in that email no longer works. Only an
+      // explicit new link (confirmed by the admin) helps — same answer for
+      // every caller (request detail, All Schools, pipeline).
+      throw new ClaimError('LINK_EXPIRED', 'This invitation link has expired, so retrying the same email would not help. Send a new link instead — the old one stays disabled.')
     }
     if (inv.deliveryStatus === 'FAILED') {
       // Resend rejected the previous attempt (nothing sent, key not stored):

@@ -116,6 +116,12 @@ export async function acceptInvitation(rawToken: string, auth: AuthIdentity | nu
 
   try {
     return await prisma.$transaction(async tx => {
+      // First, one acceptance at a time per Auth identity (transaction-scoped
+      // advisory lock, taken before any row lock and by nothing else, so it
+      // cannot be part of a lock cycle). The same person accepting two
+      // schools at once — two tabs — otherwise raced on creating or updating
+      // the same user row (unique violation or a FOR SHARE → UPDATE deadlock).
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`claim-accept:${auth.id}`}, 0))`
       // Row locks, always in this order (invitation, then school): concurrent
       // acceptances of the same invitation run one after the other, and
       // admin preparation for the same school waits for us.
@@ -165,9 +171,11 @@ export async function acceptInvitation(rawToken: string, auth: AuthIdentity | nu
       }
       // A deleted (anonymized) or merged-away account is rejected by every
       // authenticated route (resolveDbUser), so granting it OWNER would burn
-      // the invitation for nothing. Checked under a share lock so a deletion
-      // committing meanwhile is seen, and before anything is written.
-      const live = await tx.$queryRaw<{ deletedAt: Date | null }[]>`SELECT "deletedAt" FROM users WHERE id = ${user.id} FOR SHARE`
+      // the invitation for nothing. Checked under a write lock (the row is
+      // updated right below; a share lock would have to be upgraded, which
+      // deadlocks against another holder), so a deletion committing meanwhile
+      // is seen, and before anything is written.
+      const live = await tx.$queryRaw<{ deletedAt: Date | null }[]>`SELECT "deletedAt" FROM users WHERE id = ${user.id} FOR UPDATE`
       if (user.deletedAt || live[0]?.deletedAt) throw new Abort({ ok: false, code: 'ACCOUNT_DELETED' })
 
       // Keep the global role consistent with /onboarding/school (owners show

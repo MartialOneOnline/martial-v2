@@ -229,10 +229,29 @@ export function createFakeDb() {
         const s = tables.school!.find(x => x.id === values[0])
         return s ? [{ id: s.id, status: s.status, name: s.name }] : []
       }
-      if (/SELECT "deletedAt" FROM users WHERE id = \? FOR SHARE/.test(sql)) {
+      if (/SELECT "deletedAt" FROM users WHERE id = \? FOR UPDATE/.test(sql)) {
+        await take(`users:${values[0] as string}`)
         return tables.user!.filter(x => x.id === values[0]).map(x => ({ deletedAt: x.deletedAt ?? null }))
       }
       throw new Error(`fake $queryRaw: unsupported SQL ${sql}`)
+    }
+    c.$executeRaw = async (strings: TemplateStringsArray, ...values: any[]) => {
+      const sql = strings.join('?')
+      if (/SELECT pg_advisory_xact_lock\(hashtextextended\(\?, 0\)\)/.test(sql)) {
+        // Same semantics as the row locks: held until the transaction ends.
+        const take = async (id: string) => {
+          if (held && !held.includes(id)) {
+            while (locks.has(id)) await locks.get(id)
+            let release!: () => void
+            locks.set(id, new Promise<void>(r => { release = r }))
+            held.push(id)
+            ;(c.__releases ??= []).push(() => { locks.delete(id); release() })
+          }
+        }
+        await take(`advisory:${values[0] as string}`)
+        return 1
+      }
+      throw new Error(`fake $executeRaw: unsupported SQL ${sql}`)
     }
     return c
   }

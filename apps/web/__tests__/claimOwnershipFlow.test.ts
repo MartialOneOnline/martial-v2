@@ -975,3 +975,79 @@ describe('audit ad6777f · P2 a deleted account cannot consume the invitation', 
     expect(T.user!.every(u => u.supabaseAuthId === null)).toBe(true) // link rolled back
   })
 })
+
+// ── Project Audit 2fcb966 (Codex reaudit, 2026-11-23) ───────────────────────
+describe('audit 2fcb966 · AD-3-R2 an expired link always offers an explicit new link', () => {
+  const rejected422 = { data: null, error: { name: 'validation_error', message: 'bad', statusCode: 422 } }
+  const unknown = { data: null, error: { name: 'application_error', message: 'fetch failed', statusCode: null } }
+  const expire = (inv: any, keyDaysAgo = 8) => {
+    inv.expiresAt = new Date(Date.now() - HOUR)
+    inv.deliveryKeyAt = new Date(Date.now() - keyDaysAgo * 24 * HOUR)
+  }
+
+  for (const [label, first] of [['FAILED', rejected422], ['UNCERTAIN', unknown]] as const) {
+    it(`All Schools, ${label} + expired: 409 LINK_EXPIRED without calling Resend; confirmed newLink → new token and key, old link dead`, async () => {
+      const school = addSchool({ status: 'UNVERIFIED' })
+      h.send.mockResolvedValueOnce(first)
+      await schoolInvite.POST(req({ recipientEmail: 'owner@guidos.example' }), p('id', school.id))
+      const inv = T.schoolInvitation![0]!
+      expect(inv.deliveryStatus).toBe(label)
+      // FAILED keeps the expiry set by the send attempt; force it into the past.
+      expire(inv)
+      const oldToken = currentToken(inv.id)
+      const oldNonce = inv.tokenNonce
+
+      const calls = h.send.mock.calls.length
+      const refused = await json(await schoolInvite.POST(req({ recipientEmail: 'owner@guidos.example' }), p('id', school.id)))
+      expect(refused).toMatchObject({ status: 409, body: { code: 'LINK_EXPIRED' } })
+      expect(h.send.mock.calls.length).toBe(calls)
+      expect(inv.tokenNonce).toBe(oldNonce)
+
+      h.send.mockResolvedValueOnce(accepted('email_new'))
+      const renewed = await json(await schoolInvite.POST(req({ recipientEmail: 'owner@guidos.example', newLink: true }), p('id', school.id)))
+      expect(renewed.body.ok).toBe(true)
+      expect(inv.tokenNonce).not.toBe(oldNonce)
+      expect(h.send.mock.calls.at(-1)![1].idempotencyKey).toBe(`owner-invite/${inv.id}/${inv.tokenNonce}/0`)
+      expect(inv.expiresAt.getTime()).toBeGreaterThan(Date.now())
+      expect((await json(await tokenRoute.GET(req(), p('token', oldToken)))).body.error).toBe('NOT_FOUND')
+      expect((await json(await tokenRoute.GET(req(), p('token', currentToken(inv.id))))).status).toBe(200)
+    })
+
+    it(`pipeline helper, ${label} + expired: asks; declining changes nothing; confirming sends a new link`, async () => {
+      h.send.mockResolvedValueOnce(first)
+      await pipeline.POST(req({ name: 'New Dojo', email: 'new@dojo.example' }))
+      const inv = T.schoolInvitation![0]!
+      expect(inv.deliveryStatus).toBe(label)
+      expire(inv)
+      const oldToken = currentToken(inv.id)
+      const snapshot = structuredClone(inv)
+      const fetcher = async (_url: string, init?: RequestInit) => pipeline.PATCH(req(JSON.parse(String(init!.body))))
+
+      const calls = h.send.mock.calls.length
+      const asked: string[] = []
+      expect(await sendPipelineInvite(fetcher, inv.id, m => { asked.push(m); return false })).toEqual({ ok: false })
+      expect(asked).toHaveLength(1)
+      expect(asked[0]).toMatch(/expired/)
+      expect(inv).toEqual(snapshot) // cancel = no side effects
+      expect(h.send.mock.calls.length).toBe(calls)
+
+      expect(await sendPipelineInvite(fetcher, inv.id, () => true)).toEqual({ ok: true })
+      expect(inv.tokenNonce).not.toBe(snapshot.tokenNonce)
+      expect(inv.deliveryStatus).toBe('ACCEPTED')
+      expect((await json(await tokenRoute.GET(req(), p('token', oldToken)))).body.error).toBe('NOT_FOUND')
+    })
+  }
+
+  it('request detail: an expired FAILED invitation is shown as expired (Resend offered), a retry is refused, resend works', async () => {
+    const { request } = await linkedRequest()
+    h.send.mockResolvedValueOnce(rejected422)
+    await action(request.id, { action: 'send_invitation', recipientEmail: request.contactEmail })
+    const inv = T.schoolInvitation!.at(-1)!
+    expire(inv)
+    const detail = await json(await adminDetail.GET(req(), p('id', request.id)))
+    expect(detail.body.invitations[0].state).toBe('expired')
+    expect((await action(request.id, { action: 'retry_invitation', invitationId: inv.id })).body.code).toBe('LINK_EXPIRED')
+    h.send.mockResolvedValueOnce(accepted('email_new'))
+    expect((await action(request.id, { action: 'resend_invitation', invitationId: inv.id })).body.ok).toBe(true)
+  })
+})

@@ -12,7 +12,8 @@ import { isInvitationOpen } from '@/lib/claims/status'
 // silently School.email), School.email never changed, and "sent" only when
 // Resend accepted it. An open invitation is re-delivered: retry if the last
 // outcome was unknown/failed, otherwise a new link. A retry after Resend's
-// idempotency window answers 409 RETRY_WINDOW_PASSED; the admin then confirms
+// idempotency window (409 RETRY_WINDOW_PASSED) or on an expired link (409
+// LINK_EXPIRED) is refused; the admin then confirms
 // an explicit new link with { newLink: true } (old link disabled).
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await guardSuperadminUser(req)

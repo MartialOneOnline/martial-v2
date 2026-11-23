@@ -45,9 +45,12 @@ export function invitationState(inv: InvitationLike, now = Date.now()): Invitati
   if (!inv.deliveryStatus) return 'legacy'
   const exp = t(inv.expiresAt)
   if (inv.deliveryStatus === 'PREPARED') return 'prepared'
-  if (inv.deliveryStatus === 'SENDING') return isSendingStale(inv, now) ? 'uncertain' : 'sending'
-  if (inv.deliveryStatus === 'FAILED') return 'failed'
+  if (inv.deliveryStatus === 'SENDING' && !isSendingStale(inv, now)) return 'sending'
+  // Expired wins over failed/unknown: the link is dead, so the only action
+  // that helps is a new link (a retry of the same email is refused).
   if (exp !== null && exp <= now) return 'expired'
+  if (inv.deliveryStatus === 'SENDING') return 'uncertain'
+  if (inv.deliveryStatus === 'FAILED') return 'failed'
   if (inv.deliveryStatus === 'UNCERTAIN') return 'uncertain'
   return inv.status === 'OPENED' ? 'opened' : 'sent'
 }
