@@ -3,15 +3,18 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { CheckCircle, Loader2, ShieldCheck, Mail, AlertCircle } from 'lucide-react'
+import { Loader2, ShieldCheck, Mail, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 // Owner invitation landing page. Opening it never accepts anything:
 // acceptance is an explicit click, and only works while signed in with the
-// invited address (proven by an existing login or by the confirmation link
-// POST /verify emails to that inbox — which brings the person back here with
-// ?verify=<hashed token>&vt=<type>; one click redeems it server-side).
+// invited address. Signed in with it → "Accept and continue" grants access.
+// Not signed in → "Accept and continue" emails a confirmation link to the
+// invited inbox (POST /verify); it brings the person back here with
+// ?verify=<hashed token>&vt=<type>, and one click redeems it server-side
+// (POST /session) and completes the acceptance (POST /complete) in a row.
+// Either way the person lands straight on the dashboard.
 
 type InvitationView = {
   schoolName: string
@@ -26,7 +29,7 @@ type Phase =
   | { kind: 'loading' }
   | { kind: 'invalid'; reason: string }
   | { kind: 'ready'; data: InvitationView }
-  | { kind: 'done'; schoolName: string }
+  | { kind: 'entering' }
 
 export default function ClaimInvitationPage() {
   const { token } = useParams<{ token: string }>()
@@ -101,7 +104,10 @@ export default function ClaimInvitationPage() {
         if (res.status === 404 || (res.status === 410 && data.error !== 'verify_expired')) { setPhase({ kind: 'invalid', reason: data.error ?? 'NOT_FOUND' }); return }
         setError(errText(data.error ?? 'generic')); return
       }
-      await load()
+      // Signed in as the invited address: the person already chose "Accept
+      // and continue" before the email was sent, so finish it now. If that
+      // fails, reloading shows the signed-in state with a plain Accept button.
+      if (!(await complete())) await load()
     } catch {
       setError(c.err_generic)
     } finally {
@@ -109,20 +115,36 @@ export default function ClaimInvitationPage() {
     }
   }
 
-  async function accept(schoolName: string) {
-    if (inFlight.current) return
-    inFlight.current = true; setBusy(true); setError('')
+  // POST /complete. true → access granted and we are leaving for the
+  // dashboard; false → the error (or the new phase) is already on screen.
+  async function complete(): Promise<boolean> {
     try {
       const res = await fetch(`/api/claim/${encodeURIComponent(token)}/complete`, { method: 'POST' })
       const data = await res.json().catch(() => ({}))
-      if (res.ok && data.ok) { setPhase({ kind: 'done', schoolName }); return }
-      if (data.error === 'INVALID_LINK') { setPhase({ kind: 'invalid', reason: data.reason ?? 'NOT_FOUND' }); return }
-      if (data.error === 'WRONG_ACCOUNT' || data.error === 'NOT_AUTHENTICATED') { await load(); return }
+      if (res.ok && data.ok) {
+        setPhase({ kind: 'entering' })
+        // Full navigation, so the dashboard reads the new session and the
+        // currentSchoolId cookie set by /complete.
+        window.location.assign('/dashboard')
+        return true
+      }
+      if (data.error === 'INVALID_LINK') { setPhase({ kind: 'invalid', reason: data.reason ?? 'NOT_FOUND' }); return false }
+      if (data.error === 'WRONG_ACCOUNT' || data.error === 'NOT_AUTHENTICATED') { await load(); return false }
       setError(errText(data.error ?? 'generic'))
+      return false
     } catch {
       // Lost response: the server may have granted access. Accepting again is
       // safe (same person → success), so just let the person retry.
       setError(c.err_generic)
+      return false
+    }
+  }
+
+  async function accept() {
+    if (inFlight.current) return
+    inFlight.current = true; setBusy(true); setError('')
+    try {
+      await complete()
     } finally {
       inFlight.current = false; setBusy(false)
     }
@@ -159,14 +181,9 @@ export default function ClaimInvitationPage() {
             </div>
           )}
 
-          {phase.kind === 'done' && (
-            <div className="text-center py-6">
-              <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-              <p className="text-lg font-bold text-[#101828]">{c.doneTitle}</p>
-              <p className="text-sm text-gray-500 mt-1">{c.doneBody.replace('{school}', phase.schoolName)}</p>
-              <a href="/dashboard" className="inline-flex items-center justify-center mt-6 h-11 px-6 rounded-full bg-[#0870E2] text-white text-sm font-semibold">
-                {c.goDashboard}
-              </a>
+          {phase.kind === 'entering' && (
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
+              <Loader2 className="w-4 h-4 animate-spin" /> {c.entering}
             </div>
           )}
 
@@ -190,7 +207,7 @@ export default function ClaimInvitationPage() {
               {phase.data.session === 'match' && (
                 <>
                   <p className="text-sm text-gray-600 mb-4">{c.signedInAs}</p>
-                  <button onClick={() => accept(phase.data.schoolName)} disabled={busy}
+                  <button onClick={accept} disabled={busy}
                     className="w-full h-11 rounded-full bg-[#0870E2] text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
                     {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{c.accepting}</> : c.accept}
                   </button>
