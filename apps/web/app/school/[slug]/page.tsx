@@ -1,3 +1,4 @@
+import ClaimListingLink from './ClaimListingLink'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -81,6 +82,10 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
   // ARCHIVED/SUSPENDED schools keep their data (soft-deleted / paused) but must
   // not be reachable by direct slug — same cutoff as the public /api/schools listing.
   if (!school || ['SUSPENDED', 'ARCHIVED'].includes(school.status)) notFound()
+
+  const hasOwner = Boolean(school.claimedById) || (await prisma.schoolMember.count({
+    where: { schoolId: school.id, role: 'OWNER', status: 'ACTIVE' },
+  })) > 0
 
   const cover = school.coverUrl ?? FALLBACK
   const disciplines = school.disciplines.map(d => d.discipline.name)
@@ -523,6 +528,8 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
           </div>
         </div>
       </div>
+
+      {!hasOwner && <ClaimListingLink slug={slug} name={school.name} />}
 
       {/* ── Mobile fixed bottom CTA ── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur border-t border-gray-100 px-4 py-3 safe-area-pb">

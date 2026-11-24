@@ -12,13 +12,16 @@ import {
 } from 'recharts'
 import { adminFetch } from '@/lib/api/adminFetch'
 import { useAdminShell } from './AdminLayoutClient'
+import type { InvitationIndicators } from '@/lib/claims/queue'
 
 const AdminMap = dynamic(() => import('./AdminMap'), { ssr: false })
 
 interface Stats {
   schools: { total: number; verified: number; claimed: number; underReview: number; unverified: number }
   users: { total: number }
-  invitations: { total: number; sent: number; registered: number; pending: number }
+  ownership: { pending: number; in_progress: number; legacy: number; history: number }
+  listings: { total: number; readyForReview: number; ownerNotFinished: number }
+  invitations: InvitationIndicators
   schoolsByCountry: { country: string; count: number }[]
   schoolsWithCoords: { id: string; name: string; city: string; country: string; lat: number; lng: number; status: string }[]
   recentSchools: { id: string; name: string; city: string; country: string; status: string; createdAt: string }[]
@@ -61,12 +64,20 @@ export default function AdminDashboardClient() {
     )
   }
 
-  // Funnel conversion
-  const total = stats?.invitations.total ?? 0
-  const sent = stats?.invitations.sent ?? 0
-  const registered = stats?.invitations.registered ?? 0
-  const pending = stats?.invitations.pending ?? 0
-  const convRate = total > 0 ? Math.round((registered / total) * 100) : 0
+  // All counters come from lib/claims/queue.ts (shared with the Verification
+  // Queue): each value is the length of the list its link opens.
+  const inv = stats?.invitations
+  const total = inv?.total ?? 0
+  const sent = inv?.sent ?? 0
+  const accepted = inv?.accepted ?? 0
+  const awaiting = inv?.awaitingAcceptance ?? 0
+  const convRate = inv?.conversionRate ?? 0
+  const own = stats?.ownership
+  const ownershipToReview = (own?.pending ?? 0)
+  const nb = inv?.needsActionBreakdown
+  const needsActionSub = nb
+    ? [nb.notSent && `${nb.notSent} not sent`, nb.failed && `${nb.failed} failed`, nb.uncertain && `${nb.uncertain} unknown outcome`, nb.expired && `${nb.expired} expired`, nb.legacyLink && `${nb.legacyLink} old link`].filter(Boolean).join(' · ')
+    : ''
 
   // Needs attention items
   const attentionItems = [
@@ -74,30 +85,66 @@ export default function AdminDashboardClient() {
       icon: AlertTriangle,
       color: '#F59E0B',
       bg: 'bg-amber-50',
-      label: 'Pending verification',
-      value: stats?.schools.underReview ?? 0,
-      href: '/admin/schools/verify',
-      cta: 'Review queue',
-      urgent: (stats?.schools.underReview ?? 0) > 0,
+      label: 'Ownership requests to review',
+      sub: (own?.in_progress ?? 0) > 0 ? `${own?.in_progress} more in progress` : '',
+      value: ownershipToReview,
+      href: '/admin/schools/verify?view=pending',
+      cta: 'Review',
+      urgent: ownershipToReview > 0,
+    },
+    ...((own?.legacy ?? 0) > 0 ? [{
+      icon: AlertTriangle,
+      color: '#DC2626',
+      bg: 'bg-red-50',
+      label: 'Closed without review (old “Mark resolved”)',
+      sub: 'no school was ever linked',
+      value: own?.legacy ?? 0,
+      href: '/admin/schools/verify?view=legacy',
+      cta: 'Review',
+      urgent: true,
+    }] : []),
+    {
+      icon: Building2,
+      color: '#F59E0B',
+      bg: 'bg-amber-50',
+      label: 'Listings to review',
+      sub: stats ? `${stats.listings.readyForReview} ready · ${stats.listings.ownerNotFinished} setup unfinished` : '',
+      value: stats?.listings.total ?? 0,
+      href: '/admin/schools/verify?tab=listings',
+      cta: 'Review',
+      urgent: (stats?.listings.readyForReview ?? 0) > 0,
     },
     {
       icon: Mail,
       color: '#3B82F6',
       bg: 'bg-blue-50',
-      label: 'Invites not yet sent',
-      value: pending,
-      href: '/admin/schools',
-      cta: 'Send now',
-      urgent: pending > 0,
+      label: 'Owner invitations needing action',
+      sub: (inv?.needsActionPipeline ?? 0) === 0 ? needsActionSub : 'from ownership requests',
+      value: inv?.needsActionFromRequests ?? 0,
+      href: '/admin/schools/verify?view=in_progress',
+      cta: 'Open',
+      urgent: (inv?.needsActionFromRequests ?? 0) > 0,
     },
+    ...((inv?.needsActionPipeline ?? 0) > 0 ? [{
+      icon: Send,
+      color: '#3B82F6',
+      bg: 'bg-blue-50',
+      label: 'Direct invitations needing action',
+      sub: 'not from a request',
+      value: inv?.needsActionPipeline ?? 0,
+      href: '/admin/schools',
+      cta: 'Open',
+      urgent: true,
+    }] : []),
     {
       icon: CheckCircle2,
       color: '#10B981',
       bg: 'bg-emerald-50',
-      label: 'Registered this month',
-      value: registered,
-      href: '/admin/schools/all',
-      cta: 'View all',
+      label: 'Owners accepted this month',
+      sub: 'since the 1st (UTC)',
+      value: inv?.acceptedThisMonth ?? 0,
+      href: '/admin/schools/verify?view=history',
+      cta: 'View',
       urgent: false,
     },
     {
@@ -105,6 +152,7 @@ export default function AdminDashboardClient() {
       color: '#8B5CF6',
       bg: 'bg-violet-50',
       label: 'Total users',
+      sub: '',
       value: stats?.users.total ?? 0,
       href: '/admin/users',
       cta: 'Manage',
@@ -115,6 +163,7 @@ export default function AdminDashboardClient() {
       color: '#DC2626',
       bg: 'bg-red-50',
       label: 'Membership status drift',
+      sub: '',
       value: stats?.membershipDrift ?? 0,
       href: '/admin/reports/membership-drift',
       cta: 'Investigate',
@@ -166,9 +215,9 @@ export default function AdminDashboardClient() {
           {[
             { label: 'Total Schools',  value: stats?.schools.total ?? 0,    icon: Building2,   color: '#0870E2', sub: `${stats?.schools.verified ?? 0} verified` },
             { label: 'Verified',       value: stats?.schools.verified ?? 0, icon: CheckCircle2, color: '#10B981', sub: 'approved profiles' },
-            { label: 'Pending Review', value: stats?.schools.underReview ?? 0, icon: AlertTriangle, color: '#F59E0B', sub: 'needs attention', alert: (stats?.schools.underReview ?? 0) > 0 },
+            { label: 'To review',      value: ownershipToReview + (own?.legacy ?? 0) + (stats?.listings.total ?? 0), icon: AlertTriangle, color: '#F59E0B', sub: `${ownershipToReview + (own?.legacy ?? 0)} ownership · ${stats?.listings.total ?? 0} listings`, alert: ownershipToReview + (own?.legacy ?? 0) + (stats?.listings.readyForReview ?? 0) > 0 },
             { label: 'Total Users',    value: stats?.users.total ?? 0,      icon: Users,        color: '#8B5CF6', sub: 'registered accounts' },
-            { label: 'Conv. Rate',     value: `${convRate}%`,               icon: TrendingUp,   color: '#3B82F6', sub: `${registered} of ${total} invited` },
+            { label: 'Conv. Rate',     value: `${convRate}%`,               icon: TrendingUp,   color: '#3B82F6', sub: `${accepted} accepted of ${sent} sent · all time` },
           ].map(card => (
             <div
               key={card.label}
@@ -197,7 +246,7 @@ export default function AdminDashboardClient() {
             <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-50">
               <div>
                 <p className="text-sm font-bold text-[#101828]">Invitations overview</p>
-                <p className="text-xs text-gray-400 mt-0.5">Schools invited per month · last 6 months</p>
+                <p className="text-xs text-gray-400 mt-0.5">Owner invitations created per month (UTC) · last 6 months · funnel all time</p>
               </div>
               <Link href="/admin/schools" prefetch={false} className="flex items-center gap-1 text-xs font-semibold text-[#0870E2] hover:underline mt-0.5">
                 View all <ArrowUpRight className="w-3 h-3" />
@@ -205,12 +254,12 @@ export default function AdminDashboardClient() {
             </div>
 
             {/* Funnel pills */}
-            <div className="flex items-center gap-2 px-6 py-3 border-b border-gray-50">
+            <div className="flex flex-wrap items-center gap-2 px-6 py-3 border-b border-gray-50">
               {[
-                { label: 'Invited',    value: total,      color: '#0870E2' },
-                { label: 'Sent',       value: sent,       color: '#3B82F6' },
-                { label: 'Registered', value: registered, color: '#10B981' },
-                { label: 'Pending',    value: pending,    color: '#F59E0B' },
+                { label: 'Created',  value: total,    color: '#0870E2' },
+                { label: 'Sent',     value: sent,     color: '#3B82F6' },
+                { label: 'Accepted', value: accepted, color: '#10B981' },
+                { label: 'Awaiting', value: awaiting, color: '#F59E0B' },
               ].map((f, i) => (
                 <div key={f.label} className="flex items-center gap-1.5">
                   {i > 0 && <span className="text-gray-200 text-xs">›</span>}
@@ -273,7 +322,7 @@ export default function AdminDashboardClient() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-[#101828]">{item.label}</p>
-                    <p className="text-xs text-gray-400">{item.cta}</p>
+                    <p className="text-xs text-gray-400 break-words">{item.sub || item.cta}</p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-lg font-bold" style={{ color: item.color }}>{item.value}</span>

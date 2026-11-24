@@ -308,6 +308,11 @@ export type PlatformSettings = Prisma.PlatformSettingsModel
  */
 export type ClaimRequest = Prisma.ClaimRequestModel
 /**
+ * Model ClaimRequestEvent
+ * 
+ */
+export type ClaimRequestEvent = Prisma.ClaimRequestEventModel
+/**
  * Model SchoolSubscription
  * 
  */

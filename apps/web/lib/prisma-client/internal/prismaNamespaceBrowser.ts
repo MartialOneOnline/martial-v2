@@ -109,6 +109,7 @@ export const ModelName = {
   Notification: 'Notification',
   PlatformSettings: 'PlatformSettings',
   ClaimRequest: 'ClaimRequest',
+  ClaimRequestEvent: 'ClaimRequestEvent',
   SchoolSubscription: 'SchoolSubscription',
   StripeWebhookEvent: 'StripeWebhookEvent',
   InviteToken: 'InviteToken',
@@ -903,6 +904,16 @@ export const SchoolInvitationScalarFieldEnum = {
   expiresAt: 'expiresAt',
   usedAt: 'usedAt',
   revokedAt: 'revokedAt',
+  claimRequestId: 'claimRequestId',
+  tokenNonce: 'tokenNonce',
+  deliveryStatus: 'deliveryStatus',
+  deliveryAttempt: 'deliveryAttempt',
+  deliveryStartedAt: 'deliveryStartedAt',
+  deliveryKeyAt: 'deliveryKeyAt',
+  deliveryPayload: 'deliveryPayload',
+  deliveryError: 'deliveryError',
+  providerMessageId: 'providerMessageId',
+  acceptedUserId: 'acceptedUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1262,11 +1273,32 @@ export const ClaimRequestScalarFieldEnum = {
   contactEmail: 'contactEmail',
   phone: 'phone',
   message: 'message',
+  locale: 'locale',
+  sourceSchoolId: 'sourceSchoolId',
+  schoolId: 'schoolId',
+  linkedById: 'linkedById',
+  linkedAt: 'linkedAt',
+  rejectReason: 'rejectReason',
+  completedAt: 'completedAt',
+  completedUserId: 'completedUserId',
   createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   resolvedAt: 'resolvedAt'
 } as const
 
 export type ClaimRequestScalarFieldEnum = (typeof ClaimRequestScalarFieldEnum)[keyof typeof ClaimRequestScalarFieldEnum]
+
+
+export const ClaimRequestEventScalarFieldEnum = {
+  id: 'id',
+  claimRequestId: 'claimRequestId',
+  type: 'type',
+  actorUserId: 'actorUserId',
+  data: 'data',
+  createdAt: 'createdAt'
+} as const
+
+export type ClaimRequestEventScalarFieldEnum = (typeof ClaimRequestEventScalarFieldEnum)[keyof typeof ClaimRequestEventScalarFieldEnum]
 
 
 export const SchoolSubscriptionScalarFieldEnum = {

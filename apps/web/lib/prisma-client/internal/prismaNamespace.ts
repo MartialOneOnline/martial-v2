@@ -442,6 +442,7 @@ export const ModelName = {
   Notification: 'Notification',
   PlatformSettings: 'PlatformSettings',
   ClaimRequest: 'ClaimRequest',
+  ClaimRequestEvent: 'ClaimRequestEvent',
   SchoolSubscription: 'SchoolSubscription',
   StripeWebhookEvent: 'StripeWebhookEvent',
   InviteToken: 'InviteToken',
@@ -464,7 +465,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "emailRateLimit" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest" | "accountMerge" | "accountMergeClaim" | "accountMergeAuthPin"
+    modelProps: "affiliation" | "contentPlatform" | "contentSeries" | "contentVideo" | "contentAccess" | "curriculum" | "curriculumLesson" | "curriculumLessonView" | "user" | "discipline" | "schoolDiscipline" | "facility" | "schoolFacility" | "school" | "instructor" | "membershipPlan" | "review" | "class" | "classCancellation" | "event" | "eventTicket" | "eventBooking" | "booking" | "membership" | "camp" | "campBooking" | "schoolMember" | "staffRole" | "campaign" | "campaignRecipient" | "emailRateLimit" | "schoolClaim" | "gradingSystem" | "gradingTemplate" | "beltRank" | "grading" | "lead" | "leadNote" | "affiliate" | "schoolInvitation" | "waiver" | "userWaiver" | "loginHistory" | "impersonationLog" | "transaction" | "userPreference" | "productCategory" | "product" | "order" | "orderItem" | "limitedCollection" | "limitedCollectionTier" | "collectibleUnit" | "collectibleOwnership" | "partner" | "notification" | "platformSettings" | "claimRequest" | "claimRequestEvent" | "schoolSubscription" | "stripeWebhookEvent" | "inviteToken" | "emailChangeRequest" | "accountMerge" | "accountMergeClaim" | "accountMergeAuthPin"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -4760,6 +4761,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ClaimRequestEvent: {
+      payload: Prisma.$ClaimRequestEventPayload<ExtArgs>
+      fields: Prisma.ClaimRequestEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClaimRequestEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClaimRequestEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>
+        }
+        findFirst: {
+          args: Prisma.ClaimRequestEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClaimRequestEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>
+        }
+        findMany: {
+          args: Prisma.ClaimRequestEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>[]
+        }
+        create: {
+          args: Prisma.ClaimRequestEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>
+        }
+        createMany: {
+          args: Prisma.ClaimRequestEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClaimRequestEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>[]
+        }
+        delete: {
+          args: Prisma.ClaimRequestEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>
+        }
+        update: {
+          args: Prisma.ClaimRequestEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClaimRequestEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClaimRequestEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClaimRequestEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClaimRequestEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimRequestEventPayload>
+        }
+        aggregate: {
+          args: Prisma.ClaimRequestEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClaimRequestEvent>
+        }
+        groupBy: {
+          args: Prisma.ClaimRequestEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClaimRequestEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClaimRequestEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClaimRequestEventCountAggregateOutputType> | number
+        }
+      }
+    }
     SchoolSubscription: {
       payload: Prisma.$SchoolSubscriptionPayload<ExtArgs>
       fields: Prisma.SchoolSubscriptionFieldRefs
@@ -6086,6 +6161,16 @@ export const SchoolInvitationScalarFieldEnum = {
   expiresAt: 'expiresAt',
   usedAt: 'usedAt',
   revokedAt: 'revokedAt',
+  claimRequestId: 'claimRequestId',
+  tokenNonce: 'tokenNonce',
+  deliveryStatus: 'deliveryStatus',
+  deliveryAttempt: 'deliveryAttempt',
+  deliveryStartedAt: 'deliveryStartedAt',
+  deliveryKeyAt: 'deliveryKeyAt',
+  deliveryPayload: 'deliveryPayload',
+  deliveryError: 'deliveryError',
+  providerMessageId: 'providerMessageId',
+  acceptedUserId: 'acceptedUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -6445,11 +6530,32 @@ export const ClaimRequestScalarFieldEnum = {
   contactEmail: 'contactEmail',
   phone: 'phone',
   message: 'message',
+  locale: 'locale',
+  sourceSchoolId: 'sourceSchoolId',
+  schoolId: 'schoolId',
+  linkedById: 'linkedById',
+  linkedAt: 'linkedAt',
+  rejectReason: 'rejectReason',
+  completedAt: 'completedAt',
+  completedUserId: 'completedUserId',
   createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   resolvedAt: 'resolvedAt'
 } as const
 
 export type ClaimRequestScalarFieldEnum = (typeof ClaimRequestScalarFieldEnum)[keyof typeof ClaimRequestScalarFieldEnum]
+
+
+export const ClaimRequestEventScalarFieldEnum = {
+  id: 'id',
+  claimRequestId: 'claimRequestId',
+  type: 'type',
+  actorUserId: 'actorUserId',
+  data: 'data',
+  createdAt: 'createdAt'
+} as const
+
+export type ClaimRequestEventScalarFieldEnum = (typeof ClaimRequestEventScalarFieldEnum)[keyof typeof ClaimRequestEventScalarFieldEnum]
 
 
 export const SchoolSubscriptionScalarFieldEnum = {
@@ -7030,6 +7136,20 @@ export type ListEnumInvitationSourceFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'InvitationDeliveryStatus'
+ */
+export type EnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvitationDeliveryStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'InvitationDeliveryStatus[]'
+ */
+export type ListEnumInvitationDeliveryStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvitationDeliveryStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'TransactionType'
  */
 export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
@@ -7364,6 +7484,7 @@ export type GlobalOmitConfig = {
   notification?: Prisma.NotificationOmit
   platformSettings?: Prisma.PlatformSettingsOmit
   claimRequest?: Prisma.ClaimRequestOmit
+  claimRequestEvent?: Prisma.ClaimRequestEventOmit
   schoolSubscription?: Prisma.SchoolSubscriptionOmit
   stripeWebhookEvent?: Prisma.StripeWebhookEventOmit
   inviteToken?: Prisma.InviteTokenOmit

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { guardSuperadmin } from '@/lib/auth/server'
+import { schoolOwnershipHistory } from '@/lib/claims/adminViews'
 
 const DAY = 24 * 60 * 60 * 1000
 const STAFF_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'INSTRUCTOR', 'ASSISTANT_INSTRUCTOR', 'RECEPTIONIST', 'CUSTOM'] as const
@@ -131,7 +132,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const bookingsByStatus30: Record<string, number> = {}
   for (const b of bookingStats30) bookingsByStatus30[b.status] = b._count
 
+  const ownership = await schoolOwnershipHistory(id)
+
   return NextResponse.json({
+    ownership,
     school: {
       id: school.id, name: school.name, slug: school.slug, status: school.status, type: school.type,
       city: school.city, country: school.country, email: school.email, phone: school.phone,

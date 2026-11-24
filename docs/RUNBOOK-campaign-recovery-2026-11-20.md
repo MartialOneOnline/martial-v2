@@ -1,6 +1,6 @@
 # Runbook — recuperar la campaña «Libre — 20/11/2026» (Roger Gracie Málaga)
 
-**Estado: preparado, NO ejecutado.** Se autoriza después de aprobar y desplegar el Lote AD.
+**Estado: preparado, NO ejecutado.** Se autoriza después de aprobar y desplegar el Lote AE.
 
 Campaña: asunto «🥋 Graduación Roger Gracie Málaga - Sábado 19 de diciembre», 49 destinatarios, 24 `SENT`, 25 `FAILED`, estado `COMPLETED`. Los fallos vienen del 429 de Resend («You have exceeded the rate limit, which is 10 requests per second.»), según los logs que aportó el usuario.
 
@@ -18,7 +18,7 @@ Script: [`scripts/recover-campaign-rate-limited.ts`](../scripts/recover-campaign
 
 ## Requisitos
 
-- La migración `20261122120000_campaign_reliable_delivery` aplicada y el código desplegado. El dry-run funciona sin la migración; `--apply` no.
+- La migración `20261124120000_campaign_reliable_delivery` aplicada y el código desplegado. El dry-run funciona sin la migración; `--apply` no.
 - `DATABASE_URL` de producción y `RESEND_API_KEY` (para `--check-resend`), con autorización del usuario para leerlos.
 
 ## Pasos

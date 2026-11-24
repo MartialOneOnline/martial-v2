@@ -33,7 +33,16 @@ export type ClaimRequestMinAggregateOutputType = {
   contactEmail: string | null
   phone: string | null
   message: string | null
+  locale: string | null
+  sourceSchoolId: string | null
+  schoolId: string | null
+  linkedById: string | null
+  linkedAt: Date | null
+  rejectReason: string | null
+  completedAt: Date | null
+  completedUserId: string | null
   createdAt: Date | null
+  updatedAt: Date | null
   resolvedAt: Date | null
 }
 
@@ -46,7 +55,16 @@ export type ClaimRequestMaxAggregateOutputType = {
   contactEmail: string | null
   phone: string | null
   message: string | null
+  locale: string | null
+  sourceSchoolId: string | null
+  schoolId: string | null
+  linkedById: string | null
+  linkedAt: Date | null
+  rejectReason: string | null
+  completedAt: Date | null
+  completedUserId: string | null
   createdAt: Date | null
+  updatedAt: Date | null
   resolvedAt: Date | null
 }
 
@@ -59,7 +77,16 @@ export type ClaimRequestCountAggregateOutputType = {
   contactEmail: number
   phone: number
   message: number
+  locale: number
+  sourceSchoolId: number
+  schoolId: number
+  linkedById: number
+  linkedAt: number
+  rejectReason: number
+  completedAt: number
+  completedUserId: number
   createdAt: number
+  updatedAt: number
   resolvedAt: number
   _all: number
 }
@@ -74,7 +101,16 @@ export type ClaimRequestMinAggregateInputType = {
   contactEmail?: true
   phone?: true
   message?: true
+  locale?: true
+  sourceSchoolId?: true
+  schoolId?: true
+  linkedById?: true
+  linkedAt?: true
+  rejectReason?: true
+  completedAt?: true
+  completedUserId?: true
   createdAt?: true
+  updatedAt?: true
   resolvedAt?: true
 }
 
@@ -87,7 +123,16 @@ export type ClaimRequestMaxAggregateInputType = {
   contactEmail?: true
   phone?: true
   message?: true
+  locale?: true
+  sourceSchoolId?: true
+  schoolId?: true
+  linkedById?: true
+  linkedAt?: true
+  rejectReason?: true
+  completedAt?: true
+  completedUserId?: true
   createdAt?: true
+  updatedAt?: true
   resolvedAt?: true
 }
 
@@ -100,7 +145,16 @@ export type ClaimRequestCountAggregateInputType = {
   contactEmail?: true
   phone?: true
   message?: true
+  locale?: true
+  sourceSchoolId?: true
+  schoolId?: true
+  linkedById?: true
+  linkedAt?: true
+  rejectReason?: true
+  completedAt?: true
+  completedUserId?: true
   createdAt?: true
+  updatedAt?: true
   resolvedAt?: true
   _all?: true
 }
@@ -186,7 +240,16 @@ export type ClaimRequestGroupByOutputType = {
   contactEmail: string
   phone: string | null
   message: string | null
+  locale: string | null
+  sourceSchoolId: string | null
+  schoolId: string | null
+  linkedById: string | null
+  linkedAt: Date | null
+  rejectReason: string | null
+  completedAt: Date | null
+  completedUserId: string | null
   createdAt: Date
+  updatedAt: Date | null
   resolvedAt: Date | null
   _count: ClaimRequestCountAggregateOutputType | null
   _min: ClaimRequestMinAggregateOutputType | null
@@ -220,8 +283,21 @@ export type ClaimRequestWhereInput = {
   contactEmail?: Prisma.StringFilter<"ClaimRequest"> | string
   phone?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
   message?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  locale?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  sourceSchoolId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  schoolId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  linkedById?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  linkedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  rejectReason?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  completedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  completedUserId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ClaimRequest"> | Date | string
+  updatedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
   resolvedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  sourceSchool?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
+  school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
+  events?: Prisma.ClaimRequestEventListRelationFilter
+  invitations?: Prisma.SchoolInvitationListRelationFilter
 }
 
 export type ClaimRequestOrderByWithRelationInput = {
@@ -233,8 +309,21 @@ export type ClaimRequestOrderByWithRelationInput = {
   contactEmail?: Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   message?: Prisma.SortOrderInput | Prisma.SortOrder
+  locale?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceSchoolId?: Prisma.SortOrderInput | Prisma.SortOrder
+  schoolId?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejectReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  completedUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   resolvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceSchool?: Prisma.SchoolOrderByWithRelationInput
+  school?: Prisma.SchoolOrderByWithRelationInput
+  events?: Prisma.ClaimRequestEventOrderByRelationAggregateInput
+  invitations?: Prisma.SchoolInvitationOrderByRelationAggregateInput
 }
 
 export type ClaimRequestWhereUniqueInput = Prisma.AtLeast<{
@@ -249,8 +338,21 @@ export type ClaimRequestWhereUniqueInput = Prisma.AtLeast<{
   contactEmail?: Prisma.StringFilter<"ClaimRequest"> | string
   phone?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
   message?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  locale?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  sourceSchoolId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  schoolId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  linkedById?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  linkedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  rejectReason?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  completedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  completedUserId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ClaimRequest"> | Date | string
+  updatedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
   resolvedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  sourceSchool?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
+  school?: Prisma.XOR<Prisma.SchoolNullableScalarRelationFilter, Prisma.SchoolWhereInput> | null
+  events?: Prisma.ClaimRequestEventListRelationFilter
+  invitations?: Prisma.SchoolInvitationListRelationFilter
 }, "id">
 
 export type ClaimRequestOrderByWithAggregationInput = {
@@ -262,7 +364,16 @@ export type ClaimRequestOrderByWithAggregationInput = {
   contactEmail?: Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   message?: Prisma.SortOrderInput | Prisma.SortOrder
+  locale?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceSchoolId?: Prisma.SortOrderInput | Prisma.SortOrder
+  schoolId?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejectReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  completedUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   resolvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ClaimRequestCountOrderByAggregateInput
   _max?: Prisma.ClaimRequestMaxOrderByAggregateInput
@@ -281,7 +392,16 @@ export type ClaimRequestScalarWhereWithAggregatesInput = {
   contactEmail?: Prisma.StringWithAggregatesFilter<"ClaimRequest"> | string
   phone?: Prisma.StringNullableWithAggregatesFilter<"ClaimRequest"> | string | null
   message?: Prisma.StringNullableWithAggregatesFilter<"ClaimRequest"> | string | null
+  locale?: Prisma.StringNullableWithAggregatesFilter<"ClaimRequest"> | string | null
+  sourceSchoolId?: Prisma.StringNullableWithAggregatesFilter<"ClaimRequest"> | string | null
+  schoolId?: Prisma.StringNullableWithAggregatesFilter<"ClaimRequest"> | string | null
+  linkedById?: Prisma.StringNullableWithAggregatesFilter<"ClaimRequest"> | string | null
+  linkedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ClaimRequest"> | Date | string | null
+  rejectReason?: Prisma.StringNullableWithAggregatesFilter<"ClaimRequest"> | string | null
+  completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ClaimRequest"> | Date | string | null
+  completedUserId?: Prisma.StringNullableWithAggregatesFilter<"ClaimRequest"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClaimRequest"> | Date | string
+  updatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ClaimRequest"> | Date | string | null
   resolvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ClaimRequest"> | Date | string | null
 }
 
@@ -294,8 +414,19 @@ export type ClaimRequestCreateInput = {
   contactEmail: string
   phone?: string | null
   message?: string | null
+  locale?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string | null
   resolvedAt?: Date | string | null
+  sourceSchool?: Prisma.SchoolCreateNestedOneWithoutSourcedClaimRequestsInput
+  school?: Prisma.SchoolCreateNestedOneWithoutClaimRequestsInput
+  events?: Prisma.ClaimRequestEventCreateNestedManyWithoutClaimRequestInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutClaimRequestInput
 }
 
 export type ClaimRequestUncheckedCreateInput = {
@@ -307,8 +438,19 @@ export type ClaimRequestUncheckedCreateInput = {
   contactEmail: string
   phone?: string | null
   message?: string | null
+  locale?: string | null
+  sourceSchoolId?: string | null
+  schoolId?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string | null
   resolvedAt?: Date | string | null
+  events?: Prisma.ClaimRequestEventUncheckedCreateNestedManyWithoutClaimRequestInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutClaimRequestInput
 }
 
 export type ClaimRequestUpdateInput = {
@@ -320,8 +462,19 @@ export type ClaimRequestUpdateInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceSchool?: Prisma.SchoolUpdateOneWithoutSourcedClaimRequestsNestedInput
+  school?: Prisma.SchoolUpdateOneWithoutClaimRequestsNestedInput
+  events?: Prisma.ClaimRequestEventUpdateManyWithoutClaimRequestNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutClaimRequestNestedInput
 }
 
 export type ClaimRequestUncheckedUpdateInput = {
@@ -333,8 +486,19 @@ export type ClaimRequestUncheckedUpdateInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSchoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  events?: Prisma.ClaimRequestEventUncheckedUpdateManyWithoutClaimRequestNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutClaimRequestNestedInput
 }
 
 export type ClaimRequestCreateManyInput = {
@@ -346,7 +510,16 @@ export type ClaimRequestCreateManyInput = {
   contactEmail: string
   phone?: string | null
   message?: string | null
+  locale?: string | null
+  sourceSchoolId?: string | null
+  schoolId?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
   createdAt?: Date | string
+  updatedAt?: Date | string | null
   resolvedAt?: Date | string | null
 }
 
@@ -359,7 +532,14 @@ export type ClaimRequestUpdateManyMutationInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -372,8 +552,32 @@ export type ClaimRequestUncheckedUpdateManyInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSchoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type ClaimRequestListRelationFilter = {
+  every?: Prisma.ClaimRequestWhereInput
+  some?: Prisma.ClaimRequestWhereInput
+  none?: Prisma.ClaimRequestWhereInput
+}
+
+export type ClaimRequestOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type ClaimRequestNullableScalarRelationFilter = {
+  is?: Prisma.ClaimRequestWhereInput | null
+  isNot?: Prisma.ClaimRequestWhereInput | null
 }
 
 export type ClaimRequestCountOrderByAggregateInput = {
@@ -385,7 +589,16 @@ export type ClaimRequestCountOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   message?: Prisma.SortOrder
+  locale?: Prisma.SortOrder
+  sourceSchoolId?: Prisma.SortOrder
+  schoolId?: Prisma.SortOrder
+  linkedById?: Prisma.SortOrder
+  linkedAt?: Prisma.SortOrder
+  rejectReason?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
+  completedUserId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
 }
 
@@ -398,7 +611,16 @@ export type ClaimRequestMaxOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   message?: Prisma.SortOrder
+  locale?: Prisma.SortOrder
+  sourceSchoolId?: Prisma.SortOrder
+  schoolId?: Prisma.SortOrder
+  linkedById?: Prisma.SortOrder
+  linkedAt?: Prisma.SortOrder
+  rejectReason?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
+  completedUserId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
 }
 
@@ -411,14 +633,741 @@ export type ClaimRequestMinOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   message?: Prisma.SortOrder
+  locale?: Prisma.SortOrder
+  sourceSchoolId?: Prisma.SortOrder
+  schoolId?: Prisma.SortOrder
+  linkedById?: Prisma.SortOrder
+  linkedAt?: Prisma.SortOrder
+  rejectReason?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
+  completedUserId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   resolvedAt?: Prisma.SortOrder
+}
+
+export type ClaimRequestScalarRelationFilter = {
+  is?: Prisma.ClaimRequestWhereInput
+  isNot?: Prisma.ClaimRequestWhereInput
+}
+
+export type ClaimRequestCreateNestedManyWithoutSchoolInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput> | Prisma.ClaimRequestCreateWithoutSchoolInput[] | Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput[]
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutSchoolInput | Prisma.ClaimRequestCreateOrConnectWithoutSchoolInput[]
+  createMany?: Prisma.ClaimRequestCreateManySchoolInputEnvelope
+  connect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+}
+
+export type ClaimRequestCreateNestedManyWithoutSourceSchoolInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSourceSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput> | Prisma.ClaimRequestCreateWithoutSourceSchoolInput[] | Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput[]
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutSourceSchoolInput | Prisma.ClaimRequestCreateOrConnectWithoutSourceSchoolInput[]
+  createMany?: Prisma.ClaimRequestCreateManySourceSchoolInputEnvelope
+  connect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+}
+
+export type ClaimRequestUncheckedCreateNestedManyWithoutSchoolInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput> | Prisma.ClaimRequestCreateWithoutSchoolInput[] | Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput[]
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutSchoolInput | Prisma.ClaimRequestCreateOrConnectWithoutSchoolInput[]
+  createMany?: Prisma.ClaimRequestCreateManySchoolInputEnvelope
+  connect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+}
+
+export type ClaimRequestUncheckedCreateNestedManyWithoutSourceSchoolInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSourceSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput> | Prisma.ClaimRequestCreateWithoutSourceSchoolInput[] | Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput[]
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutSourceSchoolInput | Prisma.ClaimRequestCreateOrConnectWithoutSourceSchoolInput[]
+  createMany?: Prisma.ClaimRequestCreateManySourceSchoolInputEnvelope
+  connect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+}
+
+export type ClaimRequestUpdateManyWithoutSchoolNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput> | Prisma.ClaimRequestCreateWithoutSchoolInput[] | Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput[]
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutSchoolInput | Prisma.ClaimRequestCreateOrConnectWithoutSchoolInput[]
+  upsert?: Prisma.ClaimRequestUpsertWithWhereUniqueWithoutSchoolInput | Prisma.ClaimRequestUpsertWithWhereUniqueWithoutSchoolInput[]
+  createMany?: Prisma.ClaimRequestCreateManySchoolInputEnvelope
+  set?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  disconnect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  delete?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  connect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  update?: Prisma.ClaimRequestUpdateWithWhereUniqueWithoutSchoolInput | Prisma.ClaimRequestUpdateWithWhereUniqueWithoutSchoolInput[]
+  updateMany?: Prisma.ClaimRequestUpdateManyWithWhereWithoutSchoolInput | Prisma.ClaimRequestUpdateManyWithWhereWithoutSchoolInput[]
+  deleteMany?: Prisma.ClaimRequestScalarWhereInput | Prisma.ClaimRequestScalarWhereInput[]
+}
+
+export type ClaimRequestUpdateManyWithoutSourceSchoolNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSourceSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput> | Prisma.ClaimRequestCreateWithoutSourceSchoolInput[] | Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput[]
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutSourceSchoolInput | Prisma.ClaimRequestCreateOrConnectWithoutSourceSchoolInput[]
+  upsert?: Prisma.ClaimRequestUpsertWithWhereUniqueWithoutSourceSchoolInput | Prisma.ClaimRequestUpsertWithWhereUniqueWithoutSourceSchoolInput[]
+  createMany?: Prisma.ClaimRequestCreateManySourceSchoolInputEnvelope
+  set?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  disconnect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  delete?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  connect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  update?: Prisma.ClaimRequestUpdateWithWhereUniqueWithoutSourceSchoolInput | Prisma.ClaimRequestUpdateWithWhereUniqueWithoutSourceSchoolInput[]
+  updateMany?: Prisma.ClaimRequestUpdateManyWithWhereWithoutSourceSchoolInput | Prisma.ClaimRequestUpdateManyWithWhereWithoutSourceSchoolInput[]
+  deleteMany?: Prisma.ClaimRequestScalarWhereInput | Prisma.ClaimRequestScalarWhereInput[]
+}
+
+export type ClaimRequestUncheckedUpdateManyWithoutSchoolNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput> | Prisma.ClaimRequestCreateWithoutSchoolInput[] | Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput[]
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutSchoolInput | Prisma.ClaimRequestCreateOrConnectWithoutSchoolInput[]
+  upsert?: Prisma.ClaimRequestUpsertWithWhereUniqueWithoutSchoolInput | Prisma.ClaimRequestUpsertWithWhereUniqueWithoutSchoolInput[]
+  createMany?: Prisma.ClaimRequestCreateManySchoolInputEnvelope
+  set?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  disconnect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  delete?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  connect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  update?: Prisma.ClaimRequestUpdateWithWhereUniqueWithoutSchoolInput | Prisma.ClaimRequestUpdateWithWhereUniqueWithoutSchoolInput[]
+  updateMany?: Prisma.ClaimRequestUpdateManyWithWhereWithoutSchoolInput | Prisma.ClaimRequestUpdateManyWithWhereWithoutSchoolInput[]
+  deleteMany?: Prisma.ClaimRequestScalarWhereInput | Prisma.ClaimRequestScalarWhereInput[]
+}
+
+export type ClaimRequestUncheckedUpdateManyWithoutSourceSchoolNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSourceSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput> | Prisma.ClaimRequestCreateWithoutSourceSchoolInput[] | Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput[]
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutSourceSchoolInput | Prisma.ClaimRequestCreateOrConnectWithoutSourceSchoolInput[]
+  upsert?: Prisma.ClaimRequestUpsertWithWhereUniqueWithoutSourceSchoolInput | Prisma.ClaimRequestUpsertWithWhereUniqueWithoutSourceSchoolInput[]
+  createMany?: Prisma.ClaimRequestCreateManySourceSchoolInputEnvelope
+  set?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  disconnect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  delete?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  connect?: Prisma.ClaimRequestWhereUniqueInput | Prisma.ClaimRequestWhereUniqueInput[]
+  update?: Prisma.ClaimRequestUpdateWithWhereUniqueWithoutSourceSchoolInput | Prisma.ClaimRequestUpdateWithWhereUniqueWithoutSourceSchoolInput[]
+  updateMany?: Prisma.ClaimRequestUpdateManyWithWhereWithoutSourceSchoolInput | Prisma.ClaimRequestUpdateManyWithWhereWithoutSourceSchoolInput[]
+  deleteMany?: Prisma.ClaimRequestScalarWhereInput | Prisma.ClaimRequestScalarWhereInput[]
+}
+
+export type ClaimRequestCreateNestedOneWithoutInvitationsInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutInvitationsInput, Prisma.ClaimRequestUncheckedCreateWithoutInvitationsInput>
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutInvitationsInput
+  connect?: Prisma.ClaimRequestWhereUniqueInput
+}
+
+export type ClaimRequestUpdateOneWithoutInvitationsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutInvitationsInput, Prisma.ClaimRequestUncheckedCreateWithoutInvitationsInput>
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutInvitationsInput
+  upsert?: Prisma.ClaimRequestUpsertWithoutInvitationsInput
+  disconnect?: Prisma.ClaimRequestWhereInput | boolean
+  delete?: Prisma.ClaimRequestWhereInput | boolean
+  connect?: Prisma.ClaimRequestWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClaimRequestUpdateToOneWithWhereWithoutInvitationsInput, Prisma.ClaimRequestUpdateWithoutInvitationsInput>, Prisma.ClaimRequestUncheckedUpdateWithoutInvitationsInput>
 }
 
 export type EnumClaimRequestStatusFieldUpdateOperationsInput = {
   set?: $Enums.ClaimRequestStatus
 }
 
+export type ClaimRequestCreateNestedOneWithoutEventsInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutEventsInput, Prisma.ClaimRequestUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutEventsInput
+  connect?: Prisma.ClaimRequestWhereUniqueInput
+}
+
+export type ClaimRequestUpdateOneRequiredWithoutEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimRequestCreateWithoutEventsInput, Prisma.ClaimRequestUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.ClaimRequestCreateOrConnectWithoutEventsInput
+  upsert?: Prisma.ClaimRequestUpsertWithoutEventsInput
+  connect?: Prisma.ClaimRequestWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClaimRequestUpdateToOneWithWhereWithoutEventsInput, Prisma.ClaimRequestUpdateWithoutEventsInput>, Prisma.ClaimRequestUncheckedUpdateWithoutEventsInput>
+}
+
+export type ClaimRequestCreateWithoutSchoolInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+  sourceSchool?: Prisma.SchoolCreateNestedOneWithoutSourcedClaimRequestsInput
+  events?: Prisma.ClaimRequestEventCreateNestedManyWithoutClaimRequestInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutClaimRequestInput
+}
+
+export type ClaimRequestUncheckedCreateWithoutSchoolInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  sourceSchoolId?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+  events?: Prisma.ClaimRequestEventUncheckedCreateNestedManyWithoutClaimRequestInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutClaimRequestInput
+}
+
+export type ClaimRequestCreateOrConnectWithoutSchoolInput = {
+  where: Prisma.ClaimRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput>
+}
+
+export type ClaimRequestCreateManySchoolInputEnvelope = {
+  data: Prisma.ClaimRequestCreateManySchoolInput | Prisma.ClaimRequestCreateManySchoolInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClaimRequestCreateWithoutSourceSchoolInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+  school?: Prisma.SchoolCreateNestedOneWithoutClaimRequestsInput
+  events?: Prisma.ClaimRequestEventCreateNestedManyWithoutClaimRequestInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutClaimRequestInput
+}
+
+export type ClaimRequestUncheckedCreateWithoutSourceSchoolInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  schoolId?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+  events?: Prisma.ClaimRequestEventUncheckedCreateNestedManyWithoutClaimRequestInput
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutClaimRequestInput
+}
+
+export type ClaimRequestCreateOrConnectWithoutSourceSchoolInput = {
+  where: Prisma.ClaimRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSourceSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput>
+}
+
+export type ClaimRequestCreateManySourceSchoolInputEnvelope = {
+  data: Prisma.ClaimRequestCreateManySourceSchoolInput | Prisma.ClaimRequestCreateManySourceSchoolInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClaimRequestUpsertWithWhereUniqueWithoutSchoolInput = {
+  where: Prisma.ClaimRequestWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClaimRequestUpdateWithoutSchoolInput, Prisma.ClaimRequestUncheckedUpdateWithoutSchoolInput>
+  create: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSchoolInput>
+}
+
+export type ClaimRequestUpdateWithWhereUniqueWithoutSchoolInput = {
+  where: Prisma.ClaimRequestWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClaimRequestUpdateWithoutSchoolInput, Prisma.ClaimRequestUncheckedUpdateWithoutSchoolInput>
+}
+
+export type ClaimRequestUpdateManyWithWhereWithoutSchoolInput = {
+  where: Prisma.ClaimRequestScalarWhereInput
+  data: Prisma.XOR<Prisma.ClaimRequestUpdateManyMutationInput, Prisma.ClaimRequestUncheckedUpdateManyWithoutSchoolInput>
+}
+
+export type ClaimRequestScalarWhereInput = {
+  AND?: Prisma.ClaimRequestScalarWhereInput | Prisma.ClaimRequestScalarWhereInput[]
+  OR?: Prisma.ClaimRequestScalarWhereInput[]
+  NOT?: Prisma.ClaimRequestScalarWhereInput | Prisma.ClaimRequestScalarWhereInput[]
+  id?: Prisma.StringFilter<"ClaimRequest"> | string
+  status?: Prisma.EnumClaimRequestStatusFilter<"ClaimRequest"> | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFilter<"ClaimRequest"> | string
+  city?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  contactName?: Prisma.StringFilter<"ClaimRequest"> | string
+  contactEmail?: Prisma.StringFilter<"ClaimRequest"> | string
+  phone?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  message?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  locale?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  sourceSchoolId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  schoolId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  linkedById?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  linkedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  rejectReason?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  completedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  completedUserId?: Prisma.StringNullableFilter<"ClaimRequest"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"ClaimRequest"> | Date | string
+  updatedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+  resolvedAt?: Prisma.DateTimeNullableFilter<"ClaimRequest"> | Date | string | null
+}
+
+export type ClaimRequestUpsertWithWhereUniqueWithoutSourceSchoolInput = {
+  where: Prisma.ClaimRequestWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClaimRequestUpdateWithoutSourceSchoolInput, Prisma.ClaimRequestUncheckedUpdateWithoutSourceSchoolInput>
+  create: Prisma.XOR<Prisma.ClaimRequestCreateWithoutSourceSchoolInput, Prisma.ClaimRequestUncheckedCreateWithoutSourceSchoolInput>
+}
+
+export type ClaimRequestUpdateWithWhereUniqueWithoutSourceSchoolInput = {
+  where: Prisma.ClaimRequestWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClaimRequestUpdateWithoutSourceSchoolInput, Prisma.ClaimRequestUncheckedUpdateWithoutSourceSchoolInput>
+}
+
+export type ClaimRequestUpdateManyWithWhereWithoutSourceSchoolInput = {
+  where: Prisma.ClaimRequestScalarWhereInput
+  data: Prisma.XOR<Prisma.ClaimRequestUpdateManyMutationInput, Prisma.ClaimRequestUncheckedUpdateManyWithoutSourceSchoolInput>
+}
+
+export type ClaimRequestCreateWithoutInvitationsInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+  sourceSchool?: Prisma.SchoolCreateNestedOneWithoutSourcedClaimRequestsInput
+  school?: Prisma.SchoolCreateNestedOneWithoutClaimRequestsInput
+  events?: Prisma.ClaimRequestEventCreateNestedManyWithoutClaimRequestInput
+}
+
+export type ClaimRequestUncheckedCreateWithoutInvitationsInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  sourceSchoolId?: string | null
+  schoolId?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+  events?: Prisma.ClaimRequestEventUncheckedCreateNestedManyWithoutClaimRequestInput
+}
+
+export type ClaimRequestCreateOrConnectWithoutInvitationsInput = {
+  where: Prisma.ClaimRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClaimRequestCreateWithoutInvitationsInput, Prisma.ClaimRequestUncheckedCreateWithoutInvitationsInput>
+}
+
+export type ClaimRequestUpsertWithoutInvitationsInput = {
+  update: Prisma.XOR<Prisma.ClaimRequestUpdateWithoutInvitationsInput, Prisma.ClaimRequestUncheckedUpdateWithoutInvitationsInput>
+  create: Prisma.XOR<Prisma.ClaimRequestCreateWithoutInvitationsInput, Prisma.ClaimRequestUncheckedCreateWithoutInvitationsInput>
+  where?: Prisma.ClaimRequestWhereInput
+}
+
+export type ClaimRequestUpdateToOneWithWhereWithoutInvitationsInput = {
+  where?: Prisma.ClaimRequestWhereInput
+  data: Prisma.XOR<Prisma.ClaimRequestUpdateWithoutInvitationsInput, Prisma.ClaimRequestUncheckedUpdateWithoutInvitationsInput>
+}
+
+export type ClaimRequestUpdateWithoutInvitationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceSchool?: Prisma.SchoolUpdateOneWithoutSourcedClaimRequestsNestedInput
+  school?: Prisma.SchoolUpdateOneWithoutClaimRequestsNestedInput
+  events?: Prisma.ClaimRequestEventUpdateManyWithoutClaimRequestNestedInput
+}
+
+export type ClaimRequestUncheckedUpdateWithoutInvitationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSchoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  events?: Prisma.ClaimRequestEventUncheckedUpdateManyWithoutClaimRequestNestedInput
+}
+
+export type ClaimRequestCreateWithoutEventsInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+  sourceSchool?: Prisma.SchoolCreateNestedOneWithoutSourcedClaimRequestsInput
+  school?: Prisma.SchoolCreateNestedOneWithoutClaimRequestsInput
+  invitations?: Prisma.SchoolInvitationCreateNestedManyWithoutClaimRequestInput
+}
+
+export type ClaimRequestUncheckedCreateWithoutEventsInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  sourceSchoolId?: string | null
+  schoolId?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+  invitations?: Prisma.SchoolInvitationUncheckedCreateNestedManyWithoutClaimRequestInput
+}
+
+export type ClaimRequestCreateOrConnectWithoutEventsInput = {
+  where: Prisma.ClaimRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClaimRequestCreateWithoutEventsInput, Prisma.ClaimRequestUncheckedCreateWithoutEventsInput>
+}
+
+export type ClaimRequestUpsertWithoutEventsInput = {
+  update: Prisma.XOR<Prisma.ClaimRequestUpdateWithoutEventsInput, Prisma.ClaimRequestUncheckedUpdateWithoutEventsInput>
+  create: Prisma.XOR<Prisma.ClaimRequestCreateWithoutEventsInput, Prisma.ClaimRequestUncheckedCreateWithoutEventsInput>
+  where?: Prisma.ClaimRequestWhereInput
+}
+
+export type ClaimRequestUpdateToOneWithWhereWithoutEventsInput = {
+  where?: Prisma.ClaimRequestWhereInput
+  data: Prisma.XOR<Prisma.ClaimRequestUpdateWithoutEventsInput, Prisma.ClaimRequestUncheckedUpdateWithoutEventsInput>
+}
+
+export type ClaimRequestUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceSchool?: Prisma.SchoolUpdateOneWithoutSourcedClaimRequestsNestedInput
+  school?: Prisma.SchoolUpdateOneWithoutClaimRequestsNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutClaimRequestNestedInput
+}
+
+export type ClaimRequestUncheckedUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSchoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutClaimRequestNestedInput
+}
+
+export type ClaimRequestCreateManySchoolInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  sourceSchoolId?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+}
+
+export type ClaimRequestCreateManySourceSchoolInput = {
+  id?: string
+  status?: $Enums.ClaimRequestStatus
+  schoolName: string
+  city?: string | null
+  contactName: string
+  contactEmail: string
+  phone?: string | null
+  message?: string | null
+  locale?: string | null
+  schoolId?: string | null
+  linkedById?: string | null
+  linkedAt?: Date | string | null
+  rejectReason?: string | null
+  completedAt?: Date | string | null
+  completedUserId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string | null
+  resolvedAt?: Date | string | null
+}
+
+export type ClaimRequestUpdateWithoutSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceSchool?: Prisma.SchoolUpdateOneWithoutSourcedClaimRequestsNestedInput
+  events?: Prisma.ClaimRequestEventUpdateManyWithoutClaimRequestNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutClaimRequestNestedInput
+}
+
+export type ClaimRequestUncheckedUpdateWithoutSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSchoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  events?: Prisma.ClaimRequestEventUncheckedUpdateManyWithoutClaimRequestNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutClaimRequestNestedInput
+}
+
+export type ClaimRequestUncheckedUpdateManyWithoutSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSchoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type ClaimRequestUpdateWithoutSourceSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  school?: Prisma.SchoolUpdateOneWithoutClaimRequestsNestedInput
+  events?: Prisma.ClaimRequestEventUpdateManyWithoutClaimRequestNestedInput
+  invitations?: Prisma.SchoolInvitationUpdateManyWithoutClaimRequestNestedInput
+}
+
+export type ClaimRequestUncheckedUpdateWithoutSourceSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  events?: Prisma.ClaimRequestEventUncheckedUpdateManyWithoutClaimRequestNestedInput
+  invitations?: Prisma.SchoolInvitationUncheckedUpdateManyWithoutClaimRequestNestedInput
+}
+
+export type ClaimRequestUncheckedUpdateManyWithoutSourceSchoolInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumClaimRequestStatusFieldUpdateOperationsInput | $Enums.ClaimRequestStatus
+  schoolName?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  schoolId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resolvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+
+/**
+ * Count Type ClaimRequestCountOutputType
+ */
+
+export type ClaimRequestCountOutputType = {
+  events: number
+  invitations: number
+}
+
+export type ClaimRequestCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  events?: boolean | ClaimRequestCountOutputTypeCountEventsArgs
+  invitations?: boolean | ClaimRequestCountOutputTypeCountInvitationsArgs
+}
+
+/**
+ * ClaimRequestCountOutputType without action
+ */
+export type ClaimRequestCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClaimRequestCountOutputType
+   */
+  select?: Prisma.ClaimRequestCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ClaimRequestCountOutputType without action
+ */
+export type ClaimRequestCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClaimRequestEventWhereInput
+}
+
+/**
+ * ClaimRequestCountOutputType without action
+ */
+export type ClaimRequestCountOutputTypeCountInvitationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SchoolInvitationWhereInput
+}
 
 
 export type ClaimRequestSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -430,8 +1379,22 @@ export type ClaimRequestSelect<ExtArgs extends runtime.Types.Extensions.Internal
   contactEmail?: boolean
   phone?: boolean
   message?: boolean
+  locale?: boolean
+  sourceSchoolId?: boolean
+  schoolId?: boolean
+  linkedById?: boolean
+  linkedAt?: boolean
+  rejectReason?: boolean
+  completedAt?: boolean
+  completedUserId?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   resolvedAt?: boolean
+  sourceSchool?: boolean | Prisma.ClaimRequest$sourceSchoolArgs<ExtArgs>
+  school?: boolean | Prisma.ClaimRequest$schoolArgs<ExtArgs>
+  events?: boolean | Prisma.ClaimRequest$eventsArgs<ExtArgs>
+  invitations?: boolean | Prisma.ClaimRequest$invitationsArgs<ExtArgs>
+  _count?: boolean | Prisma.ClaimRequestCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["claimRequest"]>
 
 export type ClaimRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -443,8 +1406,19 @@ export type ClaimRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   contactEmail?: boolean
   phone?: boolean
   message?: boolean
+  locale?: boolean
+  sourceSchoolId?: boolean
+  schoolId?: boolean
+  linkedById?: boolean
+  linkedAt?: boolean
+  rejectReason?: boolean
+  completedAt?: boolean
+  completedUserId?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   resolvedAt?: boolean
+  sourceSchool?: boolean | Prisma.ClaimRequest$sourceSchoolArgs<ExtArgs>
+  school?: boolean | Prisma.ClaimRequest$schoolArgs<ExtArgs>
 }, ExtArgs["result"]["claimRequest"]>
 
 export type ClaimRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -456,8 +1430,19 @@ export type ClaimRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   contactEmail?: boolean
   phone?: boolean
   message?: boolean
+  locale?: boolean
+  sourceSchoolId?: boolean
+  schoolId?: boolean
+  linkedById?: boolean
+  linkedAt?: boolean
+  rejectReason?: boolean
+  completedAt?: boolean
+  completedUserId?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   resolvedAt?: boolean
+  sourceSchool?: boolean | Prisma.ClaimRequest$sourceSchoolArgs<ExtArgs>
+  school?: boolean | Prisma.ClaimRequest$schoolArgs<ExtArgs>
 }, ExtArgs["result"]["claimRequest"]>
 
 export type ClaimRequestSelectScalar = {
@@ -469,15 +1454,44 @@ export type ClaimRequestSelectScalar = {
   contactEmail?: boolean
   phone?: boolean
   message?: boolean
+  locale?: boolean
+  sourceSchoolId?: boolean
+  schoolId?: boolean
+  linkedById?: boolean
+  linkedAt?: boolean
+  rejectReason?: boolean
+  completedAt?: boolean
+  completedUserId?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   resolvedAt?: boolean
 }
 
-export type ClaimRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "status" | "schoolName" | "city" | "contactName" | "contactEmail" | "phone" | "message" | "createdAt" | "resolvedAt", ExtArgs["result"]["claimRequest"]>
+export type ClaimRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "status" | "schoolName" | "city" | "contactName" | "contactEmail" | "phone" | "message" | "locale" | "sourceSchoolId" | "schoolId" | "linkedById" | "linkedAt" | "rejectReason" | "completedAt" | "completedUserId" | "createdAt" | "updatedAt" | "resolvedAt", ExtArgs["result"]["claimRequest"]>
+export type ClaimRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sourceSchool?: boolean | Prisma.ClaimRequest$sourceSchoolArgs<ExtArgs>
+  school?: boolean | Prisma.ClaimRequest$schoolArgs<ExtArgs>
+  events?: boolean | Prisma.ClaimRequest$eventsArgs<ExtArgs>
+  invitations?: boolean | Prisma.ClaimRequest$invitationsArgs<ExtArgs>
+  _count?: boolean | Prisma.ClaimRequestCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type ClaimRequestIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sourceSchool?: boolean | Prisma.ClaimRequest$sourceSchoolArgs<ExtArgs>
+  school?: boolean | Prisma.ClaimRequest$schoolArgs<ExtArgs>
+}
+export type ClaimRequestIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sourceSchool?: boolean | Prisma.ClaimRequest$sourceSchoolArgs<ExtArgs>
+  school?: boolean | Prisma.ClaimRequest$schoolArgs<ExtArgs>
+}
 
 export type $ClaimRequestPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ClaimRequest"
-  objects: {}
+  objects: {
+    sourceSchool: Prisma.$SchoolPayload<ExtArgs> | null
+    school: Prisma.$SchoolPayload<ExtArgs> | null
+    events: Prisma.$ClaimRequestEventPayload<ExtArgs>[]
+    invitations: Prisma.$SchoolInvitationPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     status: $Enums.ClaimRequestStatus
@@ -487,7 +1501,16 @@ export type $ClaimRequestPayload<ExtArgs extends runtime.Types.Extensions.Intern
     contactEmail: string
     phone: string | null
     message: string | null
+    locale: string | null
+    sourceSchoolId: string | null
+    schoolId: string | null
+    linkedById: string | null
+    linkedAt: Date | null
+    rejectReason: string | null
+    completedAt: Date | null
+    completedUserId: string | null
     createdAt: Date
+    updatedAt: Date | null
     resolvedAt: Date | null
   }, ExtArgs["result"]["claimRequest"]>
   composites: {}
@@ -883,6 +1906,10 @@ readonly fields: ClaimRequestFieldRefs;
  */
 export interface Prisma__ClaimRequestClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  sourceSchool<T extends Prisma.ClaimRequest$sourceSchoolArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClaimRequest$sourceSchoolArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  school<T extends Prisma.ClaimRequest$schoolArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClaimRequest$schoolArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  events<T extends Prisma.ClaimRequest$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClaimRequest$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimRequestEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invitations<T extends Prisma.ClaimRequest$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClaimRequest$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SchoolInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -920,7 +1947,16 @@ export interface ClaimRequestFieldRefs {
   readonly contactEmail: Prisma.FieldRef<"ClaimRequest", 'String'>
   readonly phone: Prisma.FieldRef<"ClaimRequest", 'String'>
   readonly message: Prisma.FieldRef<"ClaimRequest", 'String'>
+  readonly locale: Prisma.FieldRef<"ClaimRequest", 'String'>
+  readonly sourceSchoolId: Prisma.FieldRef<"ClaimRequest", 'String'>
+  readonly schoolId: Prisma.FieldRef<"ClaimRequest", 'String'>
+  readonly linkedById: Prisma.FieldRef<"ClaimRequest", 'String'>
+  readonly linkedAt: Prisma.FieldRef<"ClaimRequest", 'DateTime'>
+  readonly rejectReason: Prisma.FieldRef<"ClaimRequest", 'String'>
+  readonly completedAt: Prisma.FieldRef<"ClaimRequest", 'DateTime'>
+  readonly completedUserId: Prisma.FieldRef<"ClaimRequest", 'String'>
   readonly createdAt: Prisma.FieldRef<"ClaimRequest", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"ClaimRequest", 'DateTime'>
   readonly resolvedAt: Prisma.FieldRef<"ClaimRequest", 'DateTime'>
 }
     
@@ -938,6 +1974,10 @@ export type ClaimRequestFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.
    * Omit specific fields from the ClaimRequest
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
   /**
    * Filter, which ClaimRequest to fetch.
    */
@@ -957,6 +1997,10 @@ export type ClaimRequestFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Exte
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
+  /**
    * Filter, which ClaimRequest to fetch.
    */
   where: Prisma.ClaimRequestWhereUniqueInput
@@ -974,6 +2018,10 @@ export type ClaimRequestFindFirstArgs<ExtArgs extends runtime.Types.Extensions.I
    * Omit specific fields from the ClaimRequest
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
   /**
    * Filter, which ClaimRequest to fetch.
    */
@@ -1023,6 +2071,10 @@ export type ClaimRequestFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Exten
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
+  /**
    * Filter, which ClaimRequest to fetch.
    */
   where?: Prisma.ClaimRequestWhereInput
@@ -1070,6 +2122,10 @@ export type ClaimRequestFindManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the ClaimRequest
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
   /**
    * Filter, which ClaimRequests to fetch.
    */
@@ -1119,6 +2175,10 @@ export type ClaimRequestCreateArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
+  /**
    * The data needed to create a ClaimRequest.
    */
   data: Prisma.XOR<Prisma.ClaimRequestCreateInput, Prisma.ClaimRequestUncheckedCreateInput>
@@ -1152,6 +2212,10 @@ export type ClaimRequestCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ex
    */
   data: Prisma.ClaimRequestCreateManyInput | Prisma.ClaimRequestCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1166,6 +2230,10 @@ export type ClaimRequestUpdateArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the ClaimRequest
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
   /**
    * The data needed to update a ClaimRequest.
    */
@@ -1218,6 +2286,10 @@ export type ClaimRequestUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Ex
    * Limit how many ClaimRequests to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1232,6 +2304,10 @@ export type ClaimRequestUpsertArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the ClaimRequest
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
   /**
    * The filter to search for the ClaimRequest to update in case it exists.
    */
@@ -1259,6 +2335,10 @@ export type ClaimRequestDeleteArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
+  /**
    * Filter which ClaimRequest to delete.
    */
   where: Prisma.ClaimRequestWhereUniqueInput
@@ -1279,6 +2359,92 @@ export type ClaimRequestDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
+ * ClaimRequest.sourceSchool
+ */
+export type ClaimRequest$sourceSchoolArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the School
+   */
+  select?: Prisma.SchoolSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the School
+   */
+  omit?: Prisma.SchoolOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SchoolInclude<ExtArgs> | null
+  where?: Prisma.SchoolWhereInput
+}
+
+/**
+ * ClaimRequest.school
+ */
+export type ClaimRequest$schoolArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the School
+   */
+  select?: Prisma.SchoolSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the School
+   */
+  omit?: Prisma.SchoolOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SchoolInclude<ExtArgs> | null
+  where?: Prisma.SchoolWhereInput
+}
+
+/**
+ * ClaimRequest.events
+ */
+export type ClaimRequest$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClaimRequestEvent
+   */
+  select?: Prisma.ClaimRequestEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClaimRequestEvent
+   */
+  omit?: Prisma.ClaimRequestEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestEventInclude<ExtArgs> | null
+  where?: Prisma.ClaimRequestEventWhereInput
+  orderBy?: Prisma.ClaimRequestEventOrderByWithRelationInput | Prisma.ClaimRequestEventOrderByWithRelationInput[]
+  cursor?: Prisma.ClaimRequestEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClaimRequestEventScalarFieldEnum | Prisma.ClaimRequestEventScalarFieldEnum[]
+}
+
+/**
+ * ClaimRequest.invitations
+ */
+export type ClaimRequest$invitationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SchoolInvitation
+   */
+  select?: Prisma.SchoolInvitationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SchoolInvitation
+   */
+  omit?: Prisma.SchoolInvitationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SchoolInvitationInclude<ExtArgs> | null
+  where?: Prisma.SchoolInvitationWhereInput
+  orderBy?: Prisma.SchoolInvitationOrderByWithRelationInput | Prisma.SchoolInvitationOrderByWithRelationInput[]
+  cursor?: Prisma.SchoolInvitationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SchoolInvitationScalarFieldEnum | Prisma.SchoolInvitationScalarFieldEnum[]
+}
+
+/**
  * ClaimRequest without action
  */
 export type ClaimRequestDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1290,4 +2456,8 @@ export type ClaimRequestDefaultArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the ClaimRequest
    */
   omit?: Prisma.ClaimRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimRequestInclude<ExtArgs> | null
 }

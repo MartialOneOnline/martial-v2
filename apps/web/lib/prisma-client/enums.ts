@@ -340,6 +340,17 @@ export const InvitationStatus = {
 export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
 
 
+export const InvitationDeliveryStatus = {
+  PREPARED: 'PREPARED',
+  SENDING: 'SENDING',
+  ACCEPTED: 'ACCEPTED',
+  FAILED: 'FAILED',
+  UNCERTAIN: 'UNCERTAIN'
+} as const
+
+export type InvitationDeliveryStatus = (typeof InvitationDeliveryStatus)[keyof typeof InvitationDeliveryStatus]
+
+
 export const InvitationSource = {
   MANUAL: 'MANUAL',
   IMPORT: 'IMPORT'
@@ -408,6 +419,8 @@ export type NotificationType = (typeof NotificationType)[keyof typeof Notificati
 
 export const ClaimRequestStatus = {
   PENDING: 'PENDING',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
   RESOLVED: 'RESOLVED',
   DISMISSED: 'DISMISSED'
 } as const

@@ -28,7 +28,8 @@ vi.mock('@/lib/db', () => ({
     membership: { findMany: membershipFindMany },
     school: { count: genericCount, groupBy: genericGroupBy, findMany: genericFindMany },
     user: { count: genericCount },
-    schoolInvitation: { count: genericCount },
+    schoolInvitation: { count: genericCount, findMany: genericFindMany },
+    claimRequest: { count: genericCount },
     $queryRaw: genericQueryRaw,
   },
 }))

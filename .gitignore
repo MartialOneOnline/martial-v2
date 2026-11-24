@@ -40,3 +40,6 @@ yarn-error.log*
 /generated/prisma
 prisma/v1-*.csv
 scripts/_rgm-pending-invites*.txt
+
+# Claims E2E kit: generated test credentials (never commit)
+scripts/claims-e2e/.credentials.txt

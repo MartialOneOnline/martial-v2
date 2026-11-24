@@ -10,6 +10,10 @@ import { adminFetch } from '@/lib/api/adminFetch'
 import { useAdminShell } from '../../AdminLayoutClient'
 import { fmtPrice } from '@/lib/format'
 import { matchesSearch } from '@/lib/search'
+import {
+  INVITATION_STATE_BADGE, INVITATION_STATE_LABEL, REQUEST_STATUS_BADGE, REQUEST_STATUS_LABEL,
+  type InvitationState, type RequestStatus,
+} from '@/lib/claims/labels'
 
 type Person = { name: string | null; email: string }
 type BookingRow = {
@@ -22,6 +26,10 @@ type BookingRow = {
   class: { name: string }
 }
 type Overview = {
+  ownership?: {
+    requests: { id: string; status: RequestStatus; schoolName: string; contactName: string; contactEmail: string; createdAt: string; linked: boolean }[]
+    invitations: { id: string; recipient: string; state: InvitationState; createdAt: string; claimRequestId: string | null }[]
+  }
   school: {
     id: string; name: string; slug: string; status: string; type: string
     city: string | null; country: string | null; email: string | null; phone: string | null
@@ -247,6 +255,39 @@ export default function SchoolOverviewClient({ schoolId }: { schoolId: string })
           <StatCard icon={Wallet} label="Income this month" value={income}
             sub={[school.stripeConnected && 'Stripe', school.revolutConnected && 'Revolut'].filter(Boolean).join(' · ') || 'No online payments'} />
         </div>
+
+        {/* Ownership requests & owner invitations tied to this school */}
+        {data.ownership && (data.ownership.requests.length > 0 || data.ownership.invitations.length > 0) && (
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sm:p-5">
+            <h2 className="text-sm font-bold text-[#101828] mb-3">Ownership</h2>
+            {data.ownership.requests.length > 0 && (
+              <ul className="divide-y divide-gray-50 mb-3">
+                {data.ownership.requests.map(r => (
+                  <li key={r.id}>
+                    <Link href={`/admin/claims/${r.id}`} className="py-2 flex items-center justify-between gap-3 hover:bg-gray-50/60 rounded-lg">
+                      <span className="min-w-0 text-xs">
+                        <span className="font-semibold text-[#101828]">{r.contactName}</span>
+                        <span className="text-gray-400 break-all"> · {r.contactEmail} · {new Date(r.createdAt).toLocaleDateString('en-GB')}</span>
+                        {!r.linked && <span className="text-gray-400"> · started from this page (not linked)</span>}
+                      </span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${REQUEST_STATUS_BADGE[r.status]}`}>{REQUEST_STATUS_LABEL[r.status]}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {data.ownership.invitations.length > 0 && (
+              <ul className="space-y-1.5">
+                {data.ownership.invitations.map(i => (
+                  <li key={i.id} className="flex items-center justify-between gap-3 text-xs">
+                    <span className="min-w-0 break-all text-gray-600">Invitation to {i.recipient} · {new Date(i.createdAt).toLocaleDateString('en-GB')}</span>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${INVITATION_STATE_BADGE[i.state]}`}>{INVITATION_STATE_LABEL[i.state]}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 overflow-x-auto border-b border-gray-200">
