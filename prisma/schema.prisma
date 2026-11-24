@@ -1242,9 +1242,11 @@ enum CampaignStatus {
 }
 
 enum CampaignRecipientStatus {
-  PENDING
-  SENT
-  FAILED
+  PENDING // waiting for its first send, or for a scheduled retry (attempts > 0, nextAttemptAt)
+  SENDING // claimed by a worker (claimToken/claimedUntil lease); request may be in flight
+  SENT // accepted by Resend (not proof of delivery)
+  FAILED // definitively rejected, or retries exhausted after confirmed non-acceptance
+  UNCERTAIN // outcome unknown (lost response) and no longer safe to retry automatically
   SKIPPED // no email on file for this member
 }
 
@@ -1297,16 +1299,46 @@ model CampaignRecipient {
   status       CampaignRecipientStatus @default(PENDING)
 
   sentAt        DateTime?
-  failedReason  String?
-  resendEmailId String? // correlation id, unused today but cheap to capture for future open/click tracking
+  failedReason  String? // last provider/transport error message, shown in the campaign detail
+  resendEmailId String? // Resend id of the accepted email
   convertedAt   DateTime?
+
+  // Delivery bookkeeping (lib/services/campaigns.ts). attempts counts real
+  // send attempts; quota waits don't consume it. idempotencyGen is bumped only
+  // after a confirmed non-acceptance, so a lost response is always retried
+  // with the same Idempotency-Key. uncertainSince marks the first attempt of
+  // the current key whose outcome is unknown (Resend keeps keys for 24h).
+  attempts       Int       @default(0)
+  nextAttemptAt  DateTime?
+  lastAttemptAt  DateTime?
+  idempotencyGen Int       @default(0)
+  uncertainSince DateTime?
+  claimToken     String?
+  claimedUntil   DateTime?
+  lastErrorCode  String?
+  lastStatusCode Int?
 
   createdAt DateTime @default(now())
 
   @@unique([campaignId, schoolMemberId])
   @@index([campaignId, status])
+  @@index([status, claimedUntil])
   @@index([schoolMemberId])
   @@map("campaign_recipients")
+}
+
+// Shared pacing for bulk sends through Resend (lib/email/rateLimiter.ts). One
+// row per lane; every serverless instance reserves its next request slot with
+// a single atomic UPDATE, and a 429/quota response pauses the lane for all.
+model EmailRateLimit {
+  key         String    @id
+  nextSlotAt  DateTime  @default(now())
+  pausedUntil DateTime?
+  pauseReason String? // RATE_LIMIT | DAILY_QUOTA | MONTHLY_QUOTA | CONFIG
+  pauseDetail String?
+  updatedAt   DateTime  @default(now())
+
+  @@map("email_rate_limits")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

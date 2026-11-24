@@ -81,6 +81,7 @@ export const ModelName = {
   StaffRole: 'StaffRole',
   Campaign: 'Campaign',
   CampaignRecipient: 'CampaignRecipient',
+  EmailRateLimit: 'EmailRateLimit',
   SchoolClaim: 'SchoolClaim',
   GradingSystem: 'GradingSystem',
   GradingTemplate: 'GradingTemplate',
@@ -707,10 +708,31 @@ export const CampaignRecipientScalarFieldEnum = {
   failedReason: 'failedReason',
   resendEmailId: 'resendEmailId',
   convertedAt: 'convertedAt',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  lastAttemptAt: 'lastAttemptAt',
+  idempotencyGen: 'idempotencyGen',
+  uncertainSince: 'uncertainSince',
+  claimToken: 'claimToken',
+  claimedUntil: 'claimedUntil',
+  lastErrorCode: 'lastErrorCode',
+  lastStatusCode: 'lastStatusCode',
   createdAt: 'createdAt'
 } as const
 
 export type CampaignRecipientScalarFieldEnum = (typeof CampaignRecipientScalarFieldEnum)[keyof typeof CampaignRecipientScalarFieldEnum]
+
+
+export const EmailRateLimitScalarFieldEnum = {
+  key: 'key',
+  nextSlotAt: 'nextSlotAt',
+  pausedUntil: 'pausedUntil',
+  pauseReason: 'pauseReason',
+  pauseDetail: 'pauseDetail',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmailRateLimitScalarFieldEnum = (typeof EmailRateLimitScalarFieldEnum)[keyof typeof EmailRateLimitScalarFieldEnum]
 
 
 export const SchoolClaimScalarFieldEnum = {
