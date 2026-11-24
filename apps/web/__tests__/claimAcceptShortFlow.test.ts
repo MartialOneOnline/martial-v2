@@ -29,20 +29,22 @@ describe('claim page · short acceptance', () => {
     expect(page).toMatch(/onClick=\{accept\}/)
   })
 
-  it('confirm click: session first, then complete — and only when the session succeeded', () => {
-    const body = fn('confirmEmail')
-    const session = body.indexOf('/session')
-    const okGuard = body.indexOf('if (!res.ok)')
-    const complete = body.indexOf('await complete()')
-    expect(session).toBeGreaterThan(-1)
-    expect(okGuard).toBeGreaterThan(session)
-    expect(complete).toBeGreaterThan(okGuard)
+  it('confirm click goes through confirmAndComplete; a successful grant navigates, no "done" screen', () => {
+    expect(fn('confirmEmail')).toMatch(/confirmAndComplete\(token, verify\)/)
+    expect(fn('afterComplete')).toMatch(/case 'ok':[\s\S]*window\.location\.assign\('\/dashboard'\)/)
+    expect(page).not.toMatch(/kind: 'done'/)
   })
 
-  it('a successful grant goes straight to the dashboard with a full navigation; no "done" screen', () => {
-    const body = fn('complete')
-    expect(body).toMatch(/res\.ok && data\.ok[\s\S]*window\.location\.assign\('\/dashboard'\)/)
-    expect(page).not.toMatch(/kind: 'done'/)
+  it('an uncertain /complete never reloads the invitation and keeps a retry button', () => {
+    const after = fn('afterComplete')
+    const uncertain = after.slice(after.indexOf("case 'uncertain':"))
+    expect(uncertain).not.toMatch(/load\(\)/)
+    expect(uncertain).toMatch(/kind: 'retry'/)
+    // confirmEmail only reloads on a definite refusal.
+    expect(fn('confirmEmail')).toMatch(/if \(out\.result\.kind === 'error'\) await load\(\)/)
+    // The retry screen repeats /complete (accept), not /session or /verify.
+    const retry = page.slice(page.indexOf("phase.kind === 'retry' && ("))
+    expect(retry.slice(0, retry.indexOf(')}'))).toMatch(/onClick=\{accept\}/)
   })
 
   it('copy exists in all four languages and the removed keys are gone', () => {
