@@ -3,15 +3,19 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { CheckCircle, Loader2, ShieldCheck, Mail, AlertCircle } from 'lucide-react'
+import { Loader2, ShieldCheck, Mail, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { confirmAndComplete, postComplete, type CompleteResult } from '@/lib/claims/acceptClient'
 
 // Owner invitation landing page. Opening it never accepts anything:
 // acceptance is an explicit click, and only works while signed in with the
-// invited address (proven by an existing login or by the confirmation link
-// POST /verify emails to that inbox — which brings the person back here with
-// ?verify=<hashed token>&vt=<type>; one click redeems it server-side).
+// invited address. Signed in with it → "Accept and continue" grants access.
+// Not signed in → "Accept and continue" emails a confirmation link to the
+// invited inbox (POST /verify); it brings the person back here with
+// ?verify=<hashed token>&vt=<type>, and one click redeems it server-side
+// (POST /session) and completes the acceptance (POST /complete) in a row.
+// Either way the person lands straight on the dashboard.
 
 type InvitationView = {
   schoolName: string
@@ -26,7 +30,9 @@ type Phase =
   | { kind: 'loading' }
   | { kind: 'invalid'; reason: string }
   | { kind: 'ready'; data: InvitationView }
-  | { kind: 'done'; schoolName: string }
+  | { kind: 'entering' }
+  // /complete gave no answer after the session was set: offer to repeat it.
+  | { kind: 'retry' }
 
 export default function ClaimInvitationPage() {
   const { token } = useParams<{ token: string }>()
@@ -92,37 +98,55 @@ export default function ClaimInvitationPage() {
     if (inFlight.current || !verify) return
     inFlight.current = true; setBusy(true); setError('')
     try {
-      const res = await fetch(`/api/claim/${encodeURIComponent(token)}/session`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(verify),
-      })
-      const data = await res.json().catch(() => ({}))
+      const out = await confirmAndComplete(token, verify)
       dropVerifyParams()
-      if (!res.ok) {
-        if (res.status === 404 || (res.status === 410 && data.error !== 'verify_expired')) { setPhase({ kind: 'invalid', reason: data.error ?? 'NOT_FOUND' }); return }
-        setError(errText(data.error ?? 'generic')); return
+      if (out.step === 'session') {
+        if (out.result.kind === 'invalid') setPhase({ kind: 'invalid', reason: out.result.reason })
+        else if (out.result.kind === 'error') setError(errText(out.result.code))
+        return
       }
-      await load()
-    } catch {
-      setError(c.err_generic)
+      // Signed in as the invited address: the person already chose "Accept
+      // and continue" before the email was sent, so it was finished in the
+      // same click. A definite refusal reloads into the signed-in state
+      // (plain Accept button); an uncertain one keeps a retry on screen.
+      if (!(await afterComplete(out.result))) {
+        if (out.result.kind === 'error') await load()
+      }
     } finally {
       inFlight.current = false; setBusy(false)
     }
   }
 
-  async function accept(schoolName: string) {
+  // Applies a /complete result. true → access granted, leaving for the dashboard.
+  async function afterComplete(r: CompleteResult): Promise<boolean> {
+    switch (r.kind) {
+      case 'ok':
+        setPhase({ kind: 'entering' })
+        // Full navigation, so the dashboard reads the new session and the
+        // currentSchoolId cookie set by /complete.
+        window.location.assign('/dashboard')
+        return true
+      case 'invalid': setPhase({ kind: 'invalid', reason: r.reason }); return false
+      case 'reload': await load(); return false
+      case 'error': setError(errText(r.code)); return false
+      case 'uncertain':
+        // The grant may have gone through: never reload the invitation (it
+        // would read "already accepted" and drop the retry). Repeating
+        // /complete is idempotent and needs no new email or token.
+        setError(c.err_generic)
+        setPhase(p => (p.kind === 'ready' && p.data.session === 'match' ? p : { kind: 'retry' }))
+        return false
+    }
+  }
+
+  async function accept() {
     if (inFlight.current) return
     inFlight.current = true; setBusy(true); setError('')
     try {
-      const res = await fetch(`/api/claim/${encodeURIComponent(token)}/complete`, { method: 'POST' })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok && data.ok) { setPhase({ kind: 'done', schoolName }); return }
-      if (data.error === 'INVALID_LINK') { setPhase({ kind: 'invalid', reason: data.reason ?? 'NOT_FOUND' }); return }
-      if (data.error === 'WRONG_ACCOUNT' || data.error === 'NOT_AUTHENTICATED') { await load(); return }
-      setError(errText(data.error ?? 'generic'))
-    } catch {
-      // Lost response: the server may have granted access. Accepting again is
-      // safe (same person → success), so just let the person retry.
-      setError(c.err_generic)
+      const r = await postComplete(token)
+      const fromRetry = phase.kind === 'retry'
+      // A definite refusal on the retry screen: back to the invitation state.
+      if (!(await afterComplete(r)) && fromRetry && r.kind === 'error') await load()
     } finally {
       inFlight.current = false; setBusy(false)
     }
@@ -159,14 +183,21 @@ export default function ClaimInvitationPage() {
             </div>
           )}
 
-          {phase.kind === 'done' && (
-            <div className="text-center py-6">
-              <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-              <p className="text-lg font-bold text-[#101828]">{c.doneTitle}</p>
-              <p className="text-sm text-gray-500 mt-1">{c.doneBody.replace('{school}', phase.schoolName)}</p>
-              <a href="/dashboard" className="inline-flex items-center justify-center mt-6 h-11 px-6 rounded-full bg-[#0870E2] text-white text-sm font-semibold">
-                {c.goDashboard}
-              </a>
+          {phase.kind === 'entering' && (
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
+              <Loader2 className="w-4 h-4 animate-spin" /> {c.entering}
+            </div>
+          )}
+
+          {phase.kind === 'retry' && (
+            <div className="text-center py-4">
+              <AlertCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              {error && <p className="text-sm text-gray-600 mb-4">{error}</p>}
+              <button onClick={accept} disabled={busy}
+                className="w-full h-11 rounded-full bg-[#0870E2] text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
+                {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{c.accepting}</> : c.accept}
+              </button>
+              <p className="text-xs text-gray-400 mt-6">{c.contactSupport}</p>
             </div>
           )}
 
@@ -190,7 +221,7 @@ export default function ClaimInvitationPage() {
               {phase.data.session === 'match' && (
                 <>
                   <p className="text-sm text-gray-600 mb-4">{c.signedInAs}</p>
-                  <button onClick={() => accept(phase.data.schoolName)} disabled={busy}
+                  <button onClick={accept} disabled={busy}
                     className="w-full h-11 rounded-full bg-[#0870E2] text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
                     {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{c.accepting}</> : c.accept}
                   </button>

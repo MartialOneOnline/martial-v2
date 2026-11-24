@@ -39,10 +39,10 @@ The server log must show `[claims-e2e] recipient allowlist active`. Admin passwo
 | 2 | Log in as admin → `/admin` | “Ownership requests to review” = 1, link opens `/admin/schools/verify?view=pending` with that request |
 | 3 | Open the request → link “Claims E2E Dojo” | Status In progress; dashboard counter moves to In progress |
 | 4 | Send invitation (recipient = owner inbox) | Delivery “Sent (accepted by Resend)”; owner gets the invitation email |
-| 5 | Private window (no session) → open the invitation link | School name, masked email, “Email me a confirmation link” |
-| 6 | Send the link → open the confirmation email | Lands on `/claim/<token>?verify=…` with “Confirm my email and continue” — **not** `/login` |
-| 7 | Click confirm | Signed in as the owner, page shows “Accept”; nothing accepted yet (admin still shows In progress) |
-| 8 | Accept | “You're in — You now manage Claims E2E Dojo” → “Go to dashboard” opens that school’s dashboard |
+| 5 | Private window (no session) → open the invitation link | School name, masked email, “Accept and continue” |
+| 6 | Click it → open the confirmation email | Lands on `/claim/<token>?verify=…` with “Confirm and continue” — **not** `/login`; nothing accepted yet (admin still shows In progress) |
+| 7 | Click confirm | Brief “Opening your dashboard…”, then that school’s dashboard (no “You're in” screen) |
+| 8 | Open the confirmation email link again | “This invitation was already accepted.” + Sign in; no second grant |
 | 9 | Admin view | Request Completed, invitation Accepted, school CLAIMED (was UNVERIFIED), owner listed |
 
 ## 3. Negative checks (same run)
