@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
 
   // The plan's own paymentMethods decide which provider may be used. An explicit
   // provider the plan doesn't allow is rejected — never swapped for another one —
-  // and this runs before any write or provider call below.
+  // and this runs before any purchase/membership write or provider call below.
+  // (getAuthUser() above may still provision/link the caller's own User row on a
+  // first OAuth session — identity provisioning, not part of the purchase.)
   const resolved = resolveOnlineMethod(provider, plan.paymentMethods)
   if (!resolved.ok) return NextResponse.json({ error: resolved.error }, { status: 400 })
   const useRevolut = resolved.method === 'REVOLUT'

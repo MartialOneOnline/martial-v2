@@ -977,7 +977,7 @@ export default function MyMembershipPage() {
       {requestError && (
         <div role="alert" className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm bg-red-600 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3">
           <span className="flex-1 text-center">{requestError}</span>
-          <button onClick={() => setRequestError(null)} aria-label="Close" className="text-white/80 hover:text-white">✕</button>
+          <button onClick={() => setRequestError(null)} aria-label={t.common.close} className="text-white/80 hover:text-white">✕</button>
         </div>
       )}
 
