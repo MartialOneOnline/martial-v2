@@ -5,6 +5,7 @@ import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 import { cancelMembership, syncSchoolMemberStatusForMembership } from '@/lib/services/membership'
 import { sendMembershipRequestEmail } from '@/lib/email/sendEmails'
 import { notifyMembershipRequest } from '@/lib/notifications/create'
+import { resolveManualMethod } from '@/lib/paymentMethods'
 
 // PATCH /api/my/memberships/[id] — pause, resume, or cancel
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -79,12 +80,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!plan || !plan.isPublic || !plan.isActive)
     return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
 
-  const manualMethods = ['CASH', 'BANK_TRANSFER', 'DIRECT_DEBIT', 'OTHER'] as const
-  const { paymentMethod: requestedMethod } = await req.json().catch(() => ({})) as { paymentMethod?: string }
-  const paymentMethod = requestedMethod && manualMethods.includes(requestedMethod as typeof manualMethods[number])
-    && plan.paymentMethods.includes(requestedMethod)
-    ? (requestedMethod as PaymentMethod)
-    : (manualMethods.find(m => plan.paymentMethods.includes(m)) as PaymentMethod | undefined) ?? PaymentMethod.CASH
+  // Only a manual method the plan actually allows. An explicit method the plan
+  // doesn't allow is rejected (not swapped for another), and a plan with no
+  // manual method is rejected instead of silently defaulting to CASH.
+  const { paymentMethod: requestedMethod } = await req.json().catch(() => ({})) as { paymentMethod?: unknown }
+  const resolved = resolveManualMethod(requestedMethod, plan.paymentMethods)
+  if (!resolved.ok) return NextResponse.json({ error: resolved.error }, { status: 400 })
+  const paymentMethod = resolved.method as PaymentMethod
 
   // Check student belongs to this school
   const member = await prisma.schoolMember.findFirst({

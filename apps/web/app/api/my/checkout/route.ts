@@ -4,6 +4,7 @@ import { getAuthUser } from '@/lib/auth/server'
 import { getStripe } from '@/lib/stripe'
 import { createRevolutOrder } from '@/lib/revolut'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
+import { resolveOnlineMethod } from '@/lib/paymentMethods'
 
 // POST /api/my/checkout — create a checkout session for a membership plan
 // Supports Stripe (one-time + subscription) and Revolut (one-time)
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
   const dbUser = await getAuthUser()
   if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { planId, provider = 'STRIPE' } = await req.json() as { planId: string; provider?: string }
+  const { planId, provider } = await req.json().catch(() => ({})) as { planId?: string; provider?: unknown }
   if (!planId) return NextResponse.json({ error: 'planId required' }, { status: 400 })
 
   const plan = await prisma.membershipPlan.findUnique({
@@ -25,10 +26,12 @@ export async function POST(req: NextRequest) {
   if (!plan || !plan.isPublic || !plan.isActive)
     return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
 
-  const useRevolut = provider === 'REVOLUT' || (!plan.paymentMethods.includes('STRIPE') && plan.paymentMethods.includes('REVOLUT'))
-
-  if (!useRevolut && !plan.paymentMethods.includes('STRIPE'))
-    return NextResponse.json({ error: 'No online payment method available for this plan' }, { status: 400 })
+  // The plan's own paymentMethods decide which provider may be used. An explicit
+  // provider the plan doesn't allow is rejected — never swapped for another one —
+  // and this runs before any write or provider call below.
+  const resolved = resolveOnlineMethod(provider, plan.paymentMethods)
+  if (!resolved.ok) return NextResponse.json({ error: resolved.error }, { status: 400 })
+  const useRevolut = resolved.method === 'REVOLUT'
 
   // No SchoolMember requirement here — a brand-new user with no prior relationship
   // to the school can check out directly. The webhook creates the SchoolMember
@@ -46,6 +49,23 @@ export async function POST(req: NextRequest) {
       { error: 'Your membership at this school was archived — please contact the school before purchasing a plan' },
       { status: 403 },
     )
+  }
+
+  // Provider must actually be connected before we touch any row (the stale-Revolut
+  // cleanup below deletes one) or call out to the provider.
+  const school = await prisma.school.findUnique({
+    where: { id: plan.schoolId },
+    select: { stripeSecretKey: true, revolutSecretKey: true, revolutWebhookSecret: true, name: true },
+  })
+  if (useRevolut) {
+    if (!school?.revolutSecretKey)
+      return NextResponse.json({ error: 'School has not configured Revolut' }, { status: 400 })
+    // Webhook must be registered (revolutWebhookSecret set) before we accept payments —
+    // otherwise the webhook handler would have to process unsigned notifications.
+    if (!school.revolutWebhookSecret)
+      return NextResponse.json({ error: 'School has not activated Revolut yet — the webhook must be registered first' }, { status: 400 })
+  } else if (!school?.stripeSecretKey) {
+    return NextResponse.json({ error: 'School has not configured Stripe' }, { status: 400 })
   }
 
   const existing = await prisma.membership.findFirst({
@@ -66,22 +86,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const school = await prisma.school.findUnique({
-    where: { id: plan.schoolId },
-    select: { stripeSecretKey: true, revolutSecretKey: true, revolutWebhookSecret: true, name: true },
-  })
-
   const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
   // ── Revolut path ────────────────────────────────────────────────────────────
-  if (useRevolut) {
-    if (!school?.revolutSecretKey)
-      return NextResponse.json({ error: 'School has not configured Revolut' }, { status: 400 })
-    // Webhook must be registered (revolutWebhookSecret set) before we accept payments —
-    // otherwise the webhook handler would have to process unsigned notifications.
-    if (!school.revolutWebhookSecret)
-      return NextResponse.json({ error: 'School has not activated Revolut yet — the webhook must be registered first' }, { status: 400 })
-
+  // (provider configuration already verified above)
+  if (useRevolut && school?.revolutSecretKey) {
     const membership = await prisma.membership.create({
       data: {
         userId:        dbUser.id,

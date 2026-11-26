@@ -723,6 +723,7 @@ export default function MyMembershipPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [requestingPlanId, setRequestingPlanId] = useState<string | null>(null)
   const [successPlan, setSuccessPlan] = useState<Plan | null>(null)
+  const [requestError, setRequestError] = useState<string | null>(null)
   const [pickerPlan, setPickerPlan] = useState<Plan | null>(null)
 
   useEffect(() => {
@@ -778,6 +779,7 @@ export default function MyMembershipPage() {
 
   async function handleRequest(plan: Plan, method?: string) {
     setRequestingPlanId(plan.id)
+    setRequestError(null)
     try {
       if (method === 'STRIPE' || method === 'REVOLUT') {
         const res = await myFetch('/api/my/checkout', {
@@ -789,6 +791,8 @@ export default function MyMembershipPage() {
           const { url } = await res.json()
           if (url) { window.location.href = url; return }
         }
+        // No silent dead end: a rejected or URL-less checkout tells the student.
+        setRequestError(t.my.planRequestFailed)
         return
       }
 
@@ -805,7 +809,11 @@ export default function MyMembershipPage() {
         setMemberships(mData.memberships ?? [])
         setPlans(pData.plans ?? [])
         setSuccessPlan(plan)
+      } else {
+        setRequestError(t.my.planRequestFailed)
       }
+    } catch {
+      setRequestError(t.my.planRequestFailed)
     } finally {
       setRequestingPlanId(null)
       setPickerPlan(null)
@@ -963,6 +971,14 @@ export default function MyMembershipPage() {
           onClose={() => setConfirmModal(null)}
           t={t}
         />
+      )}
+
+      {/* Request failure banner */}
+      {requestError && (
+        <div role="alert" className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm bg-red-600 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-lg flex items-center gap-3">
+          <span className="flex-1 text-center">{requestError}</span>
+          <button onClick={() => setRequestError(null)} aria-label="Close" className="text-white/80 hover:text-white">✕</button>
+        </div>
       )}
 
       {/* Request success modal */}
