@@ -342,6 +342,12 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 **No verificado.** Recorrido en navegador. Sin pagar solo se puede acreditar hasta la redirección al checkout; la activación por webhook, la página de retorno y el acceso a «Mis clases» siguen pendientes hasta recorrerlos con Stripe en modo test en un entorno no productivo.
 
+- Auditoría Codex sobre `4256a6a` → **`RECHAZADO`** (AF-1 P1, AF-2/3/4 P2). Corregido en el commit siguiente, pendiente de reauditoría (detalle en `docs/PROJECT-AUDIT.md` → Lote AF):
+  - AF-1: un pase con `validityDays` 0 o negativo ya no se vende (`validity.kind='invalid'`, `configIssue:'invalid_validity'`, checkout `400 plan_misconfigured`). `null` = sin caducidad, coherente en ambos webhooks.
+  - AF-2: el FLAGGED de una suscripción (sin `payment_intent`) guarda `stripeInvoiceId = session.invoice`; status lo detecta → `needs_school`. Los FLAGGED de suscripción anteriores a este cambio no llevan la factura.
+  - AF-3: si falla el cambio de escuela en `/checkout/return`, «Reintentar» repite la selección autorizada en vez de enlazar a `/my/classes`.
+  - AF-4: `findPausedMembership` evalúa todas las PAUSED (`recurring` si cualquiera tiene suscripción; añade `count`).
+
 ### Sesión — 2026-11-26 (rama `claude/lote0-join-safety` — Lote 0 del flujo «alumno sin escuela se une a una escuela»)
 
 - Contexto: auditoría del recorrido alumno sin escuela → Roger Gracie Málaga. Bucle confirmado: `ClassBookingModal` lista planes sin acción y «Ver todos los planes» navega a la misma ficha (`#memberships`) sin cerrar el modal; `MembershipSection` tampoco permite comprar. Diagnóstico y planes de Lote 1 (compra/reserva) y Lote 2 («Solicitar unirme») **RECHAZADOS por Codex como planes listos** — falta cerrar decisiones de producto (finalidad grupo/privado del plan, vigencia de pases, reserva provisional en efectivo, intención persistente de compra+reserva, ciclo propio de solicitud, rechazo, ofertas de plan). Nada de eso está en este lote.

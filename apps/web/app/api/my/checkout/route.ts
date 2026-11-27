@@ -97,6 +97,8 @@ export async function POST(req: NextRequest) {
     now,
     loadedClass?.context,
   )
+  if (eligibility.configIssue === 'invalid_validity')
+    return reject(400, 'plan_misconfigured', 'This plan cannot be bought online until the school fixes its validity')
   if (!eligibility.offers.some(o => o.provider === resolved.method))
     return reject(400, 'method_not_offered', 'This plan cannot be bought online with this payment method')
   if (eligibility.classCheck) {

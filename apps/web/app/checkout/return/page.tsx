@@ -193,9 +193,14 @@ function ReturnContent() {
               {t.goToClasses}
             </button>
             {switchError && (
+              // Recovery retries the authorised selection of THIS school —
+              // never a bare link to /my/classes, which could open whichever
+              // school was selected before.
               <p role="alert" className="text-sm text-red-600">
                 {t.switchFailed}{' '}
-                <Link href="/my/classes" className="underline font-semibold">{t.goToClasses}</Link>
+                <button type="button" onClick={goToClasses} disabled={switching} className="underline font-semibold disabled:opacity-50">
+                  {t.tryAgain}
+                </button>
               </p>
             )}
           </>

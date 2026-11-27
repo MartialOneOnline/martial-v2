@@ -364,6 +364,7 @@ async function handleStripeEvent(event: Stripe.Event, verifiedSchoolId: string) 
         subscription?: string
         customer?: string
         payment_intent?: string
+        invoice?: string
         amount_total?: number
         currency?: string
       }
@@ -584,6 +585,9 @@ async function handleStripeEvent(event: Stripe.Event, verifiedSchoolId: string) 
             planId, planName,
             reason: 'SchoolMember is ARCHIVED — payment captured but membership not activated',
             stripePaymentIntentId: session.payment_intent,
+            // Subscription mode: no payment_intent on the session — the first
+            // invoice is what links this row to the checkout.
+            stripeInvoiceId: session.payment_intent ? undefined : session.invoice,
           })
           return
         }

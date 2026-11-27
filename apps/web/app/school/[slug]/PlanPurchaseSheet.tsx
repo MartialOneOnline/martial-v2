@@ -19,7 +19,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext'
 import type { Translations } from '@/lib/i18n/translations'
 
 type Offer = { provider: 'STRIPE' | 'REVOLUT'; renews: boolean }
-type Validity = { kind: 'renews'; billingCycle: string } | { kind: 'days'; days: number } | { kind: 'no_expiry' }
+type Validity = { kind: 'renews'; billingCycle: string } | { kind: 'days'; days: number } | { kind: 'no_expiry' } | { kind: 'invalid' }
 type ClassCheck =
   | { status: 'not_included' }
   | { status: 'no_upcoming_session' }
@@ -90,6 +90,7 @@ function errorMessage(t: Translations['planPurchase'], code: string | undefined)
     case 'expires_before_session': return t.errExpiresBeforeSession
     case 'no_upcoming_session': return t.errNoUpcomingSession
     case 'class_unavailable': return t.errClassUnavailable
+    case 'plan_misconfigured': return t.errPlanUnavailable
     case 'method_not_allowed':
     case 'method_not_offered':
     case 'provider_not_configured': return t.errMethod

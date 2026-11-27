@@ -101,6 +101,37 @@ describe('evaluatePlanForPurchase — purchase mode and offers', () => {
   })
 })
 
+describe('AF-1 — validity shown, evaluated and activated must agree', () => {
+  const tomorrowClass = { classId: 'c1', nextSession: new Date(NOW.getTime() + 86_400_000) }
+  for (const v of [0, -3]) {
+    it(`one-off plan with validityDays=${v} is not sold by either provider, with or without a class`, () => {
+      const e = evaluatePlanForPurchase(plan({ validityDays: v, paymentMethods: ['STRIPE', 'REVOLUT', 'CASH'] }), BOTH, NOW, tomorrowClass)
+      expect(e).toMatchObject({ purchase: 'unavailable', configIssue: 'invalid_validity', offers: [], validity: { kind: 'invalid' } })
+      expect(isOfferableForClass(e)).toBe(false)
+    })
+  }
+  it('validityDays=null: "no expiry" shown, and both webhooks store no end date (checkout sends "" to Stripe)', () => {
+    const e = evaluatePlanForPurchase(plan({ validityDays: null, paymentMethods: ['STRIPE', 'REVOLUT'] }), BOTH, NOW, tomorrowClass)
+    expect(e.validity).toEqual({ kind: 'no_expiry' })
+    expect(e.classCheck).toMatchObject({ status: 'covered', accessEndsAt: null })
+    expect(computeAccessEndDate({ provider: 'STRIPE', planType: 'SINGLE_PASS', validityDays: '', now: NOW })).toBeNull()
+    expect(computeAccessEndDate({ provider: 'REVOLUT', planType: 'SINGLE_PASS', validityDays: null, now: NOW })).toBeNull()
+  })
+  it('positive validityDays: the date evaluated equals what both webhooks store (Stripe via its metadata string)', () => {
+    for (const v of [1, 7, 30]) {
+      const e = evaluatePlanForPurchase(plan({ validityDays: v, paymentMethods: ['STRIPE', 'REVOLUT'] }), BOTH, NOW, tomorrowClass)
+      const ends = (e.classCheck as { accessEndsAt: Date }).accessEndsAt
+      expect(computeAccessEndDate({ provider: 'STRIPE', planType: 'SINGLE_PASS', validityDays: String(v), now: NOW })).toEqual(ends)
+      expect(computeAccessEndDate({ provider: 'REVOLUT', planType: 'SINGLE_PASS', validityDays: v, now: NOW })).toEqual(ends)
+    }
+  })
+  it('a SUBSCRIPTION ignores validityDays (renews), so 0 there is not a config issue', () => {
+    const e = evaluatePlanForPurchase(plan({ planType: 'SUBSCRIPTION', billingCycle: 'monthly', validityDays: 0 }), BOTH, NOW)
+    expect(e.configIssue).toBeUndefined()
+    expect(e.purchase).toBe('online')
+  })
+})
+
 describe('evaluatePlanForPurchase — class check', () => {
   const nextMon = new Date('2026-11-30T19:00:00.000Z')
 
@@ -199,6 +230,7 @@ const m = {
   schoolFindUnique: vi.fn(),
   schoolMemberFindFirst: vi.fn(),
   membershipFindFirst: vi.fn(),
+  membershipFindMany: vi.fn(),
   membershipCreate: vi.fn(),
   membershipDelete: vi.fn(),
   membershipUpdate: vi.fn(),
@@ -213,6 +245,7 @@ vi.mock('@/lib/db', () => ({
     schoolMember: { findFirst: (...a: unknown[]) => m.schoolMemberFindFirst(...a) },
     membership: {
       findFirst: (...a: unknown[]) => m.membershipFindFirst(...a),
+      findMany: (...a: unknown[]) => m.membershipFindMany(...a),
       create: (...a: unknown[]) => m.membershipCreate(...a),
       delete: (...a: unknown[]) => m.membershipDelete(...a),
       update: (...a: unknown[]) => m.membershipUpdate(...a),
@@ -266,6 +299,7 @@ beforeEach(() => {
   mockGetAuthUser.mockResolvedValue({ id: 'user_1', email: 'student@test.local', name: 'Student' })
   m.schoolMemberFindFirst.mockResolvedValue(null)
   m.membershipFindFirst.mockResolvedValue(null)
+  m.membershipFindMany.mockResolvedValue([])
   m.schoolFindUnique.mockResolvedValue(SCHOOL)
   m.classFindUnique.mockResolvedValue(CLASS_MON)
   m.cancellationFindMany.mockResolvedValue([])
@@ -341,19 +375,56 @@ describe('POST /api/my/checkout — re-validation before any write', () => {
   })
 
   it('a paused membership must be acknowledged first (re-checked server-side)', async () => {
-    m.membershipFindFirst.mockImplementation(async (args: { where: { status?: unknown } }) =>
-      args.where.status === 'PAUSED' ? { planName: 'Jiu Jitsu Mensual', stripeSubId: 'sub_1' } : null)
+    m.membershipFindMany.mockImplementation(async (args: { where: { status?: unknown } }) =>
+      args.where.status === 'PAUSED' ? [{ planName: 'Jiu Jitsu Mensual', stripeSubId: 'sub_1' }] : [])
     const { POST } = await import('@/app/api/my/checkout/route')
     const res = await POST(post({ planId: 'plan_1', provider: 'STRIPE' }))
     expect(res.status).toBe(409)
     const body = await res.json()
     expect(body.code).toBe('paused_membership_ack_required')
-    expect(body.pausedMembership).toEqual({ planName: 'Jiu Jitsu Mensual', recurring: true }) // no subscription id leaked
+    expect(body.pausedMembership).toEqual({ planName: 'Jiu Jitsu Mensual', recurring: true, count: 1 }) // no subscription id leaked
     expectNoWrites()
 
     const ok = await POST(post({ planId: 'plan_1', provider: 'STRIPE', acknowledgePausedMembership: true }))
     expect(ok.status).toBe(200)
     expect(mockStripeSessionCreate).toHaveBeenCalledTimes(1)
+  })
+
+  it('AF-4: several PAUSED memberships — an older recurring one is still warned about', async () => {
+    m.membershipFindMany.mockResolvedValue([
+      { planName: 'Pase 10 Clases', stripeSubId: null },        // most recent
+      { planName: 'Jiu Jitsu Mensual', stripeSubId: 'sub_old' }, // older, recurring
+    ])
+    const { POST } = await import('@/app/api/my/checkout/route')
+    const res = await POST(post({ planId: 'plan_1', provider: 'STRIPE' }))
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.pausedMembership).toEqual({ planName: 'Jiu Jitsu Mensual', recurring: true, count: 2 })
+    expect(JSON.stringify(body)).not.toContain('sub_old')
+    expect(m.membershipFindMany.mock.calls[0]?.[0]).toMatchObject({ where: { userId: 'user_1', schoolId: 'school_1', status: 'PAUSED' } })
+    expectNoWrites()
+  })
+
+  for (const provider of ['STRIPE', 'REVOLUT'] as const) {
+    for (const withClass of [false, true]) {
+      it(`AF-1: pass with validityDays=0 → 400 plan_misconfigured (${provider}${withClass ? ', with class' : ''}), nothing created`, async () => {
+        m.planFindUnique.mockResolvedValue(dbPlan({ validityDays: 0, paymentMethods: ['STRIPE', 'REVOLUT'] }))
+        const { POST } = await import('@/app/api/my/checkout/route')
+        const res = await POST(post({ planId: 'plan_1', provider, ...(withClass ? { classId: 'class_1' } : {}) }))
+        expect(res.status).toBe(400)
+        expect((await res.json()).code).toBe('plan_misconfigured')
+        expectNoWrites()
+      })
+    }
+  }
+
+  it('AF-1: pass with validityDays=null still sells (no expiry, consistent in both webhooks)', async () => {
+    m.planFindUnique.mockResolvedValue(dbPlan({ validityDays: null }))
+    const { POST } = await import('@/app/api/my/checkout/route')
+    const res = await POST(post({ planId: 'plan_1', provider: 'STRIPE', classId: 'class_1' }))
+    expect(res.status).toBe(200)
+    const args = mockStripeSessionCreate.mock.calls[0]?.[0] as { metadata: { validityDays: string } }
+    expect(args.metadata.validityDays).toBe('')
   })
 
   it('FROZEN / INACTIVE members may buy (only ARCHIVED is blocked)', async () => {
@@ -457,6 +528,27 @@ describe('GET /api/my/checkout/status — one attempt, read-only', () => {
     const { GET } = await import('@/app/api/my/checkout/status/route')
     expect((await (await GET(statusReq(STRIPE_QS))).json()).access).toBe('active')
     expect(m.membershipFindFirst.mock.calls[0]?.[0]).toMatchObject({ where: { stripeSubId: 'sub_1', userId: 'user_1' } })
+  })
+
+  it('AF-2: subscription blocked for an archived member (no payment_intent, no membership) → needs_school', async () => {
+    mockStripeSessionRetrieve.mockResolvedValue({
+      payment_status: 'paid', status: 'complete', subscription: 'sub_1', payment_intent: null, invoice: 'in_1', metadata: META,
+    })
+    m.membershipFindFirst.mockResolvedValue(null)
+    m.transactionFindFirst.mockImplementation(async (args: { where: { stripeInvoiceId?: string } }) =>
+      args.where.stripeInvoiceId === 'in_1' ? { id: 'tx_flag' } : null)
+    const { GET } = await import('@/app/api/my/checkout/status/route')
+    expect(await (await GET(statusReq(STRIPE_QS))).json()).toMatchObject({ payment: 'paid', access: 'none', incident: 'needs_school' })
+    expect(m.transactionFindFirst.mock.calls[0]?.[0]).toMatchObject({
+      where: { stripeInvoiceId: 'in_1', userId: 'user_1', schoolId: 'school_1', status: 'FLAGGED' },
+    })
+  })
+
+  it('AF-2: subscription paid, nothing flagged and not yet activated → still pending_activation', async () => {
+    mockStripeSessionRetrieve.mockResolvedValue({ payment_status: 'paid', subscription: 'sub_1', payment_intent: null, invoice: 'in_1', metadata: META })
+    m.membershipFindFirst.mockResolvedValue(null)
+    const { GET } = await import('@/app/api/my/checkout/status/route')
+    expect(await (await GET(statusReq(STRIPE_QS))).json()).toMatchObject({ payment: 'paid', access: 'pending_activation', incident: null })
   })
 
   it('provider error → payment unknown (never "not paid")', async () => {

@@ -206,10 +206,11 @@ const mockSchoolMemberUpdate = vi.fn((args: { where: { id: string }; data: { sta
 // Transaction.stripePaymentIntentId/revolutOrderId (see recordFlaggedPayment's
 // pre-check + P2002 catch) so the idempotent-replay tests below exercise the
 // actual guard, not a mock that just always succeeds.
-const mockTransactionFindFirst = vi.fn((args: { where: { stripePaymentIntentId?: string; revolutOrderId?: string } }) => {
+const mockTransactionFindFirst = vi.fn((args: { where: { stripePaymentIntentId?: string; revolutOrderId?: string; stripeInvoiceId?: string; status?: string } }) => {
   const found = Object.values(transactions).find(t =>
     (args.where.stripePaymentIntentId && t.stripePaymentIntentId === args.where.stripePaymentIntentId) ||
-    (args.where.revolutOrderId && t.revolutOrderId === args.where.revolutOrderId),
+    (args.where.revolutOrderId && t.revolutOrderId === args.where.revolutOrderId) ||
+    (args.where.stripeInvoiceId && t.stripeInvoiceId === args.where.stripeInvoiceId && (!args.where.status || t.status === args.where.status)),
   )
   return Promise.resolve(found ? { id: found.id } : null)
 })
@@ -741,6 +742,28 @@ describe('checkout.session.completed — ARCHIVED member payment success', () =>
     const second = await POST(makeRequest(event))
     expect(second.status).toBe(200)
     expect(Object.values(transactions)).toHaveLength(1) // still just one
+  })
+
+  it('subscription checkout (no payment_intent): flagged under the first invoice id, once, so the return page can detect it', async () => {
+    seedSchoolMember('school-1', 'user-1', 'ARCHIVED')
+    const event = {
+      id: 'evt_10c', type: 'checkout.session.completed',
+      data: {
+        object: {
+          payment_status: 'paid', payment_intent: null, subscription: 'sub_1', invoice: 'in_1',
+          metadata: { schoolId: 'school-1', userId: 'user-1', planId: 'plan-1', planName: 'Monthly', planType: 'SUBSCRIPTION', price: '50', currency: 'EUR' },
+        },
+      },
+    }
+    expect((await POST(makeRequest(event))).status).toBe(200)
+    expect(Object.keys(memberships)).toHaveLength(0)
+    const flagged = Object.values(transactions)
+    expect(flagged).toHaveLength(1)
+    expect(flagged[0]).toMatchObject({ status: 'FLAGGED', userId: 'user-1', schoolId: 'school-1', stripeInvoiceId: 'in_1', stripePaymentIntentId: null })
+
+    // A different event id carrying the same checkout (claim can't dedupe it) still doesn't duplicate.
+    expect((await POST(makeRequest({ ...event, id: 'evt_10d' }))).status).toBe(200)
+    expect(Object.values(transactions)).toHaveLength(1)
   })
 
   it('still creates Membership + SchoolMember ACTIVE for a brand-new user (no prior SchoolMember row)', async () => {

@@ -70,6 +70,17 @@ describe('recordFlaggedPayment', () => {
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
+  it('subscription case: stores stripeInvoiceId and pre-checks FLAGGED rows by it', async () => {
+    await recordFlaggedPayment(fakeTx(), { ...baseInput, stripeInvoiceId: 'in_1' })
+    expect(mockFindFirst).toHaveBeenCalledWith({ where: { stripeInvoiceId: 'in_1', status: 'FLAGGED' }, select: { id: true } })
+    expect(mockCreate.mock.calls[0]![0].data).toMatchObject({ stripeInvoiceId: 'in_1', stripePaymentIntentId: null })
+
+    vi.clearAllMocks()
+    mockFindFirst.mockResolvedValue({ id: 'existing-tx' })
+    await recordFlaggedPayment(fakeTx(), { ...baseInput, stripeInvoiceId: 'in_1' })
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
   it('swallows a P2002 from the DB unique constraint (race the pre-check missed) instead of throwing', async () => {
     mockCreate.mockRejectedValue(p2002)
     await expect(recordFlaggedPayment(fakeTx(), { ...baseInput, stripePaymentIntentId: 'pi_123' })).resolves.toBeNull()

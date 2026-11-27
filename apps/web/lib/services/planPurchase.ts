@@ -47,17 +47,24 @@ export async function loadClassContext(schoolId: string, classId: string, now: D
 }
 
 /**
- * A PAUSED membership the buyer already has at this school. Buying a new plan
- * never touches it (owner's decision), but if it is tied to a Stripe
- * subscription it may start charging again when resumed — the buyer must be
- * told before paying. Never exposes the external subscription id.
+ * The buyer's PAUSED memberships at this school. Buying a new plan never
+ * touches them (owner's decision), but any of them tied to a Stripe
+ * subscription may start charging again when resumed — the buyer must be told
+ * before paying. ALL paused rows are evaluated, not just the latest: an older
+ * one may be the recurring one. Names the recurring plan when there is one
+ * (else the most recent). Never exposes external subscription ids.
  */
 export async function findPausedMembership(userId: string, schoolId: string) {
-  const paused = await prisma.membership.findFirst({
+  const paused = await prisma.membership.findMany({
     where: { userId, schoolId, status: 'PAUSED' },
     orderBy: { startDate: 'desc' },
     select: { planName: true, stripeSubId: true },
   })
-  if (!paused) return null
-  return { planName: paused.planName, recurring: !!paused.stripeSubId }
+  if (paused.length === 0) return null
+  const recurringOne = paused.find(m => !!m.stripeSubId)
+  return {
+    planName: (recurringOne ?? paused[0]!).planName,
+    recurring: !!recurringOne,
+    count: paused.length,
+  }
 }

@@ -87,6 +87,7 @@ vi.mock('@/lib/db', () => ({
     schoolMember: { findFirst: (...a: unknown[]) => mockSchoolMemberFindFirst(...a), findMany: vi.fn().mockResolvedValue([]) },
     membership: {
       findFirst: (...a: unknown[]) => mockMembershipFindFirst(...a),
+      findMany: async () => [], // findPausedMembership: no PAUSED rows
       create: (...a: unknown[]) => mockMembershipCreate(...a),
       delete: (...a: unknown[]) => mockMembershipDelete(...a),
       update: (...a: unknown[]) => mockMembershipUpdate(...a),

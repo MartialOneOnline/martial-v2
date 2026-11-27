@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
       payment_status?: string | null
       payment_intent?: string | { id: string } | null
       subscription?: string | { id: string } | null
+      invoice?: string | { id: string } | null
       metadata?: Record<string, string> | null
     }
     try {
@@ -91,6 +92,7 @@ export async function GET(req: NextRequest) {
     const idOf = (v: string | { id: string } | null | undefined) => (typeof v === 'string' ? v : v?.id ?? null)
     const subscriptionId = idOf(session.subscription)
     const paymentIntentId = idOf(session.payment_intent)
+    const invoiceId = idOf(session.invoice)
 
     // Link to THIS purchase only — never "any active membership of the plan".
     let membershipStatus: string | null = null
@@ -109,6 +111,16 @@ export async function GET(req: NextRequest) {
       })
       if (tx?.status === 'FLAGGED') incident = 'needs_school'
       membershipStatus = tx?.membership?.status ?? null
+    }
+    // Subscription blocked before activation (e.g. member archived between
+    // checkout and webhook): no Membership and no payment_intent — the webhook
+    // flags it under this checkout's first invoice id.
+    if (!membershipStatus && !incident && !paymentIntentId && invoiceId) {
+      const flagged = await prisma.transaction.findFirst({
+        where: { stripeInvoiceId: invoiceId, userId: dbUser.id, schoolId: plan.schoolId, status: 'FLAGGED' },
+        select: { id: true },
+      })
+      if (flagged) incident = 'needs_school'
     }
 
     return NextResponse.json({

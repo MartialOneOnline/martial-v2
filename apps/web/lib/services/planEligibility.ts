@@ -46,6 +46,14 @@ export type Validity =
   | { kind: 'renews'; billingCycle: string }
   | { kind: 'days'; days: number }
   | { kind: 'no_expiry' }
+  /**
+   * One-off plan whose validityDays is set but not a positive number (0, a
+   * negative). The providers' webhooks read such a value inconsistently (Stripe
+   * gets the string "0", which is truthy, and ends access immediately; Revolut
+   * treats 0 as "no expiry"), so what we'd show could not match what the
+   * webhook stores. Not sold online until the school fixes the plan.
+   */
+  | { kind: 'invalid' }
 
 export type ClassCheck =
   /** The plan's class rules exclude this class. */
@@ -64,6 +72,8 @@ export interface Eligibility {
    * unavailable — neither (no methods, provider allowed but not connected, free plan…).
    */
   purchase: 'online' | 'manual' | 'unavailable'
+  /** Set when the plan's own configuration blocks any purchase (see Validity 'invalid'). */
+  configIssue?: 'invalid_validity'
   offers: Offer[]
   validity: Validity
   classCheck?: ClassCheck
@@ -95,8 +105,9 @@ export function planIncludesClass(classAccess: unknown, classId: string): boolea
 
 export function planValidity(plan: Pick<PlanForEligibility, 'planType' | 'billingCycle' | 'validityDays'>): Validity {
   if (plan.planType === 'SUBSCRIPTION') return { kind: 'renews', billingCycle: plan.billingCycle }
-  if (plan.validityDays) return { kind: 'days', days: plan.validityDays }
-  return { kind: 'no_expiry' }
+  if (plan.validityDays == null) return { kind: 'no_expiry' }
+  if (!(plan.validityDays > 0)) return { kind: 'invalid' }
+  return { kind: 'days', days: plan.validityDays }
 }
 
 export function evaluatePlanForPurchase(
@@ -106,6 +117,14 @@ export function evaluatePlanForPurchase(
   classContext?: ClassContext,
 ): Eligibility {
   const isSubscription = plan.planType === 'SUBSCRIPTION'
+  const validity = planValidity(plan)
+  if (validity.kind === 'invalid') {
+    // Nothing is sold — online or at the desk — on a validity we can't state
+    // truthfully. Same answer for both providers.
+    const result: Eligibility = { purchase: 'unavailable', configIssue: 'invalid_validity', offers: [], validity }
+    if (classContext) result.classCheck = evaluateClass(plan, [], now, classContext)
+    return result
+  }
   const offers: Offer[] = []
   if (plan.price > 0) {
     if (plan.paymentMethods.includes('STRIPE') && providers.stripe) {
@@ -121,7 +140,7 @@ export function evaluatePlanForPurchase(
   const allowsManual = plan.paymentMethods.some(m => (MANUAL_METHODS as readonly string[]).includes(m))
   const purchase: Eligibility['purchase'] = offers.length > 0 ? 'online' : allowsManual ? 'manual' : 'unavailable'
 
-  const result: Eligibility = { purchase, offers, validity: planValidity(plan) }
+  const result: Eligibility = { purchase, offers, validity }
   if (classContext) result.classCheck = evaluateClass(plan, offers, now, classContext)
   return result
 }
