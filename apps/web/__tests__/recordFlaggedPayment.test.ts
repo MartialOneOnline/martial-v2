@@ -19,8 +19,9 @@ const p2002 = new Prisma.PrismaClientKnownRequestError('Unique constraint failed
   clientVersion: 'test',
 })
 
+const mockExecuteRaw = vi.fn().mockResolvedValue(1)
 function fakeTx() {
-  return { transaction: { findFirst: mockFindFirst, create: mockCreate } } as unknown as Parameters<typeof recordFlaggedPayment>[0]
+  return { $executeRaw: mockExecuteRaw, transaction: { findFirst: mockFindFirst, create: mockCreate } } as unknown as Parameters<typeof recordFlaggedPayment>[0]
 }
 
 const baseInput = {
@@ -79,6 +80,79 @@ describe('recordFlaggedPayment', () => {
     mockFindFirst.mockResolvedValue({ id: 'existing-tx' })
     await recordFlaggedPayment(fakeTx(), { ...baseInput, stripeInvoiceId: 'in_1' })
     expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('subscription case: takes the per-invoice advisory lock BEFORE the pre-check; payment_intent case takes none', async () => {
+    await recordFlaggedPayment(fakeTx(), { ...baseInput, stripeInvoiceId: 'in_1' })
+    expect(mockExecuteRaw).toHaveBeenCalledTimes(1)
+    const [strings, key] = mockExecuteRaw.mock.calls[0]! as [TemplateStringsArray, string]
+    expect(strings.join('?')).toContain('pg_advisory_xact_lock')
+    expect(key).toBe('flagged-invoice:in_1')
+    expect(mockExecuteRaw.mock.invocationCallOrder[0]!).toBeLessThan(mockFindFirst.mock.invocationCallOrder[0]!)
+
+    vi.clearAllMocks()
+    await recordFlaggedPayment(fakeTx(), { ...baseInput, stripePaymentIntentId: 'pi_9' })
+    expect(mockExecuteRaw).not.toHaveBeenCalled() // unique column + P2002 backstop already covers it
+  })
+
+  describe('two CONCURRENT deliveries for the same subscription invoice', () => {
+    // In-memory store + a lock that behaves like pg_advisory_xact_lock: held
+    // until the owning transaction finishes. create() yields to the event loop
+    // so, without the lock, both pre-checks run before either insert.
+    function harness(lockWorks: boolean) {
+      const rows: { id: string; stripeInvoiceId: string | null; status: string }[] = []
+      const held = new Map<string, Promise<void>>()
+      async function runTx(fn: (tx: Parameters<typeof recordFlaggedPayment>[0]) => Promise<unknown>) {
+        let release = () => {}
+        const tx = {
+          $executeRaw: async (_s: TemplateStringsArray, key: string) => {
+            if (!lockWorks) return 1
+            while (held.has(key)) await held.get(key)
+            held.set(key, new Promise<void>(r => { release = () => { held.delete(key); r() } }))
+            return 1
+          },
+          transaction: {
+            findFirst: async ({ where }: { where: { stripeInvoiceId?: string; status?: string } }) =>
+              rows.find(r => r.stripeInvoiceId === where.stripeInvoiceId && (!where.status || r.status === where.status)) ?? null,
+            create: async ({ data }: { data: { stripeInvoiceId: string | null; status: string } }) => {
+              await new Promise(r => setTimeout(r, 5))
+              const row = { id: `tx-${rows.length + 1}`, ...data }
+              rows.push(row)
+              return row
+            },
+          },
+        } as unknown as Parameters<typeof recordFlaggedPayment>[0]
+        try { return await fn(tx) } finally { release() } // commit releases the xact lock
+      }
+      return { rows, runTx }
+    }
+
+    it('with the advisory lock → exactly one FLAGGED row', async () => {
+      const { rows, runTx } = harness(true)
+      await Promise.all([
+        runTx(tx => recordFlaggedPayment(tx, { ...baseInput, stripeInvoiceId: 'in_1' })),
+        runTx(tx => recordFlaggedPayment(tx, { ...baseInput, stripeInvoiceId: 'in_1' })),
+      ])
+      expect(rows).toHaveLength(1)
+    })
+
+    it('control: the same race WITHOUT the lock duplicates (proves the harness detects it)', async () => {
+      const { rows, runTx } = harness(false)
+      await Promise.all([
+        runTx(tx => recordFlaggedPayment(tx, { ...baseInput, stripeInvoiceId: 'in_1' })),
+        runTx(tx => recordFlaggedPayment(tx, { ...baseInput, stripeInvoiceId: 'in_1' })),
+      ])
+      expect(rows).toHaveLength(2)
+    })
+
+    it('different invoices do not block each other', async () => {
+      const { rows, runTx } = harness(true)
+      await Promise.all([
+        runTx(tx => recordFlaggedPayment(tx, { ...baseInput, stripeInvoiceId: 'in_1' })),
+        runTx(tx => recordFlaggedPayment(tx, { ...baseInput, stripeInvoiceId: 'in_2' })),
+      ])
+      expect(rows).toHaveLength(2)
+    })
   })
 
   it('swallows a P2002 from the DB unique constraint (race the pre-check missed) instead of throwing', async () => {

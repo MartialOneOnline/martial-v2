@@ -244,6 +244,7 @@ const mockTransaction = vi.fn((fn: (tx: unknown) => unknown) => {
     }
   }
   const tx = {
+    $executeRaw: guard(async () => 1), // advisory lock in recordFlaggedPayment (invoice case)
     membership: { findFirst: guard(mockMembershipFindFirst), create: guard(mockMembershipCreate), updateMany: guard(mockMembershipUpdateMany) },
     schoolMember: { findUnique: guard(mockSchoolMemberFindUnique), updateMany: guard(mockSchoolMemberUpdateMany), create: guard(mockSchoolMemberCreate), update: guard(mockSchoolMemberUpdate) },
     transaction: { findFirst: guard(mockTransactionFindFirst), create: guard(mockTransactionCreate) },

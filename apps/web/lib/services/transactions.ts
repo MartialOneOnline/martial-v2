@@ -124,8 +124,15 @@ export async function recordFlaggedPayment(tx: Prisma.TransactionClient, input: 
     if (existing) return existing
   }
   if (!input.stripePaymentIntentId && input.stripeInvoiceId) {
-    // Not DB-unique (renewals reuse the column), so this pre-check is the guard;
-    // the Stripe handler's per-event claim already prevents concurrent repeats.
+    // stripeInvoiceId is not DB-unique (renewal rows reuse the column), so no
+    // P2002 backstop exists here. The webhook's lockSurvivingUser takes FOR
+    // SHARE (does not serialise two writers) and claimStripeEvent can reclaim a
+    // stale PROCESSING event while the original delivery is still running — so
+    // serialise on the invoice itself: a transaction-scoped advisory lock,
+    // released at commit/rollback. A concurrent call blocks here and its
+    // pre-check below (a new statement under READ COMMITTED) then sees the row
+    // the first one committed.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`flagged-invoice:${input.stripeInvoiceId}`}, 0))`
     const existing = await tx.transaction.findFirst({
       where: { stripeInvoiceId: input.stripeInvoiceId, status: TransactionStatus.FLAGGED },
       select: { id: true },

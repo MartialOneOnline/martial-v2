@@ -345,6 +345,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 - Auditoría Codex sobre `4256a6a` → **`RECHAZADO`** (AF-1 P1, AF-2/3/4 P2). Corregido en el commit siguiente, pendiente de reauditoría (detalle en `docs/PROJECT-AUDIT.md` → Lote AF):
   - AF-1: un pase con `validityDays` 0 o negativo ya no se vende (`validity.kind='invalid'`, `configIssue:'invalid_validity'`, checkout `400 plan_misconfigured`). `null` = sin caducidad, coherente en ambos webhooks.
   - AF-2: el FLAGGED de una suscripción (sin `payment_intent`) guarda `stripeInvoiceId = session.invoice`; status lo detecta → `needs_school`. Los FLAGGED de suscripción anteriores a este cambio no llevan la factura.
+  - AF-2 (concurrencia): `recordFlaggedPayment` serializa el caso factura con `pg_advisory_xact_lock` por invoice id, porque la columna no es única y `FOR SHARE` no serializa escritores.
   - AF-3: si falla el cambio de escuela en `/checkout/return`, «Reintentar» repite la selección autorizada en vez de enlazar a `/my/classes`.
   - AF-4: `findPausedMembership` evalúa todas las PAUSED (`recurring` si cualquiera tiene suscripción; añade `count`).
 
