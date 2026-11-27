@@ -540,6 +540,10 @@ Evidencia: `claimsE2eKit.test.ts` 33/33 (solo datos ficticios y red simulada); m
 - **Reauditoría de `4256a6a..c488720` (Codex, 2026-11-27): APROBADO CON PENDIENTES.** AF-1, AF-2, AF-3 y AF-4 cerrados en código, sin hallazgos nuevos bloqueantes. Verificación independiente: tests dirigidos 154/154; suite 1629 / 55 / 16 con los mismos 55 fallos de la base `87cf07b` (por archivo y nombre); `tsc` limpio; ESLint del delta 0 errores; `git diff --check` limpio.
   - Pendientes de integración: (1) probar el advisory lock de `recordFlaggedPayment` contra un PostgreSQL real y aislado (en tests la concurrencia está simulada; no hay Postgres local en la máquina de desarrollo); (2) recorrido en navegador, recuperación multiescuela y Stripe en modo test con webhook; (3) los FLAGGED de suscripción anteriores a `b131002` no llevan factura y no se detectan automáticamente en `/checkout/return` (la escuela los ve en Pagos → «Needs review»).
   - Merge solo con autorización explícita del usuario, aceptando estos pendientes.
+- **Estado (2026-11-27): código aprobado, integración pendiente.** El usuario decide mantener el PR #77 abierto, sin fusionar, hasta cubrir los pendientes 1 y 2 en un entorno aislado. No se declara probado el recorrido completo.
+  - Preparado: test de integración `apps/web/__tests__/integration/flaggedPaymentLock.pg.test.ts` (Postgres real, dos conexiones; se omite sin `TEST_DATABASE_URL` y se niega a ejecutarse si la base parece producción) y pasos mínimos en `docs/INTEGRATION-TEST-ENV.md`.
+  - Bloqueo: la máquina no tiene PostgreSQL ni Docker, y PGlite (un solo proceso) no permite concurrencia real. Hace falta un proyecto Supabase de pruebas aparte (recomendado; sirve también para el recorrido con Stripe) o el OK para descargar `embedded-postgres` temporal.
+  - Correcciones de Codex a la comunicación: el lock evita duplicar la incidencia FLAGGED de un pago, no controla cobros de Stripe; fusionar no obliga a probar en producción; no activar Stripe en los planes de RGM sin revisar antes su finalidad y su acceso a clases (Clase Privada con acceso a grupos, Infantil sin restricciones).
 
 ## Próxima entrega de Claude
 
