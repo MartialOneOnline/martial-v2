@@ -723,6 +723,7 @@ export default function MyClassesPage() {
   const [passPlans, setPassPlans] = useState<PassPlan[]>([])
   const [requestingPassId, setRequestingPassId] = useState<string | null>(null)
   const [passSuccess, setPassSuccess] = useState<string | null>(null)
+  const [passError, setPassError] = useState<string | null>(null)
   const [occDate, setOccDate] = useState<Date | null>(null)
   const [detailOcc, setDetailOcc] = useState<Occurrence | null>(null)
   const [confirmOcc, setConfirmOcc] = useState<Occurrence | null>(null)
@@ -798,7 +799,14 @@ export default function MyClassesPage() {
         setPassPlans(prev => prev.map(p => p.id === plan.id ? { ...p, pending: true } : p))
         setPassSuccess(plan.name)
         setTimeout(() => setPassSuccess(null), 3500)
+      } else {
+        // Never fail silently — the button would otherwise just stop spinning.
+        setPassError(t.my.planRequestFailed)
+        setTimeout(() => setPassError(null), 5000)
       }
+    } catch {
+      setPassError(t.my.planRequestFailed)
+      setTimeout(() => setPassError(null), 5000)
     } finally {
       setRequestingPassId(null)
     }
@@ -1106,6 +1114,13 @@ export default function MyClassesPage() {
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-lg whitespace-nowrap flex items-center gap-2">
           <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
           {t.my.requestSentFor.replace('{name}', passSuccess ?? '')}
+        </div>
+      )}
+
+      {/* Pass request failure toast */}
+      {passError && (
+        <div role="alert" className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm bg-red-600 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-lg text-center">
+          {passError}
         </div>
       )}
     </div>

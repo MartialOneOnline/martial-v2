@@ -316,6 +316,20 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 
 ## Historial de sesiones
 
+### Sesión — 2026-11-26 (rama `claude/lote0-join-safety` — Lote 0 del flujo «alumno sin escuela se une a una escuela»)
+
+- Contexto: auditoría del recorrido alumno sin escuela → Roger Gracie Málaga. Bucle confirmado: `ClassBookingModal` lista planes sin acción y «Ver todos los planes» navega a la misma ficha (`#memberships`) sin cerrar el modal; `MembershipSection` tampoco permite comprar. Diagnóstico y planes de Lote 1 (compra/reserva) y Lote 2 («Solicitar unirme») **RECHAZADOS por Codex como planes listos** — falta cerrar decisiones de producto (finalidad grupo/privado del plan, vigencia de pases, reserva provisional en efectivo, intención persistente de compra+reserva, ciclo propio de solicitud, rechazo, ofertas de plan). Nada de eso está en este lote.
+- Lote 0 (sin cambios de estados, vigencias ni modelo de datos):
+  1. `lib/paymentMethods.ts`: `resolveOnlineMethod` / `resolveManualMethod`. El `paymentMethods` del plan es la única fuente: método explícito no permitido → 400 (nunca se sustituye por otro); sin método aplicable → 400 (se elimina el fallback silencioso a CASH).
+  2. `POST /api/my/checkout`: ya no acepta `provider: 'REVOLUT'` en un plan sin REVOLUT ni asume STRIPE por defecto; método y configuración del proveedor se validan **antes** de cualquier escritura de compra/membresía (incluido el borrado del PENDING Revolut caducado) o llamada al proveedor. Excepción explícita y preexistente: `getAuthUser()` se ejecuta antes y puede vincular/crear el `User` propio en una primera sesión OAuth (provisión de identidad, no compra).
+  3. `POST /api/my/memberships/[id]`: misma validación para métodos manuales.
+  4. `/my/classes` («Obtener pase») y `/my/membership`: un rechazo ya no falla en silencio → aviso `t.my.planRequestFailed` (EN/ES/PT/FR).
+  5. `MyShell`: el fallback del logo usaba `/logo.svg` (inexistente → «?» en iOS) → `/martial-logo.png`.
+  6. Dashboard → Memberships: «Share / QR code» generaba `/join/<slug>/<planId>`, ruta inexistente (404). Se retira el modal y la opción queda deshabilitada con explicación (`t.memberships.sharePlanLink` / `sharePlanUnavailable`).
+- Datos RGM observados (solo lectura): `hasFreeTrialCls=false`; ningún plan TRIAL público y activo; Pase 1 Día, Clase Privada y Jiu Jitsu Infantil públicos con `paymentMethods = []` (tras este lote no se pueden solicitar ni pagar hasta que la escuela les asigne método — el usuario lo corrige en el panel); `classAccess` de Clase Privada incluye todas las clases de grupo e Infantil es `{}`.
+- Tests: `__tests__/planPaymentMethodValidation.test.ts` (16). `tsc` limpio, ESLint 0 errores, suite completa con los mismos 55 fallos que `origin/main`. Sin prueba en navegador todavía.
+- Auditoría Codex sobre `2393c57` → **`APROBADO CON PENDIENTES`**. P3 (`aria-label="Close"` sin traducir en `/my/membership`) corregido → `t.common.close`. P2 (la garantía «antes de cualquier escritura» tenía la excepción preexistente de `getAuthUser()`) resuelto precisando la garantía en código y docs como «antes de cualquier escritura de compra/membresía»; separar autenticación y provisión queda fuera de este lote. Reauditoría del delta `2393c57..6e2b51a` → **`APROBADO`**. Pendiente de integración: recorrido en navegador con sesión real (error de método, fallo de red, móvil).
+
 ### Sesión — 2026-11-23 (noche, 2) (rama `claude/claim-shorter-accept` — aceptación más corta, opción A)
 
 - Tras la prueba controlada en producción (2 emails, 7 clics) el usuario eligió la opción A: mismo nivel de seguridad (el enlace de confirmación sigue llegando solo al email invitado), menos pasos. `/claim/[token]`: «Aceptar y entrar» envía el email; el clic «Confirmar y entrar» al volver canjea la sesión y completa la aceptación seguidos; éxito → navegación completa a `/dashboard`; se elimina la pantalla «¡Listo!» (`doneTitle/doneBody/goDashboard` fuera de los 4 idiomas, nuevo `entering`). Rutas de servidor sin cambios. Ahora: 2 emails, 4 clics (abrir invitación, Aceptar y entrar, abrir email, Confirmar y entrar).

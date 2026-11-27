@@ -307,7 +307,7 @@ export default function MyShell({ children, initialSchool }: { children: React.R
               onError={() => setLogoBroken(true)}
             />
           ) : (
-            <Image src="/logo.svg" alt="Martial" width={28} height={28} className="rounded-full shrink-0" />
+            <Image src="/martial-logo.png" alt="Martial" width={28} height={28} className="rounded-full shrink-0" />
           )}
           <span className="text-[15px] font-semibold text-[#1C1C1E] truncate">
             {school?.name ?? 'Martial'}

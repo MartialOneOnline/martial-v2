@@ -4,9 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import {
   X, Plus, Pencil, Trash2, Check, Infinity, Menu, Image as ImageIcon,
-  Users, Share2, Copy, Mail, Upload, MoreVertical, AlertTriangle, Download,
+  Users, Share2, Upload, MoreVertical, AlertTriangle, Download,
 } from 'lucide-react'
-import { QRCodeSVG } from 'qrcode.react'
 import { useDashboard, useSchoolDefaultCurrency, useFollowSchoolCurrency } from '../../../components/DashboardShell'
 import CurrencySelect from '../../../components/CurrencySelect'
 import NotificationBell from '../../../components/NotificationBell'
@@ -869,106 +868,6 @@ function PlanMembersModal({ plan, onClose }: { plan: PlanRow; onClose: () => voi
   )
 }
 
-// ── Share modal ────────────────────────────────────────────────────────────────
-function SharePlanModal({ plan, schoolSlug, onClose }: {
-  plan: PlanRow; schoolSlug: string | null; onClose: () => void
-}) {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const slug = schoolSlug ?? plan.id
-  const url = `${origin}/join/${slug}/${plan.id}`
-
-  const [copied, setCopied] = useState(false)
-
-  function copyLink() {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  function sendEmail() {
-    const subject = encodeURIComponent(`Join ${plan.name}`)
-    const body = encodeURIComponent(
-      `Hi,\n\nI'd like to invite you to join our "${plan.name}" membership plan.\n\nClick the link below to sign up:\n${url}\n\nSee you on the mat!`
-    )
-    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank')
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.4)' }}>
-      <div style={{ background: '#fff', borderRadius: 20, width: 'min(480px,94vw)',
-        boxShadow: '0 24px 64px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
-
-        {/* Header */}
-        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #F3F4F6',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Share plan</h3>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{plan.name}</p>
-          </div>
-          <button onClick={onClose}
-            style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #E5E7EB',
-              background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <X size={14} style={{ color: '#6B7280' }} />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-          {/* QR Code */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-            <div style={{ padding: 16, background: '#F9FAFB', borderRadius: 16, border: '1px solid #E5E7EB' }}>
-              <QRCodeSVG value={url} size={160} level="M" />
-            </div>
-            <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0, textAlign: 'center' }}>
-              Scan to join this membership plan
-            </p>
-          </div>
-
-          {/* Link copy */}
-          <div>
-            <label style={labelSt}>Shareable link</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ flex: 1, border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px',
-                fontSize: 12, color: '#6B7280', background: '#F9FAFB', overflow: 'hidden',
-                whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                {url}
-              </div>
-              <button onClick={copyLink}
-                style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid #E5E7EB',
-                  background: copied ? '#F0FDF4' : '#fff', color: copied ? '#16A34A' : '#374151',
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex',
-                  alignItems: 'center', gap: 6, flexShrink: 0, transition: 'all 0.15s' }}>
-                {copied ? <Check size={13} /> : <Copy size={13} />}
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={sendEmail}
-              style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '1px solid #E5E7EB',
-                background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-              <Mail size={14} />
-              Send by email
-            </button>
-            <button onClick={onClose}
-              style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none',
-                background: '#0071E3', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-              Done
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Plan type badge ────────────────────────────────────────────────────────────
 const PLAN_TYPE_COLORS: Record<PlanType, { bg: string; color: string; label: string }> = {
   SUBSCRIPTION: { bg: '#EFF6FF', color: '#1D4ED8', label: 'Subscription' },
   SINGLE_PASS:  { bg: '#F0FDF4', color: '#15803D', label: 'Single Pass'  },
@@ -976,11 +875,11 @@ const PLAN_TYPE_COLORS: Record<PlanType, { bg: string; color: string; label: str
 }
 
 // ── Row menu ───────────────────────────────────────────────────────────────────
-function PlanRowMenu({ onMembers, onShare }: {
+function PlanRowMenu({ onMembers }: {
   plan: PlanRow
   onMembers: () => void
-  onShare: () => void
 }) {
+  const t = useT()
   return (
     <RowMenu trigger={({ onClick }) => (
       <button onClick={onClick}
@@ -998,12 +897,17 @@ function PlanRowMenu({ onMembers, onShare }: {
           <Users size={14} style={{ color: '#6B7280' }} />
           View members
         </button>
-        <button onClick={onShare}
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+        {/* Direct plan links (/join/<slug>/<planId>) have no route yet — shown
+            disabled with an explanation instead of handing out a link that 404s. */}
+        <button type="button" disabled aria-disabled="true" title={t.memberships.sharePlanUnavailable}
+          style={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 10,
             padding: '10px 14px', border: 'none', background: 'none', borderTop: '1px solid #F3F4F6',
-            fontSize: 13, color: '#374151', cursor: 'pointer', textAlign: 'left' }}>
-          <Share2 size={14} style={{ color: '#6B7280' }} />
-          Share / QR code
+            fontSize: 13, color: '#9CA3AF', cursor: 'not-allowed', textAlign: 'left', maxWidth: 260 }}>
+          <Share2 size={14} style={{ color: '#D1D5DB', marginTop: 2, flexShrink: 0 }} />
+          <span>
+            {t.memberships.sharePlanLink}
+            <span style={{ display: 'block', fontSize: 11, lineHeight: 1.35, marginTop: 2 }}>{t.memberships.sharePlanUnavailable}</span>
+          </span>
         </button>
       </div>
     </RowMenu>
@@ -1011,13 +915,12 @@ function PlanRowMenu({ onMembers, onShare }: {
 }
 
 // ── Table row ─────────────────────────────────────────────────────────────────
-function PlanTableRow({ plan, classes, onEdit, onDelete, onMembers, onShare }: {
+function PlanTableRow({ plan, classes, onEdit, onDelete, onMembers }: {
   plan: PlanRow
   classes: ClassOption[]
   onEdit: (p: PlanRow) => void
   onDelete: (p: PlanRow) => void
   onMembers: (p: PlanRow) => void
-  onShare: (p: PlanRow) => void
 }) {
   const cfg = plan.classAccess as ClassAccessConfig
   const includedRules = (cfg.classRules ?? []).filter(r => r.included)
@@ -1131,7 +1034,7 @@ function PlanTableRow({ plan, classes, onEdit, onDelete, onMembers, onShare }: {
             style={{ border: '1px solid #FECACA', background: '#FFF5F5' }}>
             <Trash2 size={13} style={{ color: '#EF4444' }} />
           </button>
-          <PlanRowMenu plan={plan} onMembers={() => onMembers(plan)} onShare={() => onShare(plan)} />
+          <PlanRowMenu plan={plan} onMembers={() => onMembers(plan)} />
         </div>
       </td>
     </tr>
@@ -1154,7 +1057,6 @@ export default function MembershipsClient() {
 
   const [plans, setPlans]           = useState<PlanRow[]>([])
   const [classes, setClasses]       = useState<ClassOption[]>([])
-  const [schoolSlug, setSchoolSlug] = useState<string | null>(null)
   const [availableMethods, setAvailableMethods] = useState<string[]>([])
   const [loading, setLoading]       = useState(true)
   const [activeTab, setActiveTab]   = useState<TabId>('subscriptions')
@@ -1163,7 +1065,6 @@ export default function MembershipsClient() {
   const [editPlan, setEditPlan]     = useState<PlanRow | null>(null)
   const [deletePlan, setDeletePlan] = useState<PlanRow | null>(null)
   const [membersPlan, setMembersPlan] = useState<PlanRow | null>(null)
-  const [sharePlan, setSharePlan]   = useState<PlanRow | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1173,7 +1074,6 @@ export default function MembershipsClient() {
         const data = await res.json()
         setPlans(data.plans)
         setClasses(data.classes)
-        setSchoolSlug(data.schoolSlug ?? null)
         setAvailableMethods(data.paymentCapabilities?.availableMethods ?? [])
       }
     } finally {
@@ -1357,7 +1257,7 @@ export default function MembershipsClient() {
                 {filtered.map(plan => (
                   <PlanTableRow key={plan.id} plan={plan} classes={classes}
                     onEdit={openEdit} onDelete={setDeletePlan}
-                    onMembers={setMembersPlan} onShare={setSharePlan} />
+                    onMembers={setMembersPlan} />
                 ))}
               </tbody>
             </table>
@@ -1382,9 +1282,6 @@ export default function MembershipsClient() {
         <PlanMembersModal plan={membersPlan} onClose={() => setMembersPlan(null)} />
       )}
 
-      {sharePlan && (
-        <SharePlanModal plan={sharePlan} schoolSlug={schoolSlug} onClose={() => setSharePlan(null)} />
-      )}
     </main>
   )
 }

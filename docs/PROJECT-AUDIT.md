@@ -503,6 +503,20 @@ Evidencia: `claimsE2eKit.test.ts` 33/33 (solo datos ficticios y red simulada); m
 
 **Kit `65683eb` → `APROBADO` por Codex (2026-11-23).** Los tres fallos quedan cerrados; reverificado de forma independiente: 33/33 tests del kit, suite 1523 / 55 (mismos fallos que la base), TypeScript y ESLint sin errores. Pendiente (integración, no código): proyecto Supabase de pruebas, clave Resend dedicada y las dos bandejas controladas → ejecutar `scripts/claims-e2e/RUNBOOK.md` en navegador con correo real. Sin emails ni operaciones de producción hasta entonces.
 
+### Lote AE — Lote 0 del flujo «unirse a una escuela»: métodos de pago estrictos, errores visibles, logo, enlace roto (rama `claude/lote0-join-safety`)
+
+- Estado: **`APROBADO`** (reauditoría de Codex del delta `2393c57..6e2b51a`, 2026-11-26: P2 y P3 cerrados, ningún hallazgo de código abierto). Único pendiente de integración: prueba en navegador con sesión real (error de método, fallo de red, móvil). Historial: `APROBADO CON PENDIENTES` (Codex sobre `2393c57`, 2026-11-26): condiciones del Lote 0 cumplidas; 16/16 dirigidos, suite 1547/55/16 con los mismos 55 fallos que la base 531b4ed, tsc y ESLint sin errores. Pendientes corregidos en el commit siguiente: **P3** `aria-label` del aviso de error traducido (`t.common.close`); **P2** garantía precisada a «antes de cualquier escritura de compra/membresía» — `getAuthUser()` puede provisionar/vincular el `User` propio en una primera sesión OAuth antes de la validación (comportamiento preexistente, no es una escritura de compra; separar autenticación y provisión queda fuera del lote). Pendiente de integración: recorrido en navegador con sesión real (error de método, fallo de red, móvil).
+- Origen: auditoría de Codex sobre el diagnóstico y los planes de Lote 1/Lote 2 del flujo de alumno sin escuela (ambos `RECHAZADO` como planes listos para implementar; decisiones de producto pendientes). Codex dio luz verde a este Lote 0 con condiciones: validar el método contra los del plan antes de cualquier escritura o llamada al proveedor; no sustituir en silencio un método inválido; deshabilitar el enlace roto explicando que aún no está disponible; dejar fuera estados, vigencias y modelo de datos.
+- Cambios: ver `CONTEXT.md` → «Sesión — 2026-11-26». Puntos a auditar:
+  1. `resolveOnlineMethod` / `resolveManualMethod` (`lib/paymentMethods.ts`): explícito no permitido → error; sin preferencia → primer método permitido (STRIPE→REVOLUT; CASH→BANK_TRANSFER→DIRECT_DEBIT→OTHER); sin método aplicable → error.
+  2. `/api/my/checkout`: resolución y comprobación de proveedor configurado antes del borrado del PENDING Revolut caducado, de `membership.create` y de Stripe/Revolut (la provisión de identidad de `getAuthUser()` va antes y queda fuera de esta garantía).
+  3. `/api/my/memberships/[id]`: sin fallback a CASH.
+  4. `/my/classes` y `/my/membership`: rechazo → aviso visible en los 4 idiomas.
+  5. `MyShell` fallback `/martial-logo.png`.
+  6. Memberships: `SharePlanModal` retirado; opción deshabilitada con texto explicativo.
+- Efecto conocido y buscado: planes públicos con `paymentMethods = []` (RGM: Pase 1 Día, Clase Privada, Infantil) dejan de poder solicitarse (antes se creaba una solicitud CASH no autorizada) y muestran el aviso de error hasta que la escuela les asigne método.
+- Evidencia: `__tests__/planPaymentMethodValidation.test.ts` 16/16; `tsc` limpio; ESLint 0 errores (avisos preexistentes); suite completa 1547 passed / 55 failed / 16 skipped, con los mismos 55 fallos y 12 archivos que `origin/main` (531b4ed) ejecutado aparte; `git diff --check` limpio. **No verificado:** recorrido en navegador con sesión real.
+
 ## Próxima entrega de Claude
 
 Lotes A, B y C en `APROBADO CON PENDIENTES`. Ningún hallazgo bloqueante abierto. El siguiente lote lo prioriza el usuario entre: la rama real `hasFreeTrialCls: true`, la reserva autenticada real, o el ciclo de registro con correo real — los tres pendientes explícitos listados en Lote C.

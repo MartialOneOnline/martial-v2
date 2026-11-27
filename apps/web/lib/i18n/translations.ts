@@ -514,6 +514,7 @@ export const translations = {
     // ── Memberships ──────────────────────────────────────────────────────────
     memberships: {
       title: 'Memberships', subtitle: 'Manage subscription plans, single passes and trials',
+      sharePlanLink: 'Share / QR code', sharePlanUnavailable: 'Direct plan links are not available yet. Share your school page instead.',
       searchPlaceholder: 'Search memberships…', addSubscription: 'Add Subscription',
       tabSubscriptions: 'Subscriptions', tabSinglePasses: 'Single Passes', tabTrials: 'Trial Memberships',
       totalPlans: 'Total Plans', acrossAllTypes: 'across all types', activePlans: 'Active Plans',
@@ -1332,6 +1333,7 @@ export const translations = {
       bookClassHere: 'Book a class to see it here', attendWillAppear: 'Classes you attend will appear here',
       browseClasses: 'Browse classes',
       requestSentFor: 'Request sent for {name}',
+      planRequestFailed: "We couldn't request this plan. Please contact the school.",
       confirmBookingTitle: 'Confirm booking', bookingConfirmedTitle: 'Booking confirmed!',
       confirmBtn: 'Confirm', cancelBookingBtn2: 'Cancel booking',
       cancelBookingQuestion: 'Cancel booking?',
@@ -2041,6 +2043,7 @@ export const translations = {
     },
     memberships: {
       title: 'Membresías', subtitle: 'Gestiona planes de suscripción, pases únicos y pruebas',
+      sharePlanLink: 'Compartir / código QR', sharePlanUnavailable: 'Los enlaces directos a un plan aún no están disponibles. Comparte la página de tu escuela.',
       searchPlaceholder: 'Buscar membresías…', addSubscription: 'Añadir Suscripción',
       tabSubscriptions: 'Suscripciones', tabSinglePasses: 'Pases Únicos', tabTrials: 'Membresías de Prueba',
       totalPlans: 'Total de Planes', acrossAllTypes: 'en todos los tipos', activePlans: 'Planes Activos',
@@ -2823,6 +2826,7 @@ export const translations = {
       bookClassHere: 'Reserva una clase para verla aquí', attendWillAppear: 'Las clases a las que asistas aparecerán aquí',
       browseClasses: 'Ver clases',
       requestSentFor: 'Solicitud enviada para {name}',
+      planRequestFailed: 'No se ha podido solicitar este plan. Contacta con la escuela.',
       confirmBookingTitle: 'Confirmar reserva', bookingConfirmedTitle: '¡Reserva confirmada!',
       confirmBtn: 'Confirmar', cancelBookingBtn2: 'Cancelar reserva',
       cancelBookingQuestion: '¿Cancelar reserva?',
@@ -3532,6 +3536,7 @@ export const translations = {
     },
     memberships: {
       title: 'Assinaturas', subtitle: 'Gerencie planos de assinatura, passes únicos e testes',
+      sharePlanLink: 'Compartilhar / QR code', sharePlanUnavailable: 'Links diretos para um plano ainda não estão disponíveis. Compartilhe a página da sua academia.',
       searchPlaceholder: 'Buscar assinaturas…', addSubscription: 'Adicionar Assinatura',
       tabSubscriptions: 'Assinaturas', tabSinglePasses: 'Passes Únicos', tabTrials: 'Assinaturas de Teste',
       totalPlans: 'Total de Planos', acrossAllTypes: 'em todos os tipos', activePlans: 'Planos Ativos',
@@ -4314,6 +4319,7 @@ export const translations = {
       bookClassHere: 'Reserve uma aula para vê-la aqui', attendWillAppear: 'As aulas que você frequentar aparecerão aqui',
       browseClasses: 'Ver aulas',
       requestSentFor: 'Solicitação enviada para {name}',
+      planRequestFailed: 'Não foi possível solicitar este plano. Entre em contato com a academia.',
       confirmBookingTitle: 'Confirmar reserva', bookingConfirmedTitle: 'Reserva confirmada!',
       confirmBtn: 'Confirmar', cancelBookingBtn2: 'Cancelar reserva',
       cancelBookingQuestion: 'Cancelar reserva?',
@@ -5023,6 +5029,7 @@ export const translations = {
     },
     memberships: {
       title: 'Abonnements', subtitle: 'Gérez les plans d\'abonnement, les passes uniques et les essais',
+      sharePlanLink: 'Partager / QR code', sharePlanUnavailable: 'Les liens directs vers une formule ne sont pas encore disponibles. Partagez plutôt la page de votre académie.',
       searchPlaceholder: 'Rechercher des abonnements…', addSubscription: 'Ajouter un Abonnement',
       tabSubscriptions: 'Abonnements', tabSinglePasses: 'Passes Uniques', tabTrials: 'Abonnements d\'Essai',
       totalPlans: 'Total des Plans', acrossAllTypes: 'tous types confondus', activePlans: 'Plans Actifs',
@@ -5805,6 +5812,7 @@ export const translations = {
       bookClassHere: 'Réservez un cours pour le voir ici', attendWillAppear: 'Les cours auxquels vous assistez apparaîtront ici',
       browseClasses: 'Parcourir les cours',
       requestSentFor: 'Demande envoyée pour {name}',
+      planRequestFailed: "Impossible de demander cette formule. Veuillez contacter l'académie.",
       confirmBookingTitle: 'Confirmer la réservation', bookingConfirmedTitle: 'Réservation confirmée !',
       confirmBtn: 'Confirmer', cancelBookingBtn2: 'Annuler la réservation',
       cancelBookingQuestion: 'Annuler la réservation ?',
