@@ -346,6 +346,7 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
   - AF-1: un pase con `validityDays` 0 o negativo ya no se vende (`validity.kind='invalid'`, `configIssue:'invalid_validity'`, checkout `400 plan_misconfigured`). `null` = sin caducidad, coherente en ambos webhooks.
   - AF-2: el FLAGGED de una suscripción (sin `payment_intent`) guarda `stripeInvoiceId = session.invoice`; status lo detecta → `needs_school`. Los FLAGGED de suscripción anteriores a este cambio no llevan la factura.
   - AF-2 (concurrencia): `recordFlaggedPayment` serializa el caso factura con `pg_advisory_xact_lock` por invoice id, porque la columna no es única y `FOR SHARE` no serializa escritores.
+- Reauditoría Codex sobre `4256a6a..c488720` → **`APROBADO CON PENDIENTES`** (AF-1..AF-4 cerrados). Pendientes de integración: advisory lock contra Postgres real y aislado; navegador + Stripe test con webhook; FLAGGED de suscripción históricos sin factura no detectados. PR #77 sin fusionar.
   - AF-3: si falla el cambio de escuela en `/checkout/return`, «Reintentar» repite la selección autorizada en vez de enlazar a `/my/classes`.
   - AF-4: `findPausedMembership` evalúa todas las PAUSED (`recurring` si cualquiera tiene suscripción; añade `count`).
 

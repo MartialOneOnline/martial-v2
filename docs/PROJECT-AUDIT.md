@@ -537,6 +537,9 @@ Evidencia: `claimsE2eKit.test.ts` 33/33 (solo datos ficticios y red simulada); m
   - **AF-3 · recuperación del cambio de escuela.** El enlace directo a `/my/classes` se sustituye por «Reintentar», que vuelve a hacer `POST /api/auth/context/select` de la escuela comprada y solo navega cuando se confirma. Verificado por inspección; no hay infraestructura de tests de componentes.
   - **AF-4 · varias PAUSED.** `findPausedMembership` usa `findMany` sobre todas las PAUSED de la escuela; `recurring` es true si cualquiera tiene suscripción, nombra el plan recurrente (o el más reciente) y añade `count`. No expone identificadores externos.
   - Evidencia: `planPurchase.test.ts` 76/76, `recordFlaggedPayment` y `stripeWebhookLifecycleSync` con casos nuevos (134/134 en esos tres archivos); suite completa 1625 / 55 / 16 con los mismos 55 fallos de `main` (tras el lock de AF-2: 1629 / 55 / 16); `tsc` limpio; ESLint sin errores en los archivos tocados; `git diff --check` limpio.
+- **Reauditoría de `4256a6a..c488720` (Codex, 2026-11-27): APROBADO CON PENDIENTES.** AF-1, AF-2, AF-3 y AF-4 cerrados en código, sin hallazgos nuevos bloqueantes. Verificación independiente: tests dirigidos 154/154; suite 1629 / 55 / 16 con los mismos 55 fallos de la base `87cf07b` (por archivo y nombre); `tsc` limpio; ESLint del delta 0 errores; `git diff --check` limpio.
+  - Pendientes de integración: (1) probar el advisory lock de `recordFlaggedPayment` contra un PostgreSQL real y aislado (en tests la concurrencia está simulada; no hay Postgres local en la máquina de desarrollo); (2) recorrido en navegador, recuperación multiescuela y Stripe en modo test con webhook; (3) los FLAGGED de suscripción anteriores a `b131002` no llevan factura y no se detectan automáticamente en `/checkout/return` (la escuela los ve en Pagos → «Needs review»).
+  - Merge solo con autorización explícita del usuario, aceptando estos pendientes.
 
 ## Próxima entrega de Claude
 
