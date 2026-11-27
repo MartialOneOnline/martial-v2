@@ -14,6 +14,7 @@
  * claim. That's the specific thing "replay doesn't duplicate" tests here.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+const mockNotifyPausedPurchase = vi.hoisted(() => vi.fn().mockResolvedValue(false))
 import { NextRequest } from 'next/server'
 
 const mockGetRevolutOrder = vi.fn().mockResolvedValue({ state: 'COMPLETED' })
@@ -34,7 +35,7 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketConfirmationEmail: vi.fn().mockResolvedValue(undefined),
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
-vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn(), notifyPurchaseWithPausedMembership: (...a: unknown[]) => mockNotifyPausedPurchase(...a) }))
 
 const mockRecordOnlinePayment = vi.fn().mockResolvedValue(undefined)
 // recordFlaggedPayment stays REAL (see file header) — recordOnlinePayment is

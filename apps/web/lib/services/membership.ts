@@ -154,7 +154,8 @@ export async function isSchoolMemberArchived(
  * Projects a Membership status onto the linked SchoolMember record,
  * conservatively:
  *   ACTIVE              -> SchoolMember ACTIVE
- *   PAUSED               -> SchoolMember FROZEN
+ *   PAUSED               -> SchoolMember FROZEN, but only if the user has
+ *                no other ACTIVE membership at this school (same guard as below)
  *   CANCELLED / EXPIRED -> SchoolMember INACTIVE, but only if the user has
  *                no other ACTIVE membership at this school — a second
  *                plan/bono shouldn't lose the student their access because
@@ -180,6 +181,10 @@ export async function syncSchoolMemberStatusForMembership(
   if (membershipStatus === MembershipStatus.ACTIVE) {
     targetStatus = 'ACTIVE'
   } else if (membershipStatus === MembershipStatus.PAUSED) {
+    // Same guard as CANCELLED/EXPIRED: a student who bought a new plan while an
+    // older one was paused keeps access through the new one — pausing (or
+    // re-pausing) the old one must not freeze them.
+    if (await hasOtherActiveMembership(tx, { userId, schoolId, excludeMembershipId })) return
     targetStatus = 'FROZEN'
   } else if (membershipStatus === MembershipStatus.CANCELLED || membershipStatus === MembershipStatus.EXPIRED) {
     if (await hasOtherActiveMembership(tx, { userId, schoolId, excludeMembershipId })) return

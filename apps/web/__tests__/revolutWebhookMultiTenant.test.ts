@@ -11,6 +11,7 @@
  * completed), verified against whichever unrelated school that row belongs to.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+const mockNotifyPausedPurchase = vi.hoisted(() => vi.fn().mockResolvedValue(false))
 import { NextRequest } from 'next/server'
 
 const mockFindFirstMembership = vi.fn()
@@ -34,7 +35,7 @@ vi.mock('@/lib/email/sendEmails', () => ({
 }))
 vi.mock('@/lib/services/eventCapacity', () => ({ checkEventCapacity: vi.fn() }))
 vi.mock('@/lib/services/transactions', () => ({ recordOnlinePayment: vi.fn() }))
-vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn(), notifyPurchaseWithPausedMembership: (...a: unknown[]) => mockNotifyPausedPurchase(...a) }))
 
 const { POST } = await import('@/app/api/webhooks/revolut/route')
 

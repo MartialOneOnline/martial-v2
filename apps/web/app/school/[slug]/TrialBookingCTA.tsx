@@ -24,22 +24,12 @@ interface TrialClass {
   level: string | null
 }
 
-interface Plan {
-  id: string
-  name: string
-  price: number
-  currency: string
-  billingCycle: string
-  isPopular: boolean
-}
-
 interface Props {
   /** Trial classes for this school (isActive + isPublished + isTrial) */
   trialClasses: TrialClass[]
   schoolSlug: string
   schoolEmail: string | null
   schoolPhone: string | null
-  plans: Plan[]
   /** Rendered as the button label (e.g. "Book a Trial Class") */
   label?: string
   className?: string
@@ -53,7 +43,6 @@ export default function TrialBookingCTA({
   schoolSlug,
   schoolEmail,
   schoolPhone,
-  plans,
   label,
   className = '',
   hasFreeTrialCls,
@@ -62,6 +51,7 @@ export default function TrialBookingCTA({
   const buttonLabel = label ?? heading
   const [state, setState] = useState<'idle' | 'choosing' | 'modal'>('idle')
   const [session, setSession] = useState<ReturnType<typeof buildBookingSession>>(null)
+  const [cameFromChooser, setCameFromChooser] = useState(false)
 
   function handleClick() {
     // Auto-open the modal only when there's exactly one class AND it's
@@ -70,7 +60,7 @@ export default function TrialBookingCTA({
     // no-schedule state instead of the button silently doing nothing.
     if (trialClasses.length === 1 && hasBookableSchedule(trialClasses[0]!)) {
       const s = buildBookingSession(trialClasses[0]!)
-      if (s) { setSession(s); setState('modal') }
+      if (s) { setSession(s); setCameFromChooser(false); setState('modal') }
       return
     }
     setState('choosing')
@@ -78,7 +68,7 @@ export default function TrialBookingCTA({
 
   function selectClass(classId: string) {
     const s = selectBookingSession(trialClasses, classId)
-    if (s) { setSession(s); setState('modal') }
+    if (s) { setSession(s); setCameFromChooser(true); setState('modal') }
   }
 
   return (
@@ -200,8 +190,9 @@ export default function TrialBookingCTA({
         <ClassBookingModal
           session={session}
           schoolSlug={schoolSlug}
-          plans={plans}
           onClose={() => setState('idle')}
+          // Back to the chooser whenever there was one to come from.
+          onBack={cameFromChooser ? () => setState('choosing') : undefined}
         />
       )}
     </>

@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Clock, Calendar, CheckCircle, LogIn, CreditCard, Loader2 } from 'lucide-react'
+import { X, Clock, Calendar, CheckCircle, LogIn, CreditCard, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { nextOccurrence, type ScheduleSlot } from '@/lib/scheduling'
 import { fmtPrice } from '@/lib/format'
-
-type Plan = { id: string; name: string; price: number; currency: string; billingCycle: string; isPopular: boolean }
+import { useT } from '@/lib/i18n/LanguageContext'
+import PlanPurchaseSheet, { plansUrl, type PublicPlansResponse } from './PlanPurchaseSheet'
 
 type Session = {
   classId: string
@@ -23,8 +23,9 @@ type Session = {
 type Props = {
   session: Session
   schoolSlug: string
-  plans: Plan[]
   onClose: () => void
+  /** Back to the class chooser this modal was opened from, if any. */
+  onBack?: () => void
 }
 
 type AuthStatus =
@@ -37,11 +38,17 @@ type BookingState = 'idle' | 'booking' | 'success' | 'error'
 
 const CURRENCY_SYM: Record<string, string> = { EUR: '€', GBP: '£', USD: '$' }
 
-export default function ClassBookingModal({ session, schoolSlug, plans, onClose }: Props) {
+export default function ClassBookingModal({ session, schoolSlug, onClose, onBack }: Props) {
   const router = useRouter()
+  const t = useT()
+  const tp = t.planPurchase
   const [auth, setAuth] = useState<AuthStatus>({ state: 'loading' })
   const [bookingState, setBookingState] = useState<BookingState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  // Plans that can be bought online AND cover this class (server-evaluated).
+  const [plansData, setPlansData] = useState<PublicPlansResponse | null>(null)
+  const [plansError, setPlansError] = useState(false)
+  const [buyPlanId, setBuyPlanId] = useState<string | null>(null)
 
   useEffect(() => {
     const original = document.body.style.overflow
@@ -63,6 +70,30 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
       })
       .catch(() => setAuth({ state: 'unauthenticated' }))
   }, [schoolSlug])
+
+  const needsPlans = auth.state === 'no_membership' || auth.state === 'unauthenticated'
+  useEffect(() => {
+    if (!needsPlans) return
+    let cancelled = false
+    fetch(plansUrl(schoolSlug, session.classId))
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error('plans'))))
+      .then((d: PublicPlansResponse) => { if (!cancelled) setPlansData(d) })
+      .catch(() => { if (!cancelled) setPlansError(true) })
+    return () => { cancelled = true }
+  }, [needsPlans, schoolSlug, session.classId])
+
+  const offerable = plansData?.plans.filter(p => p.offerableForClass) ?? []
+
+  function showAllPlans() {
+    const el = document.getElementById('memberships')
+    if (el) {
+      // Already on the school profile: close (restores page scroll) and go there.
+      onClose()
+      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+    } else {
+      router.push(`/school/${schoolSlug}#memberships`)
+    }
+  }
 
   async function activateTrial(schoolId: string) {
     setBookingState('booking')
@@ -122,7 +153,12 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
 
         {/* Header */}
         <div className="shrink-0 flex items-start justify-between px-6 pt-4 pb-4 border-b border-[#F3F4F6]">
-          <div>
+          <div className="min-w-0">
+            {onBack && (
+              <button onClick={onBack} className="flex items-center gap-1 text-sm text-[#0870E2] mb-1">
+                <ChevronLeft className="w-4 h-4" /> {tp.back}
+              </button>
+            )}
             <h2 className="text-lg font-bold text-[#111827]">{session.className}</h2>
             <div className="flex items-center gap-3 mt-1 text-sm text-[#6B7280]">
               <span className="flex items-center gap-1">
@@ -138,7 +174,7 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
               <span className="inline-block mt-1.5 text-xs bg-[#F3F4F6] text-[#6B7280] px-2 py-0.5 rounded-full">{session.level}</span>
             )}
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] flex items-center justify-center">
+          <button onClick={onClose} aria-label={t.common.close} className="w-8 h-8 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] flex items-center justify-center shrink-0">
             <X className="w-4 h-4 text-[#374151]" />
           </button>
         </div>
@@ -202,15 +238,21 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
               >
                 Create Free Account
               </button>
+              {/* Plans can be chosen before signing in — the purchase sheet
+                  sends the visitor to login and back to this plan. */}
+              <PlanChoices
+                loading={!plansData && !plansError}
+                error={plansError}
+                plans={offerable}
+                onPick={setBuyPlanId}
+              />
             </div>
           )}
 
           {/* No membership */}
           {auth.state === 'no_membership' && bookingState === 'idle' && (
             <div className="space-y-4">
-              <p className="text-sm text-[#6B7280]">
-                You need a membership to book this class. Choose an option below:
-              </p>
+              <p className="text-sm text-[#6B7280]">{tp.needPlan}</p>
 
               {/* Free trial CTA — only ever shown when the school explicitly enabled
                   hasFreeTrialCls; never inferred from class/schedule data. */}
@@ -224,25 +266,12 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
                 </button>
               )}
 
-              {/* Paid plans */}
-              <div className="space-y-2">
-                {plans.filter(p => p.price > 0).map(plan => {
-                  const suffix = plan.billingCycle === 'monthly' ? '/mo' : plan.billingCycle === 'quarterly' ? '/qtr' : ''
-                  return (
-                    <div key={plan.id} className={`flex items-center justify-between gap-3 border rounded-xl px-4 py-3 ${plan.isPopular ? 'border-[#0870E2] bg-[#f0f9ff]' : 'border-[#E5E7EB]'}`}>
-                      <div>
-                        <div className="text-sm font-semibold text-[#111827] flex items-center gap-2">
-                          {plan.name}
-                          {plan.isPopular && <span className="text-[10px] font-bold bg-[#0870E2] text-white px-2 py-0.5 rounded-full uppercase">Popular</span>}
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-base font-bold text-[#0870E2]">{fmtPrice(plan.price, plan.currency)}<span className="text-xs font-normal text-[#6B7280]">{suffix}</span></div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+              <PlanChoices
+                loading={!plansData && !plansError}
+                error={plansError}
+                plans={offerable}
+                onPick={setBuyPlanId}
+              />
             </div>
           )}
 
@@ -281,17 +310,17 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
         {/* Sticky footer — keeps the primary CTA reachable without scrolling,
             even when the plans list above is long. Safe-area padding clears the
             home-indicator bar on iPhone. */}
-        {auth.state === 'no_membership' && bookingState === 'idle' && (
+        {(auth.state === 'no_membership' || auth.state === 'unauthenticated') && bookingState === 'idle' && (
           <div
             className="shrink-0 border-t border-[#F3F4F6] px-6 pt-3 bg-white"
             style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
           >
             <button
-              onClick={() => router.push(`/school/${schoolSlug}#memberships`)}
+              onClick={showAllPlans}
               className="w-full border border-[#0870E2] text-[#0870E2] hover:bg-[#e8f7ff] font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
             >
               <CreditCard className="w-4 h-4" />
-              Ver todos los planes
+              {tp.seeAllPlans}
             </button>
           </div>
         )}
@@ -318,6 +347,69 @@ export default function ClassBookingModal({ session, schoolSlug, plans, onClose 
           </div>
         )}
       </div>
+
+      {buyPlanId && (
+        <div onClick={e => e.stopPropagation()}>
+          <PlanPurchaseSheet
+            schoolSlug={schoolSlug}
+            planId={buyPlanId}
+            classId={session.classId}
+            onClose={() => setBuyPlanId(null)}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PlanChoices({ loading, error, plans, onPick }: {
+  loading: boolean
+  error: boolean
+  plans: PublicPlansResponse['plans']
+  onPick: (planId: string) => void
+}) {
+  const tp = useT().planPurchase
+  if (loading) {
+    return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-[#0870E2]" /></div>
+  }
+  if (error) {
+    return <p role="alert" className="text-sm text-red-600">{tp.errLoad}</p>
+  }
+  if (plans.length === 0) {
+    return <p className="text-sm text-[#6B7280] bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-4">{tp.noPlansForClass}</p>
+  }
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-[#6B7280]">{tp.pickPlanHint}</p>
+      {plans.map(plan => {
+        const suffix = plan.validity.kind === 'renews'
+          ? (plan.billingCycle === 'quarterly' ? '/qtr' : plan.billingCycle === 'annual' ? '/yr' : plan.billingCycle === 'two-weekly' ? '/2wk' : '/mo')
+          : ''
+        return (
+          <button
+            key={plan.id}
+            type="button"
+            onClick={() => onPick(plan.id)}
+            className={`w-full flex items-center justify-between gap-3 border rounded-xl px-4 py-3 text-left transition-colors hover:border-[#0870E2] ${plan.isPopular ? 'border-[#0870E2] bg-[#f0f9ff]' : 'border-[#E5E7EB]'}`}
+          >
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-[#111827] flex items-center gap-2">
+                <span className="truncate">{plan.name}</span>
+                {plan.isPopular && <span className="text-[10px] font-bold bg-[#0870E2] text-white px-2 py-0.5 rounded-full uppercase shrink-0">Popular</span>}
+              </div>
+              <div className="text-xs text-[#6B7280] mt-0.5">
+                {plan.validity.kind === 'renews' ? tp.shortRenews
+                  : plan.validity.kind === 'days' ? tp.shortDays.replace('{days}', String(plan.validity.days))
+                  : tp.shortNoExpiry}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-base font-bold text-[#0870E2]">{fmtPrice(plan.price, plan.currency)}<span className="text-xs font-normal text-[#6B7280]">{suffix}</span></span>
+              <ChevronRight className="w-4 h-4 text-[#9CA3AF]" />
+            </div>
+          </button>
+        )
+      })}
     </div>
   )
 }

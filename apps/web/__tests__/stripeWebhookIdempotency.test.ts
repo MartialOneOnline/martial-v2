@@ -13,6 +13,7 @@
  * reproduces that synchronously so "simulated race" tests are meaningful.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+const mockNotifyPausedPurchase = vi.hoisted(() => vi.fn().mockResolvedValue(false))
 import { NextRequest } from 'next/server'
 
 vi.mock('@/lib/stripe', () => ({
@@ -26,7 +27,7 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketConfirmationEmail: vi.fn().mockResolvedValue(undefined),
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
-vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn(), notifyPurchaseWithPausedMembership: (...a: unknown[]) => mockNotifyPausedPurchase(...a) }))
 
 const mockRecordOnlinePayment = vi.fn().mockResolvedValue(undefined)
 vi.mock('@/lib/services/transactions', () => ({ recordOnlinePayment: (...args: unknown[]) => mockRecordOnlinePayment(...args) }))
@@ -227,6 +228,8 @@ describe('POST /api/webhooks/stripe — membership checkout.session.completed id
     expect(second.status).toBe(200)
     expect(mockMembershipCreate).toHaveBeenCalledTimes(1) // still just one
     expect(mockRecordOnlinePayment).toHaveBeenCalledTimes(1)
+    // The paused-membership notice is written inside the activation transaction, so it follows the same exactly-once guarantee.
+    expect(mockNotifyPausedPurchase).toHaveBeenCalledTimes(1)
   })
 
   it('race: two concurrent deliveries of the same event resolve to exactly one activation', async () => {
@@ -238,6 +241,8 @@ describe('POST /api/webhooks/stripe — membership checkout.session.completed id
     expect(second.status).toBe(200)
     expect(mockMembershipCreate).toHaveBeenCalledTimes(1)
     expect(mockRecordOnlinePayment).toHaveBeenCalledTimes(1)
+    // The paused-membership notice is written inside the activation transaction, so it follows the same exactly-once guarantee.
+    expect(mockNotifyPausedPurchase).toHaveBeenCalledTimes(1)
     expect(mockStripeWebhookEventCreate).toHaveBeenCalledTimes(2) // both attempted, only one succeeded
   })
 

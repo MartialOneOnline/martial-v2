@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import type { Prisma } from '@/lib/prisma-client/client'
 import type { NotificationType } from '@/lib/prisma-client/client'
 
 interface NotificationInput {
@@ -132,4 +133,36 @@ export function notifyWaiverSigned(schoolId: string, signerName: string, waiverT
     body: `${signerName} ha firmado el waiver "${waiverTitle}"`,
     href: '/dashboard/school/waivers',
   })
+}
+
+// A student bought a new plan while an older membership at the same school is
+// PAUSED. The purchase deliberately leaves the old one alone (it may be tied to
+// an external subscription), so the school must decide what to do with it.
+// Runs INSIDE the activation transaction (pass its client): the notice is
+// persisted atomically with the membership, so a webhook retry can never
+// activate without it or create it twice. No email/provider calls here.
+export async function notifyPurchaseWithPausedMembership(
+  tx: Pick<Prisma.TransactionClient, 'membership' | 'user' | 'schoolMember' | 'notification'>,
+  input: { schoolId: string; userId: string; newMembershipId: string; newPlanName: string },
+): Promise<boolean> {
+  const paused = await tx.membership.findFirst({
+    where: { userId: input.userId, schoolId: input.schoolId, status: 'PAUSED', id: { not: input.newMembershipId } },
+    orderBy: { startDate: 'desc' },
+    select: { planName: true },
+  })
+  if (!paused) return false
+  const [user, member] = await Promise.all([
+    tx.user.findUnique({ where: { id: input.userId }, select: { name: true, email: true } }),
+    tx.schoolMember.findUnique({ where: { schoolId_userId: { schoolId: input.schoolId, userId: input.userId } }, select: { id: true } }),
+  ])
+  await tx.notification.create({
+    data: {
+      schoolId: input.schoolId,
+      type: 'MEMBERSHIP_REQUEST',
+      title: 'Compra con membresía pausada',
+      body: `${user?.name ?? user?.email ?? 'Un alumno'} ha comprado ${input.newPlanName} y tiene pausada ${paused.planName}. La membresía pausada no se ha modificado: revisa qué hacer con ella.`,
+      href: member ? `/dashboard/users/${member.id}` : '/dashboard/users',
+    },
+  })
+  return true
 }

@@ -102,11 +102,6 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
     schedule: (c.schedule as unknown as { dayOfWeek: number; startTime: string; endTime: string }[] | null) ?? [],
   }))
 
-  const plansMapped = school.membershipPlans.map(p => ({
-    id: p.id, name: p.name, price: p.price,
-    currency: p.currency, billingCycle: p.billingCycle, isPopular: p.isPopular,
-  }))
-
   // Trial classes: active + published + isTrial flag (all guaranteed by the query above)
   const trialClasses = school.classes
     .filter(c => c.isTrial)
@@ -258,7 +253,6 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                   <WeeklyTimetable
                     classes={classesMapped}
                     schoolSlug={slug}
-                    plans={plansMapped}
                   />
                 </div>
               </div>
@@ -266,12 +260,12 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
 
             {/* Memberships */}
             {plans.length > 0 && (
-              <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+              <div id="memberships" className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
                 <div className="px-5 py-4 border-b border-gray-50">
                   <p className="text-sm font-bold text-[#101828]">Memberships & Pricing</p>
                 </div>
                 <div className="px-4 py-4">
-                  <MembershipSection plans={plans} />
+                  <MembershipSection plans={plans} schoolSlug={slug} />
                 </div>
               </div>
             )}
@@ -413,7 +407,6 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
                   schoolSlug={slug}
                   schoolEmail={school.email}
                   schoolPhone={school.phone}
-                  plans={plansMapped}
                   hasFreeTrialCls={school.hasFreeTrialCls}
                   label={school.hasFreeTrialCls ? 'Reservar prueba gratis' : 'Reservar clase'}
                   className="w-full h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"
@@ -559,7 +552,6 @@ export default async function SchoolProfile({ params }: { params: Promise<{ slug
               schoolSlug={slug}
               schoolEmail={school.email}
               schoolPhone={school.phone}
-              plans={plansMapped}
               hasFreeTrialCls={school.hasFreeTrialCls}
               label={school.hasFreeTrialCls ? 'Reservar prueba gratis' : 'Reservar clase'}
               className="flex-1 h-12 rounded-xl bg-[#0870E2] hover:bg-[#005580] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors"

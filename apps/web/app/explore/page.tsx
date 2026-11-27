@@ -694,7 +694,6 @@ export default function ExplorePage() {
   const [bookingModal, setBookingModal] = useState<{
     session: { classId: string; className: string; level: string; startTime: string; endTime: string; dayLabel: string; dayOfWeek: number; schedule: { dayOfWeek: number; startTime: string; endTime: string }[] }
     schoolSlug: string
-    plans: Plan[]
   } | null>(null)
 
   // Fetch schools
@@ -834,7 +833,6 @@ export default function ExplorePage() {
         schedule: cls.schedule ?? [],
       },
       schoolSlug: cls.school.slug,
-      plans: cls.school.membershipPlans,
     })
   }
 
@@ -880,7 +878,6 @@ export default function ExplorePage() {
         <ClassBookingModal
           session={bookingModal.session}
           schoolSlug={bookingModal.schoolSlug}
-          plans={bookingModal.plans}
           onClose={() => setBookingModal(null)}
         />
       )}

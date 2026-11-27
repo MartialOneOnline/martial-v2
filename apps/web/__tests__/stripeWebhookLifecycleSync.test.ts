@@ -26,6 +26,7 @@
  * clauses, composite-key lookups) are exercised rather than stubbed away.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+const mockNotifyPausedPurchase = vi.hoisted(() => vi.fn().mockResolvedValue(false))
 import { NextRequest } from 'next/server'
 
 // No account merges in these tests: user ids resolve to themselves.
@@ -52,7 +53,7 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
 const mockNotifyPaymentFailed = vi.hoisted(() => vi.fn())
-vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn(), notifyMembershipPaymentFailed: mockNotifyPaymentFailed }))
+vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn(), notifyPurchaseWithPausedMembership: (...a: unknown[]) => mockNotifyPausedPurchase(...a), notifyMembershipPaymentFailed: mockNotifyPaymentFailed }))
 const mockConvertLead = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
 vi.mock('@/lib/leads', () => ({ convertLeadAfterPaidActivation: mockConvertLead }))
 const mockAlertWebhookFailure = vi.fn().mockResolvedValue(undefined)

@@ -8,9 +8,10 @@ import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transa
 import { isSchoolMemberArchived } from '@/lib/services/membership'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory } from '@/lib/prisma-client/enums'
-import { notifyPaymentReceived } from '@/lib/notifications/create'
+import { notifyPaymentReceived, notifyPurchaseWithPausedMembership } from '@/lib/notifications/create'
 import { lockSurvivingUser } from '@/lib/mergedUsers'
 import { fmtPrice } from '@/lib/format'
+import { computeAccessEndDate } from '@/lib/services/accessEndDate'
 
 // POST /api/webhooks/revolut
 // Each school registers this URL in their Revolut Merchant dashboard.
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
     where: { revolutOrderId: payload.order_id },
     select: {
       id: true, userId: true, schoolId: true, status: true, planId: true, planName: true, price: true, currency: true,
-      plan: { select: { validityDays: true } },
+      plan: { select: { validityDays: true, planType: true } },
       school: { select: { revolutSecretKey: true, revolutWebhookSecret: true, name: true, city: true, language: true } },
     },
   })
@@ -76,9 +77,9 @@ export async function POST(req: NextRequest) {
       const order = await getRevolutOrder(school.revolutSecretKey, payload.order_id)
       if (order.state !== 'COMPLETED') return NextResponse.json({ received: true })
 
-      const endDate = membership.plan?.validityDays
-        ? new Date(Date.now() + membership.plan.validityDays * 86_400_000)
-        : undefined
+      const endDate = computeAccessEndDate({
+        provider: 'REVOLUT', planType: membership.plan?.planType ?? '', validityDays: membership.plan?.validityDays, now: new Date(),
+      }) ?? undefined
 
       let lockedUserId = membership.userId
       const outcome = await prisma.$transaction(async (tx) => {
@@ -146,6 +147,11 @@ export async function POST(req: NextRequest) {
             data: { userId: lockedUserId, schoolId: membership.schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
           })
         }
+        // Older PAUSED membership at this school is left untouched; tell the
+        // school, atomically with this activation (see helper).
+        await notifyPurchaseWithPausedMembership(tx, {
+          schoolId: membership.schoolId, userId: lockedUserId, newMembershipId: membership.id, newPlanName: membership.planName,
+        })
         await recordOnlinePayment(tx, {
           schoolId:      membership.schoolId,
           userId:        lockedUserId,

@@ -5,22 +5,40 @@ import { getStripe } from '@/lib/stripe'
 import { createRevolutOrder } from '@/lib/revolut'
 import { MembershipStatus, PaymentMethod } from '@/lib/prisma-client/client'
 import { resolveOnlineMethod } from '@/lib/paymentMethods'
+import { evaluatePlanForPurchase } from '@/lib/services/planEligibility'
+import { findPausedMembership, loadClassContext, providerConfigOf } from '@/lib/services/planPurchase'
+
+function reject(status: number, code: string, error: string) {
+  return NextResponse.json({ error, code }, { status })
+}
 
 // POST /api/my/checkout — create a checkout session for a membership plan
 // Supports Stripe (one-time + subscription) and Revolut (one-time)
+//
+// Body: { planId, provider?, classId?, acknowledgePausedMembership? }
+// Buying a plan never books a class. `classId` only says which class the buyer
+// was looking at: when present, the purchase is refused if that class isn't
+// covered (lib/services/planEligibility.ts) — the same evaluation the public
+// plan listing presents, re-run here before any write or provider call.
 export async function POST(req: NextRequest) {
   const dbUser = await getAuthUser()
   if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { planId, provider } = await req.json().catch(() => ({})) as { planId?: string; provider?: unknown }
+  const body = await req.json().catch(() => ({})) as {
+    planId?: string; provider?: unknown; classId?: unknown; acknowledgePausedMembership?: unknown
+  }
+  const { planId, provider } = body
   if (!planId) return NextResponse.json({ error: 'planId required' }, { status: 400 })
+  if (body.classId !== undefined && body.classId !== null && typeof body.classId !== 'string')
+    return reject(400, 'invalid_class', 'classId must be a string')
+  const classId = typeof body.classId === 'string' && body.classId ? body.classId : null
 
   const plan = await prisma.membershipPlan.findUnique({
     where: { id: planId },
     select: {
       id: true, schoolId: true, name: true, price: true, currency: true,
       planType: true, billingCycle: true, validityDays: true,
-      isPublic: true, isActive: true, paymentMethods: true, stripePriceId: true,
+      isPublic: true, isActive: true, paymentMethods: true, stripePriceId: true, classAccess: true,
     },
   })
   if (!plan || !plan.isPublic || !plan.isActive)
@@ -32,25 +50,23 @@ export async function POST(req: NextRequest) {
   // (getAuthUser() above may still provision/link the caller's own User row on a
   // first OAuth session — identity provisioning, not part of the purchase.)
   const resolved = resolveOnlineMethod(provider, plan.paymentMethods)
-  if (!resolved.ok) return NextResponse.json({ error: resolved.error }, { status: 400 })
+  if (!resolved.ok) return reject(400, 'method_not_allowed', resolved.error)
   const useRevolut = resolved.method === 'REVOLUT'
 
   // No SchoolMember requirement here — a brand-new user with no prior relationship
   // to the school can check out directly. The webhook creates the SchoolMember
   // (status ACTIVE) once the payment actually succeeds; see /api/webhooks/stripe
-  // and /api/webhooks/revolut. The one exception is ARCHIVED: staff removed this
-  // person for a reason, and the webhook deliberately won't reactivate that status
-  // (see the ARCHIVED guard there) — so don't take their money for an activation
-  // that will never happen. They need to contact the school first.
+  // and /api/webhooks/revolut. FROZEN / INACTIVE / LEAD / PENDING members may buy
+  // too (owner's decision) and are promoted to ACTIVE by the webhook. The one
+  // exception is ARCHIVED: staff removed this person for a reason, and the webhook
+  // deliberately won't reactivate that status (see the ARCHIVED guard there) — so
+  // don't take their money for an activation that will never happen.
   const archivedMember = await prisma.schoolMember.findFirst({
     where: { userId: dbUser.id, schoolId: plan.schoolId, status: 'ARCHIVED' },
     select: { id: true },
   })
   if (archivedMember) {
-    return NextResponse.json(
-      { error: 'Your membership at this school was archived — please contact the school before purchasing a plan' },
-      { status: 403 },
-    )
+    return reject(403, 'member_archived', 'Your membership at this school was archived — please contact the school before purchasing a plan')
   }
 
   // Provider must actually be connected before we touch any row (the stale-Revolut
@@ -61,13 +77,48 @@ export async function POST(req: NextRequest) {
   })
   if (useRevolut) {
     if (!school?.revolutSecretKey)
-      return NextResponse.json({ error: 'School has not configured Revolut' }, { status: 400 })
+      return reject(400, 'provider_not_configured', 'School has not configured Revolut')
     // Webhook must be registered (revolutWebhookSecret set) before we accept payments —
     // otherwise the webhook handler would have to process unsigned notifications.
     if (!school.revolutWebhookSecret)
-      return NextResponse.json({ error: 'School has not activated Revolut yet — the webhook must be registered first' }, { status: 400 })
+      return reject(400, 'provider_not_configured', 'School has not activated Revolut yet — the webhook must be registered first')
   } else if (!school?.stripeSecretKey) {
-    return NextResponse.json({ error: 'School has not configured Stripe' }, { status: 400 })
+    return reject(400, 'provider_not_configured', 'School has not configured Stripe')
+  }
+
+  // Shared eligibility: the chosen provider must be a real offer for this plan
+  // (e.g. Revolut can't sell a SUBSCRIPTION — it would never renew).
+  const now = new Date()
+  const loadedClass = classId ? await loadClassContext(plan.schoolId, classId, now) : null
+  if (classId && !loadedClass) return reject(400, 'class_unavailable', 'This class is not available at this school')
+  const eligibility = evaluatePlanForPurchase(
+    { ...plan, price: Number(plan.price) },
+    providerConfigOf(school!),
+    now,
+    loadedClass?.context,
+  )
+  if (!eligibility.offers.some(o => o.provider === resolved.method))
+    return reject(400, 'method_not_offered', 'This plan cannot be bought online with this payment method')
+  if (eligibility.classCheck) {
+    switch (eligibility.classCheck.status) {
+      case 'not_included':
+        return reject(400, 'class_not_included', 'This plan does not include the selected class')
+      case 'no_upcoming_session':
+        return reject(400, 'no_upcoming_session', 'The selected class has no upcoming sessions')
+      case 'expires_before_session':
+        return reject(400, 'expires_before_session', 'This pass would expire before the next session of the selected class')
+    }
+  }
+
+  // A PAUSED membership at this school is left untouched by the purchase. If the
+  // buyer wasn't shown that (the sheet asks for an explicit acknowledgement), stop
+  // here — re-checked server-side, not trusted from the client's earlier read.
+  const paused = await findPausedMembership(dbUser.id, plan.schoolId)
+  if (paused && body.acknowledgePausedMembership !== true) {
+    return NextResponse.json(
+      { error: 'You have a paused membership at this school', code: 'paused_membership_ack_required', pausedMembership: paused },
+      { status: 409 },
+    )
   }
 
   const existing = await prisma.membership.findFirst({
@@ -84,7 +135,7 @@ export async function POST(req: NextRequest) {
     if (isStaleRevolutAttempt) {
       await prisma.membership.delete({ where: { id: existing.id } })
     } else {
-      return NextResponse.json({ error: 'Already have this plan' }, { status: 409 })
+      return reject(409, 'already_has_plan', 'Already have this plan')
     }
   }
 
@@ -114,8 +165,8 @@ export async function POST(req: NextRequest) {
       merchantOrderRef: membership.id,
       description:      `${school.name} — ${plan.name}`,
       email:            dbUser.email ?? undefined,
-      successUrl:       `${origin}/my/membership?checkout=success`,
-      cancelUrl:        `${origin}/my/membership?checkout=cancelled`,
+      successUrl:       `${origin}/checkout/return?provider=revolut&attempt=${membership.id}`,
+      cancelUrl:        `${origin}/checkout/return?provider=revolut&attempt=${membership.id}&cancelled=1`,
       metadata: {
         membershipId: membership.id,
         schoolId:     plan.schoolId,
@@ -162,6 +213,12 @@ export async function POST(req: NextRequest) {
     validityDays: plan.validityDays != null ? String(plan.validityDays) : '',
   }
 
+  // {CHECKOUT_SESSION_ID} is substituted by Stripe. `plan` is only a hint for
+  // which school's key to read the session with; /api/my/checkout/status
+  // verifies it against the session's own metadata.
+  const stripeSuccessUrl = `${origin}/checkout/return?provider=stripe&plan=${plan.id}&session_id={CHECKOUT_SESSION_ID}`
+  const stripeCancelUrl  = `${origin}/checkout/return?provider=stripe&plan=${plan.id}&cancelled=1`
+
   let session
   if (isSubscription) {
     const billingInterval = intervalMap[plan.billingCycle] ?? { interval: 'month' as const, interval_count: 1 }
@@ -180,8 +237,8 @@ export async function POST(req: NextRequest) {
       }],
       subscription_data: { metadata },
       metadata,
-      success_url: `${origin}/my/membership?checkout=success`,
-      cancel_url:  `${origin}/my/membership?checkout=cancelled`,
+      success_url: stripeSuccessUrl,
+      cancel_url:  stripeCancelUrl,
     })
   } else {
     session = await stripe.checkout.sessions.create({
@@ -197,8 +254,8 @@ export async function POST(req: NextRequest) {
         quantity: 1,
       }],
       metadata,
-      success_url: `${origin}/my/membership?checkout=success`,
-      cancel_url:  `${origin}/my/membership?checkout=cancelled`,
+      success_url: stripeSuccessUrl,
+      cancel_url:  stripeCancelUrl,
     })
   }
 
