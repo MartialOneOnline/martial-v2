@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
+import { useT } from '@/lib/i18n/LanguageContext'
 
 const BORDER = '#E5E7EB'
 const MUTED = '#6B7280'
@@ -39,10 +40,10 @@ function MicrosoftIcon() {
   )
 }
 
-const PROVIDERS: { id: OAuthProvider; label: string; icon: () => React.JSX.Element }[] = [
-  { id: 'google', label: 'Continue with Google', icon: GoogleIcon },
-  { id: 'apple', label: 'Continue with Apple', icon: AppleIcon },
-  { id: 'azure', label: 'Continue with Microsoft', icon: MicrosoftIcon },
+const PROVIDERS: { id: OAuthProvider; labelKey: 'continueGoogle' | 'continueApple' | 'continueMicrosoft'; icon: () => React.JSX.Element }[] = [
+  { id: 'google', labelKey: 'continueGoogle', icon: GoogleIcon },
+  { id: 'apple', labelKey: 'continueApple', icon: AppleIcon },
+  { id: 'azure', labelKey: 'continueMicrosoft', icon: MicrosoftIcon },
 ]
 
 // Lands the OAuth round trip on /login (not here) — that page already owns
@@ -58,6 +59,7 @@ const PROVIDERS: { id: OAuthProvider; label: string; icon: () => React.JSX.Eleme
 // app/login/page.tsx's onAuthStateChange effect.
 export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
   const router = useRouter()
+  const t = useT()
   const supabase = createClient()
   const [loading, setLoading] = useState<OAuthProvider | null>(null)
   const [error, setError] = useState('')
@@ -101,7 +103,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
               cursor: loading !== null ? 'not-allowed' : 'pointer', opacity: loading !== null && loading !== 'google' ? 0.6 : 1,
             }}>
             <GoogleIcon />
-            {loading === 'google' ? 'Redirecting…' : 'Continue with Google'}
+            {loading === 'google' ? t.login.redirecting : t.login.continueGoogle}
           </button>
           {/* Google's real button, invisible and stacked on top — see the
               matching pattern (and the "why") in app/login/page.tsx. Skipped
@@ -117,7 +119,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
             }}
           />
         </div>
-        {PROVIDERS.filter(({ id }) => id !== 'google').map(({ id, label, icon: Icon }) => (
+        {PROVIDERS.filter(({ id }) => id !== 'google').map(({ id, labelKey, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -130,7 +132,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
               cursor: loading !== null ? 'not-allowed' : 'pointer', opacity: loading !== null && loading !== id ? 0.6 : 1,
             }}>
             <Icon />
-            {loading === id ? 'Redirecting…' : label}
+            {loading === id ? t.login.redirecting : t.login[labelKey]}
           </button>
         ))}
       </div>
@@ -139,7 +141,7 @@ export function SocialAuthButtons({ redirectPath }: { redirectPath?: string }) {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
         <div style={{ flex: 1, height: 1, background: BORDER }} />
-        <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>OR</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>{t.login.or}</span>
         <div style={{ flex: 1, height: 1, background: BORDER }} />
       </div>
     </div>
