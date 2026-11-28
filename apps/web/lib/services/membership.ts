@@ -660,6 +660,16 @@ export async function expireLapsedMemberships(
   return { expiredCount, cancelledCount }
 }
 
+// One-off plans (bonos, trials) end when they're used up or their days run
+// out — they never renew. Staff assign a new plan instead. Plan-less
+// (imported V1) memberships keep renewing: they're monthly fees.
+const ONE_OFF_PLAN_TYPES = ['SINGLE_PASS', 'TRIAL']
+export const isOneOffPlanType = (planType: string | null | undefined) =>
+  !!planType && ONE_OFF_PLAN_TYPES.includes(planType)
+const RENEWABLE_MEMBERSHIP_WHERE = {
+  OR: [{ planId: null }, { plan: { planType: { notIn: ONE_OFF_PLAN_TYPES } } }],
+}
+
 export interface CreateRenewalPaymentInput {
   membershipId: string
   schoolId: string
@@ -692,6 +702,9 @@ export async function createRenewalPayment(input: CreateRenewalPaymentInput) {
   }
   if (membership.price <= 0) {
     throw new Error('Free plans have nothing to collect — nothing to renew')
+  }
+  if (isOneOffPlanType(membership.plan?.planType)) {
+    throw new Error('Single passes and trials do not renew — assign a new plan instead')
   }
 
   const periodStart = membership.endDate ?? membership.startDate
@@ -801,6 +814,7 @@ export async function generateDueRenewalPayments(): Promise<{ createdCount: numb
       status: MembershipStatus.ACTIVE, paymentMethod: PaymentMethod.CASH, endDate: { lte: new Date() },
       cancelledAt: null, // already headed for CANCELLED at endDate — nothing to renew
       price: { gt: 0 }, // free/trial plans lapse naturally — nothing to collect
+      ...RENEWABLE_MEMBERSHIP_WHERE, // single passes/trials end, they don't renew
     },
     select: { id: true, schoolId: true },
   })
