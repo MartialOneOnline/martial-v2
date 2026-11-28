@@ -9,6 +9,7 @@ import type { SchoolContext } from '@/lib/auth/contexts'
 import { safeRedirect } from '@/lib/safeRedirect'
 import { safeConfirmRedirect } from '@/lib/authConfirmRedirect'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
+import type { Locale } from '@/lib/i18n/translations'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
 import type { ResumeGuardEnv } from '@/lib/auth/sessionCookie'
@@ -61,8 +62,16 @@ function EmailIcon() {
 
 type OAuthProvider = 'google' | 'apple' | 'azure'
 
-function SocialButton({ provider, label, loading, disabled, onClick }: {
-  provider: OAuthProvider; label: string; loading: boolean; disabled: boolean; onClick: () => void
+// Each name in its own language, so it's findable whatever is showing now.
+const LOGIN_LANGUAGES: { code: Locale; name: string }[] = [
+  { code: 'en', name: '🌐 English' },
+  { code: 'es', name: '🌐 Español' },
+  { code: 'pt', name: '🌐 Português' },
+  { code: 'fr', name: '🌐 Français' },
+]
+
+function SocialButton({ provider, label, loadingLabel, loading, disabled, onClick }: {
+  provider: OAuthProvider; label: string; loadingLabel: string; loading: boolean; disabled: boolean; onClick: () => void
 }) {
   return (
     <button
@@ -76,7 +85,7 @@ function SocialButton({ provider, label, loading, disabled, onClick }: {
         cursor: disabled ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1,
       }}>
       {provider === 'google' ? <GoogleIcon /> : provider === 'apple' ? <AppleIcon /> : <MicrosoftIcon />}
-      {loading ? 'Redirecting…' : label}
+      {loading ? loadingLabel : label}
     </button>
   )
 }
@@ -86,7 +95,7 @@ function SocialButton({ provider, label, loading, disabled, onClick }: {
 // its own (no marketing header/footer, no dependency on the homepage).
 function LoginPageInner() {
   const router = useRouter()
-  const { t, locale } = useLanguage()
+  const { t, locale, setLocale } = useLanguage()
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const supabase = createClient()
@@ -300,7 +309,7 @@ function LoginPageInner() {
       body: JSON.stringify({ idToken }),
     })
     const json = await res.json()
-    if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setOauthLoading(null); return }
+    if (!res.ok) { setError(json.error || t.login.errGoogleFailed); setOauthLoading(null); return }
     if (json.accessToken) {
       fetch('/api/auth/login-event', {
         method: 'POST',
@@ -315,14 +324,14 @@ function LoginPageInner() {
   const handleContinueWithEmail = (e: React.FormEvent) => {
     e.preventDefault()
     setEmailErr('')
-    if (!email) { setEmailErr('Please provide a valid email address.'); return }
+    if (!email) { setEmailErr(t.login.errInvalidEmail); return }
     setView('password')
   }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setPassErr(''); setError(''); setUnconfirmedEmail('')
-    if (!password) { setPassErr('Password field cannot be left blank.'); return }
+    if (!password) { setPassErr(t.login.errPasswordBlank); return }
 
     setLoading(true)
     const res = await fetch('/api/auth/login', {
@@ -339,7 +348,7 @@ function LoginPageInner() {
       if (json.error === 'Email not confirmed') {
         setUnconfirmedEmail(email)
       } else {
-        setError(json.error || 'Login failed. Please try again.')
+        setError(json.error || t.login.errLoginFailed)
       }
       return
     }
@@ -362,7 +371,7 @@ function LoginPageInner() {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setResetErr('')
-    if (!resetEmail) { setResetErr('Please provide a valid email address.'); return }
+    if (!resetEmail) { setResetErr(t.login.errInvalidEmail); return }
 
     setResetLoading(true)
     try {
@@ -490,19 +499,19 @@ function LoginPageInner() {
               <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 52, height: 52, borderRadius: 15, overflow: 'hidden', marginBottom: 14 }}>
                 <Image src="/martial-logo.png" alt="Martial" width={52} height={52} style={{ objectFit: 'contain' }} />
               </div>
-              <h1 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700, color: TEXT }}>Welcome back</h1>
-              <p style={{ margin: 0, fontSize: 14, color: MUTED }}>Log in to continue your martial journey</p>
+              <h1 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700, color: TEXT }}>{t.login.welcomeBack}</h1>
+              <p style={{ margin: 0, fontSize: 14, color: MUTED }}>{t.login.subtitle}</p>
             </div>
 
             {justRegistered && (
               <p style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 600, color: '#15803D', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '10px 14px', borderRadius: 10, textAlign: 'center' }}>
-                Account created{registeredType === 'school' ? ' for your academy' : ''} — log in to continue.
+                {registeredType === 'school' ? t.login.accountCreatedSchool : t.login.accountCreated}
               </p>
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ position: 'relative', height: 52 }}>
-                <SocialButton provider="google" label="Continue with Google"
+                <SocialButton provider="google" label={t.login.continueGoogle} loadingLabel={t.login.redirecting}
                   loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
                   onClick={googleFallback ? handleGoogleWebViewFallback : () => {}} />
                 {/* Google's real button, invisible and stacked on top — its
@@ -519,10 +528,10 @@ function LoginPageInner() {
                   }}
                 />
               </div>
-              <SocialButton provider="apple" label="Continue with Apple"
+              <SocialButton provider="apple" label={t.login.continueApple} loadingLabel={t.login.redirecting}
                 loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
                 onClick={() => handleOAuth('apple')} />
-              <SocialButton provider="azure" label="Continue with Microsoft"
+              <SocialButton provider="azure" label={t.login.continueMicrosoft} loadingLabel={t.login.redirecting}
                 loading={oauthLoading === 'azure'} disabled={oauthLoading !== null}
                 onClick={() => handleOAuth('azure')} />
             </div>
@@ -531,7 +540,7 @@ function LoginPageInner() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
               <div style={{ flex: 1, height: 1, background: BORDER }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>OR</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>{t.login.or}</span>
               <div style={{ flex: 1, height: 1, background: BORDER }} />
             </div>
 
@@ -544,15 +553,25 @@ function LoginPageInner() {
                 fontSize: 14, fontWeight: 600, color: TEXT, cursor: 'pointer',
               }}>
               <EmailIcon />
-              Continue with Email
+              {t.login.continueEmail}
             </button>
 
             <AuthLegalNotice />
 
             <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
-              Don&apos;t have an account?{' '}
-              <a href="/register" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Register</a>
+              {t.login.noAccount}{' '}
+              <a href="/register" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>{t.login.register}</a>
             </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
+              <select
+                aria-label={t.login.language}
+                value={locale}
+                onChange={e => setLocale(e.target.value as Locale)}
+                style={{ fontSize: 13, color: MUTED, background: 'transparent', border: 'none', padding: '4px 8px', cursor: 'pointer' }}>
+                {LOGIN_LANGUAGES.map(({ code, name }) => <option key={code} value={code}>{name}</option>)}
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -569,20 +588,20 @@ function LoginPageInner() {
             <Image src="/martial-logo.png" alt="Martial" width={56} height={56} style={{ objectFit: 'contain' }} />
           </div>
           <h1 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700, color: TEXT }}>
-            {view === 'forgot' ? 'Forgot Password?' : 'Welcome back'}
+            {view === 'forgot' ? t.login.forgotTitle : t.login.welcomeBack}
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: MUTED }}>
             {view === 'forgot'
-              ? (resetSent ? 'Check your inbox for the reset link' : "Enter your email and we'll send you a reset link")
+              ? (resetSent ? t.login.forgotSentSubtitle : t.login.forgotSubtitle)
               : view === 'password'
-              ? 'Enter your password to continue'
-              : 'Log in to continue your martial journey'}
+              ? t.login.passwordSubtitle
+              : t.login.subtitle}
           </p>
         </div>
 
         {justRegistered && (
           <p style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 600, color: '#15803D', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '10px 14px', borderRadius: 10, textAlign: 'center' }}>
-            Account created{registeredType === 'school' ? ' for your academy' : ''} — log in to continue.
+            {registeredType === 'school' ? t.login.accountCreatedSchool : t.login.accountCreated}
           </p>
         )}
 
@@ -590,13 +609,13 @@ function LoginPageInner() {
           resetSent ? (
             <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28, textAlign: 'center' }}>
               <p style={{ margin: '0 0 20px', fontSize: 14, color: TEXT }}>
-                We&apos;ve sent a password reset link to <strong>{resetEmail}</strong>.
+                {t.login.resetSentBody.split('{email}')[0]}<strong>{resetEmail}</strong>{t.login.resetSentBody.split('{email}')[1]}
               </p>
               <button
                 type="button"
                 onClick={() => { setView('email'); setResetSent(false) }}
                 style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer' }}>
-                Back to login
+                {t.login.backToLogin}
               </button>
             </div>
           ) : (
@@ -604,7 +623,7 @@ function LoginPageInner() {
               style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Email</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>{t.login.email}</label>
                 <input
                   type="email"
                   value={resetEmail}
@@ -619,14 +638,14 @@ function LoginPageInner() {
                 type="submit"
                 disabled={resetLoading}
                 style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: resetLoading ? '#93C5FD' : BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: resetLoading ? 'not-allowed' : 'pointer' }}>
-                {resetLoading ? 'Sending…' : 'Send reset link'}
+                {resetLoading ? t.login.sending : t.login.sendReset}
               </button>
 
               <button
                 type="button"
                 onClick={() => { setView('email'); setResetErr('') }}
                 style={{ width: '100%', padding: '4px', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', color: MUTED, cursor: 'pointer' }}>
-                ← Back
+                {t.login.back}
               </button>
             </form>
           )
@@ -634,12 +653,12 @@ function LoginPageInner() {
           <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28 }}>
             <button type="button" onClick={() => { setView('email'); setPassErr(''); setError(''); setUnconfirmedEmail('') }}
               style={{ display: 'block', marginBottom: 16, padding: '4px 0', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', color: MUTED, cursor: 'pointer' }}>
-              ← Back
+              {t.login.back}
             </button>
 
             <form onSubmit={handleLogin} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Email</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>{t.login.email}</label>
                 <input
                   type="email"
                   value={email}
@@ -650,20 +669,20 @@ function LoginPageInner() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Password</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>{t.login.password}</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showPass ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="Enter password"
+                    placeholder={t.login.passwordPlaceholder}
                     autoFocus
                     style={{ width: '100%', padding: '11px 44px 11px 14px', fontSize: 16, border: `1px solid ${passErr ? '#DC2626' : BORDER}`, borderRadius: 10, outline: 'none', boxSizing: 'border-box', color: TEXT }}
                   />
                   <button type="button" onClick={() => setShowPass(v => !v)}
-                    aria-label={showPass ? 'Hide password' : 'Show password'}
+                    aria-label={showPass ? t.login.hidePassword : t.login.showPassword}
                     style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: MUTED, fontSize: 12, fontWeight: 600 }}>
-                    {showPass ? 'Hide' : 'Show'}
+                    {showPass ? t.login.hide : t.login.show}
                   </button>
                 </div>
                 {passErr && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#DC2626' }}>{passErr}</p>}
@@ -673,7 +692,7 @@ function LoginPageInner() {
                 <span
                   onClick={() => { setResetEmail(email); setResetErr(''); setResetSent(false); setView('forgot') }}
                   style={{ fontSize: 13, fontWeight: 600, color: BLUE, cursor: 'pointer' }}>
-                  Forgot Password?
+                  {t.login.forgotPassword}
                 </span>
               </div>
 
@@ -691,7 +710,7 @@ function LoginPageInner() {
                 type="submit"
                 disabled={loading}
                 style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: loading ? '#93C5FD' : BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: loading ? 'not-allowed' : 'pointer' }}>
-                {loading ? 'Logging in…' : 'Log in'}
+                {loading ? t.login.loggingIn : t.login.logIn}
               </button>
             </form>
 
@@ -701,12 +720,12 @@ function LoginPageInner() {
           <div style={{ background: '#fff', borderRadius: 16, border: `1px solid ${BORDER}`, boxShadow: '0 4px 24px rgba(0,0,0,0.06)', padding: 28 }}>
             <button type="button" onClick={() => { setView('sso'); setEmailErr(''); setError('') }}
               style={{ display: 'block', marginBottom: 16, padding: '4px 0', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', color: MUTED, cursor: 'pointer' }}>
-              ← Back
+              {t.login.back}
             </button>
 
             <form onSubmit={handleContinueWithEmail} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>Email</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 6 }}>{t.login.email}</label>
                 <input
                   type="email"
                   value={email}
@@ -721,15 +740,15 @@ function LoginPageInner() {
               <button
                 type="submit"
                 style={{ width: '100%', padding: '13px', fontSize: 15, fontWeight: 700, background: BLUE, color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer' }}>
-                Continue
+                {t.login.continue}
               </button>
             </form>
           </div>
         ) : null}
 
         <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: MUTED }}>
-          Don&apos;t have an account?{' '}
-          <a href="/register" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>Register</a>
+          {t.login.noAccount}{' '}
+          <a href="/register" style={{ color: NAVY, fontWeight: 600, textDecoration: 'underline' }}>{t.login.register}</a>
         </p>
       </div>
     </div>

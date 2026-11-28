@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { loadGoogleIdentityScript } from './googleIdentity'
 import { isEmbeddedWebView } from './isEmbeddedWebView'
 
@@ -27,35 +27,53 @@ const RENDER_TIMEOUT_MS = 4000
 // to the old `signInWithOAuth('google')` redirect instead (same as
 // Apple/Microsoft).
 export function useGoogleSignInButton(onCredential: (idToken: string) => void) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
+  const nodeRef = useRef<HTMLDivElement | null>(null)
+  // Set once google.accounts.id.initialize() has run for this mount.
+  const gsiReadyRef = useRef(false)
   const [gsiUnavailable, setGsiUnavailable] = useState(false)
-  const fallbackToRedirect = isEmbeddedWebView() || gsiUnavailable
+  // Decided after mount, not during render. isEmbeddedWebView() is always
+  // false on the server (no navigator) but true in the app's WebView, so
+  // reading it during render made the hydration render disagree with the
+  // server HTML. React keeps the server's attributes on a mismatch, so the
+  // invisible GSI overlay kept `pointer-events: auto` (empty, because GSI is
+  // skipped in WebViews) on top of the visible button and swallowed every
+  // tap. Going to "Continue with Email" and back remounted it on the client
+  // with the right style, which is why that "fixed" it.
+  const [embedded, setEmbedded] = useState(false)
+  const fallbackToRedirect = embedded || gsiUnavailable
+
+  // Callback ref, not a plain ref: the login page unmounts the container
+  // when it switches to the email step, and the node it mounts on "Back" is
+  // a fresh, empty div. GSI has to render into each new node, otherwise the
+  // overlay comes back empty and the Google button is dead.
+  const checkTimers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const renderAndCheck = (el: HTMLDivElement) => {
+    renderInto(el)
+    checkTimers.current.push(setTimeout(() => {
+      if (nodeRef.current === el && el.childElementCount === 0) setGsiUnavailable(true)
+    }, RENDER_TIMEOUT_MS))
+  }
+  const containerRef = useCallback((el: HTMLDivElement | null) => {
+    nodeRef.current = el
+    if (el && gsiReadyRef.current) renderAndCheck(el)
+  }, [])
 
   useEffect(() => {
-    if (isEmbeddedWebView()) return
+    if (isEmbeddedWebView()) { setEmbedded(true); return }
     let cancelled = false
-    let renderCheckId: ReturnType<typeof setTimeout> | undefined
 
     loadGoogleIdentityScript()
       .then(() => {
-        if (cancelled || !containerRef.current || !window.google) throw new Error('GSI unavailable after load')
+        if (cancelled || !window.google) throw new Error('GSI unavailable after load')
         window.google.accounts.id.initialize({
           client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
           callback: response => onCredential(response.credential),
           use_fedcm_for_prompt: true,
         })
-        window.google.accounts.id.renderButton(containerRef.current, {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          shape: 'rectangular',
-          text: 'continue_with',
-          logo_alignment: 'left',
-          width: containerRef.current.offsetWidth || 320,
-        })
-        renderCheckId = setTimeout(() => {
-          if (!cancelled && containerRef.current?.childElementCount === 0) setGsiUnavailable(true)
-        }, RENDER_TIMEOUT_MS)
+        gsiReadyRef.current = true
+        // No node yet (e.g. /login still showing its resume spinner): the
+        // callback ref renders into it once it mounts.
+        if (nodeRef.current) renderAndCheck(nodeRef.current)
       })
       .catch(() => {
         if (!cancelled) setGsiUnavailable(true)
@@ -63,10 +81,24 @@ export function useGoogleSignInButton(onCredential: (idToken: string) => void) {
 
     return () => {
       cancelled = true
-      if (renderCheckId) clearTimeout(renderCheckId)
+      gsiReadyRef.current = false
+      checkTimers.current.forEach(clearTimeout)
+      checkTimers.current = []
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return { containerRef, fallbackToRedirect }
+}
+
+function renderInto(el: HTMLDivElement) {
+  window.google?.accounts.id.renderButton(el, {
+    type: 'standard',
+    theme: 'outline',
+    size: 'large',
+    shape: 'rectangular',
+    text: 'continue_with',
+    logo_alignment: 'left',
+    width: el.offsetWidth || 320,
+  })
 }

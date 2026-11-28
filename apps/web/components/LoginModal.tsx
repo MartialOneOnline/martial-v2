@@ -13,6 +13,7 @@ import { resolveLoginRedirectAction } from '@/lib/auth/loginRedirect'
 import { fetchAvailableContexts } from '@/app/choose-profile/logic'
 import { useGoogleSignInButton } from '@/lib/useGoogleSignInButton'
 import { AuthLegalNotice } from '@/components/AuthLegalNotice'
+import { useT } from '@/lib/i18n/LanguageContext'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function GoogleIcon() {
@@ -55,12 +56,12 @@ function EyeIcon({ open }: { open: boolean }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 }
 
-function SSOButton({ icon, label, onClick, loading, disabled }: { icon: React.ReactNode; label: string; onClick: () => void; loading?: boolean; disabled?: boolean }) {
+function SSOButton({ icon, label, loadingLabel, onClick, loading, disabled }: { icon: React.ReactNode; label: string; loadingLabel?: string; onClick: () => void; loading?: boolean; disabled?: boolean }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled}
       className="w-full h-[52px] flex items-center justify-center gap-2.5 px-5 border border-[#E5E7EB] rounded-[12px] bg-white hover:bg-[#F9FAFB] text-[14px] font-semibold text-[#101828] cursor-pointer transition-all disabled:opacity-60 disabled:cursor-not-allowed">
       {icon}
-      <span>{loading ? 'Redirecting…' : label}</span>
+      <span>{loading ? loadingLabel : label}</span>
     </button>
   )
 }
@@ -76,6 +77,7 @@ interface LoginModalProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const router   = useRouter()
+  const t        = useT()
   const pathname = usePathname()
   const supabase = createClient()
 
@@ -241,7 +243,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
       body: JSON.stringify({ idToken }),
     })
     const json = await res.json()
-    if (!res.ok) { setError(json.error || 'Google sign-in failed. Please try again.'); setOauthLoading(null); return }
+    if (!res.ok) { setError(json.error || t.login.errGoogleFailed); setOauthLoading(null); return }
     const safeTo = safeRedirect(redirectTo)
     const redirectQuery = safeTo ? `&redirect=${encodeURIComponent(safeTo)}` : ''
     onClose()
@@ -253,8 +255,8 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     e.preventDefault()
     setEmailErr(''); setPassErr(''); setError('')
     let valid = true
-    if (!email) { setEmailErr('Please provide a valid email address.'); valid = false }
-    if (!password) { setPassErr('Password field cannot be left blank.'); valid = false }
+    if (!email) { setEmailErr(t.login.errInvalidEmail); valid = false }
+    if (!password) { setPassErr(t.login.errPasswordBlank); valid = false }
     if (!valid) return
 
     setLoading(true)
@@ -265,7 +267,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
     })
     const json = await res.json()
     setLoading(false)
-    if (!res.ok) { setError(json.error || 'Login failed. Please try again.'); return }
+    if (!res.ok) { setError(json.error || t.login.errLoginFailed); return }
 
     if (json.accessToken) {
       fetch('/api/auth/login-event', {
@@ -282,7 +284,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setResetErr('')
-    if (!resetEmail) { setResetErr('Please provide a valid email address.'); return }
+    if (!resetEmail) { setResetErr(t.login.errInvalidEmail); return }
 
     setResetLoading(true)
     try {
@@ -341,7 +343,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 }
               }}
               className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f5f5] hover:bg-[#ebebeb] text-[#667085] cursor-pointer transition-colors"
-              aria-label="Back">
+              aria-label={t.login.backLabel}>
               <ArrowLeft className="w-[18px] h-[18px]" />
             </button>
           )}
@@ -349,7 +351,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
           {/* Close */}
           <button onClick={onClose}
             className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-[#f5f5f5] hover:bg-[#ebebeb] text-[#667085] hover:text-[#101828] cursor-pointer transition-colors"
-            aria-label="Close">
+            aria-label={t.login.closeLabel}>
             <X className="w-[18px] h-[18px]" />
           </button>
 
@@ -367,12 +369,12 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
 
-                <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">Welcome to Martial</h2>
-                <p className="text-[14px] text-[#6b7280] text-center mb-7">Your martial journey starts here</p>
+                <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">{t.login.welcomeTitle}</h2>
+                <p className="text-[14px] text-[#6b7280] text-center mb-7">{t.login.welcomeSubtitle}</p>
 
                 <div className="flex flex-col gap-3">
                   <div className="relative h-[52px]">
-                    <SSOButton icon={<GoogleIcon />} label="Continue with Google"
+                    <SSOButton icon={<GoogleIcon />} label={t.login.continueGoogle} loadingLabel={t.login.redirecting}
                       loading={oauthLoading === 'google'} disabled={oauthLoading !== null}
                       onClick={googleFallback ? () => handleOAuth('google') : () => {}} />
                     {/* Google's real button, invisible and stacked on top —
@@ -385,10 +387,10 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                       style={{ pointerEvents: googleFallback || (oauthLoading !== null && oauthLoading !== 'google') ? 'none' : 'auto' }}
                     />
                   </div>
-                  <SSOButton icon={<AppleIcon />} label="Continue with Apple"
+                  <SSOButton icon={<AppleIcon />} label={t.login.continueApple} loadingLabel={t.login.redirecting}
                     loading={oauthLoading === 'apple'} disabled={oauthLoading !== null}
                     onClick={() => handleOAuth('apple')} />
-                  <SSOButton icon={<MicrosoftIcon />} label="Continue with Microsoft"
+                  <SSOButton icon={<MicrosoftIcon />} label={t.login.continueMicrosoft} loadingLabel={t.login.redirecting}
                     loading={oauthLoading === 'azure'} disabled={oauthLoading !== null}
                     onClick={() => handleOAuth('azure')} />
                 </div>
@@ -397,19 +399,19 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
 
                 <div className="flex items-center gap-3 my-5">
                   <div className="flex-1 h-px bg-[#E5E7EB]" />
-                  <span className="text-[12px] font-semibold text-[#6b7280] uppercase">or</span>
+                  <span className="text-[12px] font-semibold text-[#6b7280] uppercase">{t.login.or}</span>
                   <div className="flex-1 h-px bg-[#E5E7EB]" />
                 </div>
 
-                <SSOButton icon={<EmailIcon />} label="Continue with Email" onClick={() => setView('email')} />
+                <SSOButton icon={<EmailIcon />} label={t.login.continueEmail} onClick={() => setView('email')} />
 
                 <AuthLegalNotice />
 
                 <p className="text-[13px] text-[#6b7280] text-center mt-6">
-                  Don&apos;t have an account?{' '}
+                  {t.login.noAccount}{' '}
                   <span onClick={() => router.push('/register')}
                     className="text-[#0E3A7A] font-semibold underline cursor-pointer hover:opacity-80 transition-colors">
-                    Register
+                    {t.login.register}
                   </span>
                 </p>
               </motion.div>
@@ -421,27 +423,28 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
 
-                <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">Welcome Back</h2>
-                <p className="text-[14px] text-[#6b7280] text-center mb-6">Login to continue your martial journey</p>
+                <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">{t.login.welcomeBack}</h2>
+                <p className="text-[14px] text-[#6b7280] text-center mb-6">{t.login.subtitle}</p>
 
                 <form onSubmit={handleLogin} noValidate className="space-y-4">
                   {/* Email */}
                   <div>
-                    <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">Email</label>
+                    <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">{t.login.email}</label>
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                      placeholder="Enter Email"
+                      placeholder={t.login.emailPlaceholder}
                       className={`w-full h-[52px] px-4 rounded-[10px] border text-[16px] text-[#101828] outline-none focus:border-[#0870E2] transition-colors ${emailErr ? 'border-[#DC2626]' : 'border-[#E5E7EB]'}`} />
                     {emailErr && <p className="text-[#DC2626] text-[13px] mt-1">{emailErr}</p>}
                   </div>
 
                   {/* Password */}
                   <div>
-                    <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">Password</label>
+                    <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">{t.login.password}</label>
                     <div className="relative">
                       <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                        placeholder="Enter Password"
+                        placeholder={t.login.passwordPlaceholder}
                         className={`w-full h-[52px] px-4 pr-12 rounded-[10px] border text-[16px] text-[#101828] outline-none focus:border-[#0870E2] transition-colors ${passErr ? 'border-[#DC2626]' : 'border-[#E5E7EB]'}`} />
                       <button type="button" onClick={() => setShowPass(!showPass)}
+                        aria-label={showPass ? t.login.hidePassword : t.login.showPassword}
                         className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer">
                         <EyeIcon open={showPass} />
                       </button>
@@ -453,7 +456,7 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
                   <div className="flex justify-end -mt-1">
                     <span onClick={() => { setResetEmail(email); setResetErr(''); setResetSent(false); setView('forgot') }}
                       className="text-[13px] font-medium text-[#0870E2] cursor-pointer hover:underline">
-                      Forgot Password?
+                      {t.login.forgotPassword}
                     </span>
                   </div>
 
@@ -461,17 +464,17 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
 
                   <button type="submit" disabled={loading}
                     className="w-full h-[52px] bg-[#0870E2] hover:bg-[#065FC4] rounded-[10px] text-[16px] font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-1">
-                    {loading ? 'Logging in...' : 'Login'}
+                    {loading ? t.login.loggingIn : t.login.logIn}
                   </button>
                 </form>
 
                 <AuthLegalNotice />
 
                 <p className="text-[13px] text-[#6b7280] text-center mt-5">
-                  Don&apos;t have an account?{' '}
+                  {t.login.noAccount}{' '}
                   <span onClick={() => router.push('/register')}
                     className="text-[#0E3A7A] font-semibold underline cursor-pointer hover:opacity-80 transition-colors">
-                    Register
+                    {t.login.register}
                   </span>
                 </p>
               </motion.div>
@@ -485,32 +488,32 @@ export default function LoginModal({ onClose, redirectTo }: LoginModalProps) {
 
                 {resetSent ? (
                   <>
-                    <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">Check your email</h2>
+                    <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">{t.login.checkEmailTitle}</h2>
                     <p className="text-[14px] text-[#6b7280] text-center mb-6">
-                      We&apos;ve sent a password reset link to <span className="font-semibold text-[#101828]">{resetEmail}</span>.
+                      {t.login.resetSentBody.split('{email}')[0]}<span className="font-semibold text-[#101828]">{resetEmail}</span>{t.login.resetSentBody.split('{email}')[1]}
                     </p>
                     <button type="button" onClick={() => { setView('email'); setResetSent(false) }}
                       className="w-full h-[52px] bg-[#0870E2] hover:bg-[#065FC4] rounded-[10px] text-[16px] font-semibold text-white transition-colors cursor-pointer">
-                      Back to login
+                      {t.login.backToLogin}
                     </button>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">Forgot Password?</h2>
-                    <p className="text-[14px] text-[#6b7280] text-center mb-6">Enter your email and we&apos;ll send you a reset link</p>
+                    <h2 className="text-[22px] font-bold text-[#101828] text-center mb-1">{t.login.forgotTitle}</h2>
+                    <p className="text-[14px] text-[#6b7280] text-center mb-6">{t.login.forgotSubtitle}</p>
 
                     <form onSubmit={handleForgotPassword} noValidate className="space-y-4">
                       <div>
-                        <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">Email</label>
+                        <label className="block text-[14px] font-semibold text-[#101828] mb-1.5">{t.login.email}</label>
                         <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
-                          placeholder="Enter Email"
+                          placeholder={t.login.emailPlaceholder}
                           className={`w-full h-[52px] px-4 rounded-[10px] border text-[16px] text-[#101828] outline-none focus:border-[#0870E2] transition-colors ${resetErr ? 'border-[#DC2626]' : 'border-[#E5E7EB]'}`} />
                         {resetErr && <p className="text-[#DC2626] text-[13px] mt-1">{resetErr}</p>}
                       </div>
 
                       <button type="submit" disabled={resetLoading}
                         className="w-full h-[52px] bg-[#0870E2] hover:bg-[#065FC4] rounded-[10px] text-[16px] font-semibold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-1">
-                        {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                        {resetLoading ? t.login.sending : t.login.sendReset}
                       </button>
                     </form>
                   </>
