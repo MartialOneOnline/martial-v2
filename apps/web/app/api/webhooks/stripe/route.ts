@@ -10,11 +10,12 @@ import { recordOnlinePayment, recordFlaggedPayment } from '@/lib/services/transa
 import { syncSchoolMemberStatusForMembership, isSchoolMemberArchived } from '@/lib/services/membership'
 import { convertLeadAfterPaidActivation } from '@/lib/leads'
 import { PaymentMethod, TransactionCategory, StripeWebhookEventStatus, MembershipPaymentStatus } from '@/lib/prisma-client/enums'
-import { notifyPaymentReceived, notifyMembershipPaymentFailed } from '@/lib/notifications/create'
+import { notifyPaymentReceived, notifyMembershipPaymentFailed, notifyPurchaseWithPausedMembership } from '@/lib/notifications/create'
 import { fmtPrice } from '@/lib/format'
 import { fulfillCollectibleCheckout } from '@/lib/services/collectibles/checkoutFulfillment'
 import { lockSurvivingUser, resolveSurvivingUserId } from '@/lib/mergedUsers'
 import { alertWebhookFailure } from '@/lib/alerts/webhookFailure'
+import { computeAccessEndDate } from '@/lib/services/accessEndDate'
 
 // A row still PROCESSING past this long was orphaned by a request that
 // crashed before ever reaching the PROCESSED/FAILED update at the bottom of
@@ -363,6 +364,7 @@ async function handleStripeEvent(event: Stripe.Event, verifiedSchoolId: string) 
         subscription?: string
         customer?: string
         payment_intent?: string
+        invoice?: string
         amount_total?: number
         currency?: string
       }
@@ -583,13 +585,16 @@ async function handleStripeEvent(event: Stripe.Event, verifiedSchoolId: string) 
             planId, planName,
             reason: 'SchoolMember is ARCHIVED — payment captured but membership not activated',
             stripePaymentIntentId: session.payment_intent,
+            // Subscription mode: no payment_intent on the session — the first
+            // invoice is what links this row to the checkout.
+            stripeInvoiceId: session.payment_intent ? undefined : session.invoice,
           })
           return
         }
 
-        const endDate = planType !== 'SUBSCRIPTION' && validityDays
-          ? new Date(Date.now() + Number(validityDays) * 86_400_000)
-          : undefined
+        const endDate = computeAccessEndDate({
+          provider: 'STRIPE', planType: planType ?? '', validityDays, now: new Date(),
+        }) ?? undefined
 
         const created = await tx.membership.create({
           data: {
@@ -630,6 +635,9 @@ async function handleStripeEvent(event: Stripe.Event, verifiedSchoolId: string) 
             data: { userId, schoolId, role: 'STUDENT', status: 'ACTIVE', joinedAt: new Date() },
           })
         }
+        // Older PAUSED membership at this school is left untouched; tell the
+        // school, atomically with this activation (see helper).
+        await notifyPurchaseWithPausedMembership(tx, { schoolId, userId, newMembershipId: created.id, newPlanName: planName })
         await recordOnlinePayment(tx, {
           schoolId,
           userId,

@@ -15,6 +15,7 @@
  * tests are meaningful rather than trivially passing.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+const mockNotifyPausedPurchase = vi.hoisted(() => vi.fn().mockResolvedValue(false))
 import { NextRequest } from 'next/server'
 
 const mockGetRevolutOrder = vi.fn().mockResolvedValue({ state: 'COMPLETED' })
@@ -35,7 +36,7 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketConfirmationEmail: vi.fn().mockResolvedValue(undefined),
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
-vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn(), notifyPurchaseWithPausedMembership: (...a: unknown[]) => mockNotifyPausedPurchase(...a) }))
 
 const mockRecordOnlinePayment = vi.fn().mockResolvedValue(undefined)
 vi.mock('@/lib/services/transactions', () => ({ recordOnlinePayment: (...args: unknown[]) => mockRecordOnlinePayment(...args) }))
@@ -194,6 +195,8 @@ describe('POST /api/webhooks/revolut — membership ORDER_COMPLETED idempotency'
     const second = await POST(makeRequest(body))
     expect(second.status).toBe(200)
     expect(mockRecordOnlinePayment).toHaveBeenCalledTimes(1) // still just one
+    // The paused-membership notice is written inside the activation transaction, so it follows the same exactly-once guarantee.
+    expect(mockNotifyPausedPurchase).toHaveBeenCalledTimes(1)
   })
 
   it('race: two concurrent ORDER_COMPLETED deliveries activate exactly once', async () => {
@@ -205,6 +208,8 @@ describe('POST /api/webhooks/revolut — membership ORDER_COMPLETED idempotency'
     expect(second.status).toBe(200)
     expect(memberships['membership-1']!.status).toBe('ACTIVE')
     expect(mockRecordOnlinePayment).toHaveBeenCalledTimes(1)
+    // The paused-membership notice is written inside the activation transaction, so it follows the same exactly-once guarantee.
+    expect(mockNotifyPausedPurchase).toHaveBeenCalledTimes(1)
     expect(mockMembershipUpdateMany).toHaveBeenCalledTimes(2) // both attempted the claim, only one matched a row
   })
 

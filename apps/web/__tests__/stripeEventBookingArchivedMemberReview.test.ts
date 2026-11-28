@@ -12,6 +12,7 @@
  * handler, the ARCHIVED case must never reach the refund/refund-email branch.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+const mockNotifyPausedPurchase = vi.hoisted(() => vi.fn().mockResolvedValue(false))
 import { NextRequest } from 'next/server'
 
 // No account merges in these tests: user ids resolve to themselves.
@@ -30,7 +31,7 @@ vi.mock('@/lib/email/sendEmails', () => ({
   sendEventTicketConfirmationEmail: vi.fn().mockResolvedValue(undefined),
   sendEventTicketRefundedEmail: vi.fn().mockResolvedValue(undefined),
 }))
-vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn() }))
+vi.mock('@/lib/notifications/create', () => ({ notifyPaymentReceived: vi.fn(), notifyPurchaseWithPausedMembership: (...a: unknown[]) => mockNotifyPausedPurchase(...a) }))
 vi.mock('@/lib/services/eventCapacity', () => ({ checkEventCapacity: vi.fn().mockResolvedValue({ ok: true }) }))
 
 const mockRecordOnlinePayment = vi.fn().mockResolvedValue(undefined)

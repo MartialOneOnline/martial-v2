@@ -18,6 +18,10 @@ interface RecordFlaggedPaymentInput {
   bookingId?: string
   date?: Date
   stripePaymentIntentId?: string
+  // Subscription checkouts have no payment_intent on the session; the first
+  // invoice id is then the only reference that ties the flagged row to THIS
+  // checkout (GET /api/my/checkout/status reads it back).
+  stripeInvoiceId?: string
   revolutOrderId?: string
 }
 
@@ -119,6 +123,22 @@ export async function recordFlaggedPayment(tx: Prisma.TransactionClient, input: 
     const existing = await tx.transaction.findFirst({ where: { revolutOrderId: input.revolutOrderId }, select: { id: true } })
     if (existing) return existing
   }
+  if (!input.stripePaymentIntentId && input.stripeInvoiceId) {
+    // stripeInvoiceId is not DB-unique (renewal rows reuse the column), so no
+    // P2002 backstop exists here. The webhook's lockSurvivingUser takes FOR
+    // SHARE (does not serialise two writers) and claimStripeEvent can reclaim a
+    // stale PROCESSING event while the original delivery is still running — so
+    // serialise on the invoice itself: a transaction-scoped advisory lock,
+    // released at commit/rollback. A concurrent call blocks here and its
+    // pre-check below (a new statement under READ COMMITTED) then sees the row
+    // the first one committed.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`flagged-invoice:${input.stripeInvoiceId}`}, 0))`
+    const existing = await tx.transaction.findFirst({
+      where: { stripeInvoiceId: input.stripeInvoiceId, status: TransactionStatus.FLAGGED },
+      select: { id: true },
+    })
+    if (existing) return existing
+  }
 
   const isEvent = !!(input.eventId || input.bookingId)
 
@@ -144,6 +164,7 @@ export async function recordFlaggedPayment(tx: Prisma.TransactionClient, input: 
           input.eventId ? `eventId=${input.eventId}` : null,
         ].filter(Boolean).join(' | '),
         stripePaymentIntentId: input.stripePaymentIntentId ?? null,
+        stripeInvoiceId: input.stripeInvoiceId ?? null,
         revolutOrderId: input.revolutOrderId ?? null,
       },
     })

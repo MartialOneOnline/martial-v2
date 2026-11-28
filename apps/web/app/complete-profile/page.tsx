@@ -10,6 +10,14 @@ import { PhoneField } from '@/components/PhoneField'
 import { calculateAge, MIN_CONSENT_AGE } from '@/lib/age'
 import { needsRealEmailStep } from '@/lib/privateRelay'
 import { RelayEmailStep } from './RelayEmailStep'
+import { safeRedirect } from '@/lib/safeRedirect'
+
+// Where to continue once the profile is complete: ?next= (same-origin only),
+// e.g. /my/classes after a plan purchase. Defaults to /my as before.
+function continueTo(): string {
+  if (typeof window === 'undefined') return '/my'
+  return safeRedirect(new URLSearchParams(window.location.search).get('next')) ?? '/my'
+}
 
 const BLUE = '#0870E2'
 const BORDER = '#E5E7EB'
@@ -51,7 +59,7 @@ export default function CompleteProfilePage() {
         const isMinor = u.dateOfBirth && calculateAge(u.dateOfBirth) < MIN_CONSENT_AGE
         const guardianDone = !isMinor || (u.guardianName && u.guardianContact && u.guardianConsentAt)
         const needsEmail = needsRealEmailStep(u.email, Boolean(u.relayEmailLocked))
-        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone && !needsEmail) { router.replace('/my'); return }
+        if (u.phone && u.dateOfBirth && u.avatarUrl && guardianDone && !needsEmail) { router.replace(continueTo()); return }
         setRelayLocked(Boolean(u.relayEmailLocked))
         setName(u.name ?? '')
         setEmail(u.email ?? '')
@@ -63,7 +71,7 @@ export default function CompleteProfilePage() {
         setGuardianConsent(Boolean(u.guardianConsentAt))
         setChecking(false)
       })
-      .catch(() => router.replace('/login?redirect=/complete-profile'))
+      .catch(() => router.replace(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`))
   }, [router])
 
   function clearError(f: string) {
@@ -132,7 +140,7 @@ export default function CompleteProfilePage() {
         }),
       })
       if (!res.ok) { setApiError('Something went wrong. Please try again.'); return }
-      router.push('/my')
+      router.push(continueTo())
     } finally {
       setSaving(false)
     }

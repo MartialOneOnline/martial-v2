@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import ClassBookingModal from './ClassBookingModal'
 
 type ScheduleEntry = { dayOfWeek: number; startTime: string; endTime: string }
-type Plan = { id: string; name: string; price: number; currency: string; billingCycle: string; isPopular: boolean }
 type ClassItem = {
   id: string
   name: string
@@ -43,11 +42,9 @@ type SessionItem = { classId: string; name: string; startTime: string; endTime: 
 export default function WeeklyTimetable({
   classes,
   schoolSlug,
-  plans,
 }: {
   classes: ClassItem[]
   schoolSlug: string
-  plans: Plan[]
 }) {
   // Default to Monday to keep SSR/client consistent; set to today after mount
   const [activeDay, setActiveDay] = useState(1)
@@ -159,7 +156,6 @@ export default function WeeklyTimetable({
             schedule: modalSession.schedule,
           }}
           schoolSlug={schoolSlug}
-          plans={plans}
           onClose={() => setModalSession(null)}
         />
       )}

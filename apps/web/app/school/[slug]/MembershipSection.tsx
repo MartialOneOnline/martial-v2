@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { fmtPrice } from '../../../lib/format'
+import { useT } from '@/lib/i18n/LanguageContext'
+import PlanPurchaseSheet, { plansUrl, type PublicPlansResponse } from './PlanPurchaseSheet'
 
 type Plan = {
   id: string
@@ -47,8 +49,46 @@ function PriceLabel({ price, currency, billingCycle }: { price: number; currency
   )
 }
 
-export default function MembershipSection({ plans }: { plans: Plan[] }) {
+export default function MembershipSection({ plans, schoolSlug }: { plans: Plan[]; schoolSlug: string }) {
+  const tp = useT().planPurchase
   const categories = categorise(plans)
+  // How each plan can be bought — evaluated on the server, never inferred here.
+  const [purchase, setPurchase] = useState<Record<string, 'online' | 'manual' | 'unavailable'> | null>(null)
+  const [buy, setBuy] = useState<{ planId: string; classId: string | null } | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(plansUrl(schoolSlug))
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error('plans'))))
+      .then((d: PublicPlansResponse) => {
+        if (!cancelled) setPurchase(Object.fromEntries(d.plans.map(p => [p.id, p.purchase])))
+      })
+      .catch(() => { /* rows simply show no buy button */ })
+    return () => { cancelled = true }
+  }, [schoolSlug])
+
+  // Back from login with ?buy=<planId>[&class=<classId>]: reopen that plan's
+  // sheet. The sheet re-fetches eligibility itself (with the class, if any).
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    const planId = sp.get('buy')
+    if (planId && plans.some(p => p.id === planId)) {
+      setBuy({ planId, classId: sp.get('class') })
+      document.getElementById('memberships')?.scrollIntoView({ block: 'start' })
+    }
+  }, [plans])
+
+  function closeSheet() {
+    setBuy(null)
+    // Drop ?buy/&class so a refresh doesn't reopen it.
+    const url = new URL(window.location.href)
+    if (url.searchParams.has('buy') || url.searchParams.has('class')) {
+      url.searchParams.delete('buy')
+      url.searchParams.delete('class')
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+    }
+  }
+
   const activeTabs = TABS.filter(t => categories[t.key as keyof typeof categories].length > 0)
   const [activeTab, setActiveTab] = useState(activeTabs[0]?.key ?? 'subscription')
 
@@ -93,8 +133,23 @@ export default function MembershipSection({ plans }: { plans: Plan[] }) {
                 <p className="text-xs text-[#6b7280] mt-0.5 line-clamp-1">{plan.description}</p>
               )}
             </div>
-            <div className="shrink-0 text-right">
+            <div className="shrink-0 text-right flex flex-col items-end gap-1.5">
               <PriceLabel price={plan.price} currency={plan.currency} billingCycle={plan.billingCycle} />
+              {purchase?.[plan.id] === 'online' && (
+                <button
+                  type="button"
+                  onClick={() => setBuy({ planId: plan.id, classId: null })}
+                  className="text-xs font-semibold bg-[#0870E2] hover:bg-[#005580] text-white px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  {tp.buy}
+                </button>
+              )}
+              {purchase?.[plan.id] === 'manual' && (
+                <span className="text-[11px] text-[#6b7280]">{tp.payAtSchoolShort}</span>
+              )}
+              {purchase?.[plan.id] === 'unavailable' && (
+                <span className="text-[11px] text-[#6b7280]">{tp.contactSchoolShort}</span>
+              )}
             </div>
           </div>
         ))}
@@ -102,8 +157,12 @@ export default function MembershipSection({ plans }: { plans: Plan[] }) {
 
       {/* Footer CTA */}
       <div className="px-5 py-4 border-t border-slate-100 bg-slate-50">
-        <p className="text-xs text-[#6b7280]">Contact the school directly to sign up or ask about pricing.</p>
+        <p className="text-xs text-[#6b7280]">{tp.sectionFooter}</p>
       </div>
+
+      {buy && (
+        <PlanPurchaseSheet schoolSlug={schoolSlug} planId={buy.planId} classId={buy.classId} onClose={closeSheet} />
+      )}
     </div>
   )
 }
