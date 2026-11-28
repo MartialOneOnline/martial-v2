@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser, getCurrentSchoolId } from '@/lib/auth/server'
 import { requireSchoolAccess, DASHBOARD_ROLES } from '@/lib/auth/contexts'
 import { sniffImage, MAX_IMAGE_BYTES } from '@/lib/validateImageUpload'
+import { processImageUpload, isImagePreset, IMMUTABLE_CACHE_CONTROL, type ImagePreset } from '@/lib/processImageUpload'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY!
@@ -15,7 +16,15 @@ const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY!
 const ALLOWED_BUCKETS = ['avatars', 'class-images'] as const
 type AllowedBucket = (typeof ALLOWED_BUCKETS)[number]
 
-// POST /api/dashboard/upload?bucket=avatars
+// Size preset used when the caller doesn't pass ?kind= — see
+// lib/processImageUpload.ts. The school cover lives in the avatars bucket
+// but needs the wide preset, so SettingsClient sends kind=cover for it.
+const DEFAULT_PRESET: Record<AllowedBucket, ImagePreset> = {
+  'avatars': 'avatar',
+  'class-images': 'image',
+}
+
+// POST /api/dashboard/upload?bucket=avatars[&kind=avatar|logo|cover|image]
 // Body: FormData with field "file"
 export async function POST(req: NextRequest) {
   const user = await getAuthUser()
@@ -46,6 +55,11 @@ export async function POST(req: NextRequest) {
   if (!ALLOWED_BUCKETS.includes(bucket as AllowedBucket)) {
     return NextResponse.json({ error: 'Unsupported bucket' }, { status: 400 })
   }
+  const kind = searchParams.get('kind')
+  if (kind !== null && !isImagePreset(kind)) {
+    return NextResponse.json({ error: 'Unsupported kind' }, { status: 400 })
+  }
+  const preset: ImagePreset = kind ?? DEFAULT_PRESET[bucket as AllowedBucket]
 
   const form = await req.formData()
   const file = form.get('file') as File | null
@@ -62,21 +76,30 @@ export async function POST(req: NextRequest) {
   if (!sniffed)
     return NextResponse.json({ error: 'Unsupported file type — use JPEG, PNG or WebP' }, { status: 400 })
 
-  // Path is fully server-derived (userId + timestamp + the sniffed
+  // Resize + re-encode to WebP before storing (see processImageUpload.ts).
+  // Re-encoding also strips EXIF (incl. GPS) and anything appended after
+  // the image data.
+  const processed = await processImageUpload(new Uint8Array(arrayBuffer), preset)
+  if (!processed)
+    return NextResponse.json({ error: 'Could not read image — try another file' }, { status: 400 })
+
+  // Path is fully server-derived (userId + timestamp + the output
   // extension) — the client's raw filename is never used, so there's no
   // path-traversal surface here regardless of what the browser reports as
-  // File.name.
-  const path = `${user.id}-${Date.now()}.${sniffed.ext}`
+  // File.name. The timestamp makes every URL unique, which is what lets it
+  // be cached as immutable.
+  const path = `${user.id}-${Date.now()}.${processed.ext}`
 
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
     method: 'POST',
     headers: {
       apikey:          SUPABASE_KEY,
       Authorization:  `Bearer ${SUPABASE_KEY}`,
-      'Content-Type':  sniffed.mime,
+      'Content-Type':  processed.mime,
+      'cache-control': IMMUTABLE_CACHE_CONTROL,
       'x-upsert':     'true',
     },
-    body: arrayBuffer,
+    body: new Uint8Array(processed.buffer),
   })
 
   if (!res.ok) {

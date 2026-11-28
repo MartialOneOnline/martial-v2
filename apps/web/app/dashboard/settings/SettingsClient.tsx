@@ -273,7 +273,7 @@ function SchoolTab() {
     if (!file) return
     setUploading(true); setError('')
     const fd = new FormData(); fd.append('file', file)
-    const res = await fetch('/api/dashboard/upload?bucket=avatars', { method: 'POST', body: fd })
+    const res = await fetch('/api/dashboard/upload?bucket=avatars&kind=logo', { method: 'POST', body: fd })
     if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? 'Upload failed'); setUploading(false); return }
     const { url } = await res.json()
     await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ logoUrl: url }) })
@@ -289,7 +289,7 @@ function SchoolTab() {
     if (!file) return
     setUploadingCover(true); setError('')
     const fd = new FormData(); fd.append('file', file)
-    const res = await fetch('/api/dashboard/upload?bucket=avatars', { method: 'POST', body: fd })
+    const res = await fetch('/api/dashboard/upload?bucket=avatars&kind=cover', { method: 'POST', body: fd })
     if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? 'Upload failed'); setUploadingCover(false); return }
     const { url } = await res.json()
     await fetch('/api/dashboard/school', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coverUrl: url, coverPosY: 50 }) })

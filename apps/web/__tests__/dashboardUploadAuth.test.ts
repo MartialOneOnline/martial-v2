@@ -18,6 +18,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
+import sharp from 'sharp'
 import type { SchoolMemberRole } from '@/lib/prisma-client/enums'
 
 const mockGetAuthUser = vi.fn()
@@ -48,17 +49,44 @@ const SIGNATURES: Record<string, number[]> = {
   'image/webp': [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50],
 }
 
-function uploadRequest(qs: string, file?: { name: string; type: string; size: number; realBytes?: boolean }) {
+// The route now decodes + re-encodes every upload with sharp, so
+// "valid image" fixtures must be real decodable images, not just a magic
+// number followed by zeros (that case is now the "corrupt image" fixture).
+async function realImage(format: 'jpeg' | 'png' | 'webp', width = 64, height = 48) {
+  const img = sharp({ create: { width, height, channels: 3, background: { r: 200, g: 30, b: 30 } } })
+  return new Uint8Array(await img.toFormat(format).toBuffer())
+}
+const REAL: Record<string, Uint8Array> = {
+  'image/jpeg': await realImage('jpeg'),
+  'image/png':  await realImage('png'),
+  'image/webp': await realImage('webp'),
+}
+
+type Fixture = {
+  name: string; type: string; size: number
+  // true (default): a real decodable image of `type` (size ignored)
+  // 'signature': magic number padded with zeros to `size` — passes the
+  //   sniff but can't be decoded (also used for the oversize case)
+  // false: zero bytes, fails the sniff
+  realBytes?: true | 'signature' | false
+  bytes?: Uint8Array
+}
+
+function uploadRequest(qs: string, file?: Fixture) {
   const form = new FormData()
   if (file) {
-    // Actually allocate `size` bytes — File.size (which the route checks)
-    // reflects real content length, not a metadata field we can fake.
-    const bytes = new Uint8Array(file.size)
-    if (file.realBytes !== false) {
-      const sig = SIGNATURES[file.type] ?? []
-      bytes.set(sig.slice(0, file.size))
+    let bytes: Uint8Array
+    if (file.bytes) {
+      bytes = file.bytes
+    } else if ((file.realBytes ?? true) === true && REAL[file.type]) {
+      bytes = REAL[file.type]!
+    } else {
+      // Actually allocate `size` bytes — File.size (which the route checks)
+      // reflects real content length, not a metadata field we can fake.
+      bytes = new Uint8Array(file.size)
+      if (file.realBytes !== false) bytes.set((SIGNATURES[file.type] ?? []).slice(0, file.size))
     }
-    const blob = new Blob([bytes], { type: file.type })
+    const blob = new Blob([bytes as BlobPart], { type: file.type })
     form.append('file', new File([blob], file.name, { type: file.type }))
   }
   return new NextRequest(`http://localhost/api/dashboard/upload${qs}`, { method: 'POST', body: form })
@@ -172,7 +200,7 @@ describe('POST /api/dashboard/upload — file validation', () => {
   })
 
   it('400s a file over the size limit', async () => {
-    const res = await POST(uploadRequest('?bucket=avatars', jpeg(6 * 1024 * 1024)))
+    const res = await POST(uploadRequest('?bucket=avatars', { ...jpeg(6 * 1024 * 1024), realBytes: 'signature' }))
     expect(res.status).toBe(400)
     expect(fetch).not.toHaveBeenCalled()
   })
@@ -184,7 +212,7 @@ describe('POST /api/dashboard/upload — file validation', () => {
 
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>
     const calledUrl = fetchMock.mock.calls[0]![0] as string
-    expect(calledUrl).toMatch(/\/object\/avatars\/user-1-\d+\.png$/)
+    expect(calledUrl).toMatch(/\/object\/avatars\/user-1-\d+\.webp$/)
     expect(calledUrl).not.toContain('..')
     expect(calledUrl).not.toContain('passwd')
   })
@@ -195,20 +223,58 @@ describe('POST /api/dashboard/upload — file validation', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  it('accepts png and webp, mapping to the right extension', async () => {
-    await POST(uploadRequest('?bucket=avatars', { name: 'a', type: 'image/png', size: 1024 }))
-    let fetchMock = fetch as unknown as ReturnType<typeof vi.fn>
-    expect(fetchMock.mock.calls[0]![0]).toMatch(/\.png$/)
+  it('400s a file whose signature is valid but whose bytes cannot be decoded', async () => {
+    const res = await POST(uploadRequest('?bucket=avatars', { ...jpeg(), realBytes: 'signature' }))
+    expect(res.status).toBe(400)
+    expect(fetch).not.toHaveBeenCalled()
+  })
 
-    vi.clearAllMocks()
-    mockGetAuthUser.mockResolvedValue({ id: 'user-1', role: 'SCHOOL_OWNER' })
-    mockGetCurrentSchoolId.mockResolvedValue('school-1')
-    mockRequireSchoolAccess.mockResolvedValue({ role: 'OWNER', status: 'ACTIVE' })
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }))
+  it('400s an unknown kind before calling Supabase', async () => {
+    const res = await POST(uploadRequest('?bucket=avatars&kind=huge', jpeg()))
+    expect(res.status).toBe(400)
+    expect(fetch).not.toHaveBeenCalled()
+  })
+})
 
-    await POST(uploadRequest('?bucket=avatars', { name: 'a', type: 'image/webp', size: 1024 }))
-    fetchMock = fetch as unknown as ReturnType<typeof vi.fn>
-    expect(fetchMock.mock.calls[0]![0]).toMatch(/\.webp$/)
+describe('POST /api/dashboard/upload — image processing', () => {
+  function storedUpload() {
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>
+    const [url, init] = fetchMock.mock.calls[0]! as [string, RequestInit]
+    return { url, headers: init.headers as Record<string, string>, body: init.body as Uint8Array }
+  }
+
+  it.each(['image/jpeg', 'image/png', 'image/webp'])('re-encodes %s to WebP', async (type) => {
+    const res = await POST(uploadRequest('?bucket=avatars', { name: 'a', type, size: 1024 }))
+    expect(res.status).toBe(200)
+    const { url, headers, body } = storedUpload()
+    expect(url).toMatch(/\.webp$/)
+    expect(headers['Content-Type']).toBe('image/webp')
+    expect((await sharp(body).metadata()).format).toBe('webp')
+  })
+
+  it('sends a long-lived cache-control header', async () => {
+    await POST(uploadRequest('?bucket=avatars', jpeg()))
+    expect(storedUpload().headers['cache-control']).toBe('max-age=31536000')
+  })
+
+  it.each([
+    ['avatars (avatar preset)', '?bucket=avatars', 512, 341],
+    ['logo preset', '?bucket=avatars&kind=logo', 512, 341],
+    ['cover preset', '?bucket=avatars&kind=cover', 1620, 1080],
+    ['class-images (image preset)', '?bucket=class-images', 1600, 1067],
+  ])('downsizes a large photo for %s without cropping', async (_label, qs, w, h) => {
+    const big = await realImage('jpeg', 3000, 2000)
+    await POST(uploadRequest(qs, { name: 'big.jpg', type: 'image/jpeg', size: big.length, bytes: big }))
+    const meta = await sharp(storedUpload().body).metadata()
+    expect(meta.width).toBe(w)
+    expect(meta.height).toBe(h)
+  })
+
+  it('never enlarges a small image', async () => {
+    await POST(uploadRequest('?bucket=avatars&kind=cover', jpeg()))
+    const meta = await sharp(storedUpload().body).metadata()
+    expect(meta.width).toBe(64)
+    expect(meta.height).toBe(48)
   })
 })
 

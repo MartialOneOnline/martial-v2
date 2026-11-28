@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth/server'
 import { sniffImage, MAX_IMAGE_BYTES } from '@/lib/validateImageUpload'
+import { processImageUpload, IMMUTABLE_CACHE_CONTROL } from '@/lib/processImageUpload'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY!
@@ -34,21 +35,30 @@ export async function POST(req: NextRequest) {
   if (!sniffed)
     return NextResponse.json({ error: 'Unsupported file type — use a JPEG, PNG or WebP image' }, { status: 400 })
 
-  // Path is fully server-derived (userId + sniffed extension) — the
+  // Resize + re-encode to WebP before storing (see processImageUpload.ts) —
+  // also strips EXIF (incl. GPS) from phone photos.
+  const processed = await processImageUpload(buffer, 'avatar')
+  if (!processed)
+    return NextResponse.json({ error: 'Could not read image — try another file' }, { status: 400 })
+
+  // Path is fully server-derived (userId + output extension) — the
   // client's raw filename is never used, so there's no path-traversal
-  // surface regardless of what the browser reports as File.name. Stable
-  // per user (no timestamp) so the avatar URL doesn't change on re-upload.
-  const path = `${user.id}.${sniffed.ext}`
+  // surface regardless of what the browser reports as File.name. Stable per
+  // user (no timestamp) so re-uploads overwrite instead of piling up; the
+  // returned URL carries ?v=<timestamp> so each upload is a new URL that can
+  // be cached as immutable without ever showing the previous photo.
+  const path = `${user.id}.${processed.ext}`
 
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${path}`, {
     method: 'POST',
     headers: {
-      apikey:         SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type':  sniffed.mime,
+      apikey:          SUPABASE_KEY,
+      Authorization:  `Bearer ${SUPABASE_KEY}`,
+      'Content-Type':  processed.mime,
+      'cache-control': IMMUTABLE_CACHE_CONTROL,
       'x-upsert':     'true',
     },
-    body: buffer,
+    body: new Uint8Array(processed.buffer),
   })
 
   if (!res.ok) {
@@ -56,6 +66,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message ?? 'Upload failed' }, { status: 500 })
   }
 
-  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${path}`
+  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${path}?v=${Date.now()}`
   return NextResponse.json({ url: publicUrl })
 }
