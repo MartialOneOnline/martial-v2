@@ -186,6 +186,8 @@ Reglas:
 - `DIRECT_URL` — nunca se comparte
 - `.env` — nunca se sube a GitHub
 
+**Storage y egress (desde 2026-11-28):** el plan Free se bloqueó por `exceed_cached_egress_quota` (avatares de hasta 5MB servidos a 32–42px) → proyecto pasado a **Pro**. Toda subida pasa ahora por `apps/web/lib/processImageUpload.ts` (sharp: redimensiona sin recortar + WebP + `cache-control: max-age=31536000`). Presets: `avatar`/`logo` 512px, `cover` 1920×1080, `image` 1600px. No usar `next/image` para imágenes de Supabase sin valorar el coste de Image Optimization en Vercel.
+
 ---
 
 ## Prisma
@@ -315,6 +317,14 @@ La app de Google Play / App Store **no vive en este repo**. Es un contenedor Flu
 ---
 
 ## Historial de sesiones
+
+### Sesión — 2026-11-28 (rama `perf/optimize-image-uploads` — reducir egress de Supabase Storage)
+
+- Causa: Supabase restringió el proyecto por `exceed_cached_egress_quota` (el login con Google fallaba por eso). Las imágenes se guardaban tal cual (hasta 5MB) y se mostraban como miniaturas con `<img>`; sin `cache-control` explícito. El usuario pasó el proyecto a Pro.
+- `lib/processImageUpload.ts` nuevo (sharp, ahora dependencia explícita de `apps/web`). `/api/dashboard/upload` acepta `?kind=avatar|logo|cover|image` (por defecto según bucket; SettingsClient envía `kind=logo` y `kind=cover`); `/api/my/upload` guarda `<userId>.webp` y devuelve la URL con `?v=<timestamp>` para que la caché larga no muestre la foto anterior. Imágenes no decodificables → 400. La recodificación elimina EXIF/GPS.
+- Tests: `dashboardUploadAuth.test.ts` usa imágenes reales generadas con sharp + casos nuevos (WebP, cache-control, presets, no ampliar); `myUpload.test.ts` nuevo. 12 archivos de test (bookings/classes/events/my-portal) ya fallaban igual sin estos cambios.
+- Script `scripts/optimize-storage-images.ts` (dry-run por defecto, `--live` para escribir): reprocesa en el mismo sitio y formato los objetos >150KB de `avatars` y `class-images` y pone cache-control de 1 año; no toca la BD (solo la lee para identificar portadas). **No ejecutado todavía.**
+- Pendiente menor: un alumno con avatar antiguo `.jpg/.png` que vuelva a subir foto deja el archivo viejo huérfano (sigue borrándose al eliminar la cuenta).
 
 ### Sesión — 2026-11-26 (rama `claude/lote0-join-safety` — Lote 0 del flujo «alumno sin escuela se une a una escuela»)
 
